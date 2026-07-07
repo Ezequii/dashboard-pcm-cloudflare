@@ -1,0 +1,195 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Controle de Requisições PCM 2026 — Cloudflare Pages</title>
+  <link rel="icon" type="image/png" href="/static/favicon.png" />
+  <link rel="stylesheet" href="/static/styles_v50_corrigido.css?v=72" />
+</head>
+<body class="v44-polish v48-balanced v50-real-fix v51-visual-clean v66-premium">
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  <div id="drawerBackdrop" class="drawer-backdrop no-print" hidden></div>
+
+  <header class="topbar executive-topbar topbar-v33 topbar-v34 topbar-v35 topbar-v36 topbar-v38 topbar-v39 topbar-v40 topbar-v41">
+    <div class="topbar-row topbar-row-main">
+      <div class="brand brand-amaggi brand-panel">
+        <div class="brand-logo-box"><img src="/static/logo_amaggi.png" alt="AMAGGI" /></div>
+        <div class="brand-copy-wrap">
+          <div>
+            <div class="brand-title-line"><h1>Controle de Requisições PCM</h1><span class="version-pill-v34" aria-label="Versão visual premium">Visual v72</span></div>
+            <p class="subtitle-top">Gestão executiva de requisições — 2026</p>
+          </div>
+          <nav class="dashboard-tabs no-print prominent-tabs inline-tabs" aria-label="Navegação do dashboard">
+            <button class="tab-btn active" data-tab="visao"><span>Visão Executiva</span><small>visão gerencial</small></button>
+            <button class="tab-btn" data-tab="base"><span>Base de Tratativa</span><small>base operacional</small></button>
+          </nav>
+        </div>
+      </div>
+      <div class="top-actions no-print">
+        <span id="clock" class="clock" aria-label="Relógio do sistema"></span>
+        <button id="btnRefresh" class="btn btn-primary" aria-label="Recarregar dados da planilha">Recarregar</button>
+        
+        <div id="exportMenu" class="export-menu">
+          <button id="btnExportMenu" class="btn btn-soft" type="button" aria-label="Abrir opções de exportação" aria-expanded="false">Exportar</button>
+          <div id="exportDropdown" class="export-dropdown" hidden>
+            <button id="btnExportExcel" class="export-item" type="button">Exportar Excel</button>
+            <button id="btnExportPdf" class="export-item" type="button">PDF indisponível</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="topbar-row topbar-row-filters-v40 no-print">
+      <div class="smart-filter-row executive-filter-row top-inline-filters top-filters-v40" id="mainFilters" aria-label="Filtros principais"></div>
+      <div class="top-meta-v40"><span id="meta" class="meta-chip-v40">Carregando dados...</span></div>
+    </div>
+
+    <div class="topbar-row topbar-row-quick no-print">
+      <div id="quickChips" class="quick-chip-row" aria-label="Filtros rápidos">
+        <button type="button" class="quick-chip active" data-quick="TODAS">Todas</button>
+        <button type="button" class="quick-chip" data-quick="FORA_SLA">Fora SLA</button>
+        <button type="button" class="quick-chip" data-quick="CRITICO">Crítico</button>
+        <button type="button" class="quick-chip" data-quick="15_DIAS">15+ dias</button>
+        <button type="button" class="quick-chip" data-quick="30_DIAS">30+ dias</button>
+        <button type="button" class="quick-chip" data-quick="SEM_NF">Sem NF</button>
+      </div>
+      <div id="activeFilters" class="active-filters active-filters-top"></div>
+    </div>
+  </header>
+
+  <aside id="filterDrawer" class="filter-drawer no-print" aria-label="Filtros do dashboard" aria-hidden="true">
+    <div class="drawer-head">
+      <div>
+        <strong>Filtros</strong>
+        <span>Use só quando precisar aprofundar</span>
+      </div>
+      <button id="btnCloseFilters" class="drawer-close" type="button" aria-label="Fechar filtros">×</button>
+    </div>
+    <div class="drawer-body">
+      <p class="drawer-helper">Use filtros rápidos no topo ou limpe todos os filtros por aqui.</p>
+      <button id="btnClear" class="btn btn-soft btn-compact" aria-label="Limpar todos os filtros">Limpar filtros</button>
+    </div>
+  </aside>
+
+  <main class="page executive-page page-v33 page-v34 page-v35 page-v38 page-v39 page-v40 page-v41">
+
+    <section class="kpi-grid essential-kpis executive-essential-kpis kpis-v33 kpi-no-scroll-v45" data-panel="visao">
+      <article class="kpi-card metric-card kpi-pendente principal kpi-primary-v41">
+        <div class="kpi-icon">R$</div>
+        <div class="kpi-copy"><span>Valor pendente</span><strong id="kValorPendente">R$ 0</strong><small id="kValorPendenteSub">Aguardando ação</small></div>
+      </article>
+      <article class="kpi-card metric-card kpi-pendencias kpi-primary-v41">
+        <div class="kpi-icon">!</div>
+        <div class="kpi-copy"><span>Pendências</span><strong id="kPendencias">0</strong><small id="kPendenciasSub">RCs em aberto</small></div>
+      </article>
+      <article class="kpi-card metric-card kpi-concluido kpi-primary-v41">
+        <div class="kpi-icon">%</div>
+        <div class="kpi-copy"><span>% concluído</span><strong id="kPctConcluido">0%</strong><small id="kConcluidoSub">0 concluídas</small></div>
+      </article>
+      <article class="kpi-card metric-card tempo kpi-atraso kpi-secondary-v41">
+        <div class="kpi-icon">D</div>
+        <div class="kpi-copy"><span>Maior atraso</span><strong id="kMaiorAtraso">0 dias</strong><small id="kMaiorAtrasoSub">Sem pendência</small></div>
+      </article>
+      <article class="kpi-card metric-card money kpi-sla kpi-secondary-v41">
+        <div class="kpi-icon">SLA</div>
+        <div class="kpi-copy"><span>Valor fora SLA</span><strong id="kValorForaSla">R$ 0</strong><small id="kValorForaSlaSub">0 RCs vencidas</small></div>
+      </article>
+      <article id="farolRegional" class="kpi-card metric-card farol-card-v33 farol-ok kpi-secondary-v41">
+        <div class="farol-dot"></div>
+        <div class="kpi-copy"><span>Farol de risco</span><strong id="kFarolStatus">OK</strong><small id="kFarolSub">Dentro do controle</small></div>
+      </article>
+    </section>
+
+    <section class="executive-comment-v33" data-panel="visao">
+      <div class="comment-label">Leitura rápida</div>
+      <p id="executiveComment" aria-live="polite">Carregando leitura executiva...</p>
+    </section>
+
+    <section class="cockpit-grid-v33" data-panel="visao">
+      <article class="chart-card cockpit-card funnel-card-v33">
+        <div class="chart-head"><h3>Fluxo de pendências</h3><span>Etapa, valor e criticidade</span></div>
+        <div id="processCards" class="process-grid process-grid-compact process-grid-executive process-cards-host process-v33"></div>
+      </article>
+      <article class="chart-card cockpit-card priority-card-v33">
+        <div class="chart-head"><h3>Prioridades de cobrança</h3><span>Maior impacto primeiro</span></div>
+        <div id="topPrioridades" class="priority-list-v33"></div>
+      </article>
+    </section>
+
+    <section class="action-now-v33" data-panel="visao">
+      <div class="action-title-v33">
+        <strong>Ação agora</strong>
+        <span>Quem cobrar primeiro</span>
+      </div>
+      <div id="actionNowList" class="action-list-v33"></div>
+      <div class="owners-mini-v33">
+        <strong>Donos da ação</strong>
+        <div id="ownersCriticos" class="owners-list-v33"></div>
+      </div>
+    </section>
+
+    <section class="base-commandbar-v36" data-panel="base" hidden>
+      <div class="base-title-v36">
+        <span>Base de Tratativa</span>
+        <strong>Base detalhada</strong>
+        <small>Trate primeiro o que está vencido, parado há mais dias e com responsável definido.</small>
+      </div>
+      <div class="base-legend-v36">
+        <span><b></b> Crítico</span>
+        <span><b></b> Atenção</span>
+        <span><b></b> Dentro do prazo</span>
+      </div>
+    </section>
+
+    <section id="processCardsBase" class="process-grid process-grid-compact process-grid-executive process-cards-host base-stage-cards" data-panel="base" hidden></section>
+
+    <section class="table-card table-card-compact" data-panel="base" hidden>
+      <div class="table-head">
+        <div>
+          <h3>Base detalhada</h3>
+          <p id="tableCounter">0 registros</p>
+          <small class="leader-table-note">Tratativa operacional: comece pelo maior atraso e pelo SLA crítico.</small>
+        </div>
+        <div class="table-tools no-print">
+          <label class="table-search">
+            <span>Pesquisa geral</span>
+            <input id="globalSearch" type="search" placeholder="Buscar fornecedor, RC, pedido, equipamento ou OS..." />
+          </label>
+          <button id="btnToggleAdvancedSearch" class="btn btn-small btn-soft advanced-toggle" type="button" aria-expanded="false">Filtros avançados</button>
+          <div id="advancedSearchPanel" class="advanced-search no-print" aria-label="Busca avançada" hidden>
+            <label><span>Recebido de</span><input id="advDateFrom" type="date" /></label>
+            <label><span>Até</span><input id="advDateTo" type="date" /></label>
+            <label><span>Valor mín.</span><input id="advValueMin" type="number" min="0" step="0.01" placeholder="R$" /></label>
+            <label><span>Valor máx.</span><input id="advValueMax" type="number" min="0" step="0.01" placeholder="R$" /></label>
+            <button id="btnClearAdvanced" class="btn btn-small btn-soft" type="button">Limpar busca avançada</button>
+          </div>
+          <div class="pager">
+            <label>Exibir</label>
+            <select id="pageSize"><option>25</option><option selected>50</option><option>100</option><option>200</option></select>
+            <button id="prevPage" class="btn btn-small">Anterior</button>
+            <span id="pageInfo">1/1</span>
+            <button id="nextPage" class="btn btn-small">Próxima</button>
+          </div>
+        </div>
+      </div>
+      <div class="table-wrap table-wrap-compact">
+        <table id="dataTable"><thead></thead><tbody></tbody></table>
+      </div>
+      <p class="table-hint no-print">Ordem da leitura: situação → prioridade → responsável → histórico → valor.</p>
+    </section>
+
+    <footer class="footer-credit">
+      Desenvolvido por <strong>Ezequiel Caetano</strong>
+    </footer>
+  </main>
+
+  <script src="/static/js/state.js?v=72"></script>
+  <script src="/static/js/utils.js?v=72"></script>
+  <script src="/static/js/api.js?v=72"></script>
+  <script src="/static/js/filters.js?v=72"></script>
+  <script src="/static/js/dashboard.js?v=72"></script>
+  <script src="/static/js/table.js?v=72"></script>
+  <script src="/static/js/core.js?v=72"></script>
+  <script src="/static/js/main.js?v=72"></script>
+</body>
+</html>

@@ -1,0 +1,296 @@
+// v34 motion helpers: microinterações funcionais, respeitando preferência do usuário.
+const v34ReducedMotionQuery = window.matchMedia ? window.matchMedia('(prefers-reduced-motion: reduce)') : {matches:false};
+let v34PrefersReducedMotion = !!v34ReducedMotionQuery.matches;
+v34ReducedMotionQuery.addEventListener?.('change', (event) => { v34PrefersReducedMotion = !!event.matches; });
+
+function v34MarkUpdated(el){
+  if(!el || v34PrefersReducedMotion) return;
+  const target = el.closest('.kpi-card,.executive-comment-v33,.chart-card,.action-card-v33') || el;
+  target.classList.remove('text-updated');
+  void target.offsetWidth;
+  target.classList.add('text-updated');
+  window.clearTimeout(target._v34UpdateTimer);
+  target._v34UpdateTimer = window.setTimeout(() => target.classList.remove('text-updated'), 620);
+}
+
+async function loadDashboard(seq=null){
+  const requestSeq = seq || ++state.dashboardSeq;
+  const query = baseQuery();
+  const cacheKey = JSON.stringify(query);
+  const cached = cacheGet(cacheKey, 120000);
+  if(cached){
+    renderDashboardData(cached);
+    return;
+  }
+  const data = await api('/api/dashboard', query);
+  if(requestSeq !== state.dashboardSeq) return;
+  cacheSet(cacheKey, data);
+  renderDashboardData(data);
+}
+
+function renderDashboardData(data){
+  const k = data.kpis || {};
+  const total = Number(k.total_rcs || 0).toLocaleString('pt-BR');
+  const pend = Number(k.pendentes || 0).toLocaleString('pt-BR');
+  const concluidas = Number(k.concluidas || 0).toLocaleString('pt-BR');
+
+  setText('kValorPendente', k.valor_pendente_compacto || k.valor_pendente || 'R$ 0', k.valor_pendente || 'R$ 0');
+  setText('kValorPendenteSub', `${pend} RCs em aberto`);
+  setText('kPendencias', pend);
+  setText('kPendenciasSub', `${k.pct_pendente || '0%'} do total`);
+  setText('kPctConcluido', k.pct_concluido || '0%');
+  setText('kConcluidoSub', `${concluidas} concluídas`);
+  setText('kMaiorAtraso', `${Number(k.maior_atraso_dias || 0).toLocaleString('pt-BR')} dias`);
+  setText('kMaiorAtrasoSub', k.maior_atraso_label || 'Sem pendência', k.maior_atraso_detail || '');
+  setText('kValorForaSla', k.valor_fora_sla_compacto || k.valor_fora_sla || 'R$ 0', k.valor_fora_sla || 'R$ 0');
+  setText('kValorForaSlaSub', `${Number(k.rcs_fora_sla || 0).toLocaleString('pt-BR')} RCs fora SLA`);
+
+  renderFarol(data.farol || {});
+  renderExecutiveComment(data.comentario_executivo || 'Resumo executivo indisponível para o filtro atual.');
+
+  // Compatibilidade com ids antigos caso alguma customização local ainda use.
+  setText('kTotalRCs', total);
+  setText('kValor', k.valor_total_compacto || k.valor_total, k.valor_total);
+  setText('kValorTotal', k.valor_total_compacto || k.valor_total, k.valor_total);
+  setText('kTicketTempo', k.ticket_tempo_dias || '0 dias', k.ticket_tempo_dias || '0 dias');
+  setText('kFornecedores', Number(k.fornecedores || 0).toLocaleString('pt-BR'));
+  setText('kTotalSub', `${total} RCs filtradas`);
+
+  renderProcess(data.etapas || []);
+  renderProcess(data.etapas || [], 'processCardsBase');
+  renderInsights(data.alerts || {});
+  renderActionNow(data.alerts?.action_now || []);
+  renderTopPriorities(data.top5_prioridades || []);
+  renderOwners(data.alerts?.owners_criticos || data.charts?.owners_criticos || []);
+  deferCharts(data);
+  syncQuickChips();
+}
+
+function deferCharts(data){
+  if(state.activeTab !== 'visao') return;
+  const job = () => {
+    renderBars('chartFornecedoresPendentes', data.charts?.top_fornecedores_pendentes || data.charts?.top_fornecedores || [], 'green');
+  };
+  if('requestIdleCallback' in window) requestIdleCallback(job, {timeout: 500});
+  else requestAnimationFrame(job);
+}
+
+function setText(id, text, title=null){
+  const el = $(id);
+  if(!el) return;
+  const next = String(text ?? '');
+  const changed = el.textContent !== next;
+  el.textContent = next;
+  if(title) el.title = title;
+  if(changed) v34MarkUpdated(el);
+}
+
+function renderFarol(farol){
+  const card = $('farolRegional');
+  if(!card) return;
+  const status = String(farol.status || 'OK').toUpperCase();
+  card.classList.remove('farol-ok','farol-atencao','farol-critico');
+  card.classList.add(status.includes('CR') ? 'farol-critico' : (status.includes('AT') ? 'farol-atencao' : 'farol-ok'));
+  setText('kFarolStatus', status);
+  setText('kFarolSub', farol.label || farol.detail || 'Dentro do controle', farol.detail || '');
+}
+
+function renderExecutiveComment(text){
+  const el = $('executiveComment');
+  if(!el) return;
+  el.textContent = normalizeExecutiveComment(text);
+}
+
+function normalizeExecutiveComment(text){
+  const raw = String(text || '').replace(/^Resumo do dia:\s*/i, '').trim();
+  return raw
+    .replace(/maior concentração em /i, 'Maior gargalo: ')
+    .replace(/, com /i, ' — ')
+    .replace(/ parado\. Fornecedor crítico:/i, ' parado. Cobrar:')
+    .replace(/\. Prioridade:/i, '. Prioridade:')
+    .replace(/ · SEM LANÇAMENTO · /i, ' · ')
+    .replace(/ · SEM PEDIDO · /i, ' · ')
+    .replace(/ · SEM NF · /i, ' · ')
+    .replace(/ · dono /i, ' · Dono: ');
+}
+
+function renderProcess(etapas, hostId=null){
+  const selected = new Set(state.filters.ETAPA || []);
+  const markup = etapas.map(e => {
+    const active = selected.has(e.etapa);
+    const cls = stageClass(e.etapa);
+    const fora = Number(e.fora_sla || 0);
+    const crit = Number(e.criticas || 0);
+    return `
+    <button type="button" class="process-card ${cls} ${active ? 'active' : ''}" style="--stage:${e.cor};--stage-soft:${hexToRgba(e.cor, .10)}" data-etapa="${escapeAttr(e.etapa)}" aria-pressed="${active ? 'true' : 'false'}" title="Clique para filtrar: ${escapeAttr(e.etapa)} | Valor: ${escapeAttr(e.valor_completo || e.valor_formatado || '')}">
+      <div class="process-top">
+        <span class="stage-dot" aria-hidden="true"></span>
+        <span class="stage">${escapeHtml(e.etapa)}</span>
+      </div>
+      <div class="process-main">
+        <strong class="num">${Number(e.qtd).toLocaleString('pt-BR')}</strong>
+        <span>${escapeHtml(e.valor_formatado || '')}</span>
+      </div>
+      <div class="process-foot">
+        <span>${escapeHtml(e.percentual_formatado)}</span>
+        <strong>${fora ? `${fora} fora SLA` : 'SLA ok'}</strong>
+      </div>
+      ${crit ? `<div class="stage-critical-badge">${crit} crítico${crit > 1 ? 's' : ''}</div>` : ''}
+    </button>`;
+  }).join('');
+  const hosts = hostId ? [$(hostId)].filter(Boolean) : Array.from(document.querySelectorAll('.process-cards-host:not(#processCardsBase)'));
+  hosts.forEach(host => {
+    host.innerHTML = markup;
+    host.querySelectorAll('.process-card').forEach(card => {
+      card.onclick = () => toggleProcessFilter(card.dataset.etapa);
+    });
+  });
+}
+
+function toggleProcessFilter(etapa){
+  const current = state.filters.ETAPA || [];
+  state.filters.ETAPA = current.includes(etapa) ? [] : [etapa];
+  state.page = 1;
+  updateFilterUI();
+  refreshAll(false);
+}
+
+function filterStageAndOpenBase(etapa){
+  if(etapa){
+    state.filters.ETAPA = [etapa];
+    state.page = 1;
+    updateFilterUI();
+  }
+  switchTab('base');
+  loadRows();
+}
+
+function toneColor(name){
+  const n = String(name || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+  if(n.includes('sem-lancamento') || n.includes('sem lancamento')) return '#D32F2F';
+  if(n.includes('sem-pedido') || n.includes('sem pedido')) return '#F2A900';
+  if(n.includes('sem-nf') || n.includes('sem nf')) return '#00629E';
+  return '#23A067';
+}
+
+
+function hasUsefulAction(x){
+  const kind = String(x?.kind || '');
+  const main = String(x?.main || '');
+  const value = String(x?.value || '');
+  const text = `${main} ${value}`.toLowerCase();
+  if(kind === 'old') return !text.includes('0 dias') && !main.toLowerCase().includes('sem pend');
+  if(text.includes('sem pendência')) return false;
+  if(text.includes('0 rc')) return false;
+  if(value.trim() === 'R$ 0,00') return false;
+  return true;
+}
+
+function shortOwnerLabel(label){
+  const raw = String(label || '').trim();
+  const n = raw.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+  if(n.includes('fornecedor')) return 'Fornecedor';
+  if(n.includes('compras') || n.includes('coupa')) return 'Compras';
+  if(n.includes('pcm')) return 'PCM';
+  if(n.includes('responsavel')) return 'Etapa';
+  return raw.length > 14 ? `${raw.slice(0, 14)}…` : raw;
+}
+
+function renderActionNow(actions){
+  const host = $('actionNowList');
+  if(!host) return;
+  const useful = (actions || []).filter(hasUsefulAction);
+  const rows = useful.length ? useful.slice(0, 4) : (actions || []).slice(0, 2);
+  if(!rows.length){
+    host.innerHTML = '<div class="empty-state">Sem ação pendente no filtro atual</div>';
+    return;
+  }
+  host.innerHTML = rows.map(x => `
+    <button type="button" class="action-card-v33 ${escapeAttr(x.kind || '')}" data-etapa="${escapeAttr(x.etapa || '')}" title="Abrir base filtrada: ${escapeAttr(x.detail || x.title || '')}">
+      <span>${escapeHtml(x.title || '')}</span>
+      <strong>${escapeHtml(x.main || '')}</strong>
+      <em>${escapeHtml(x.value || '')}</em>
+      <small title="${escapeAttr(x.owner || x.detail || '')}">${escapeHtml(shortOwnerLabel(x.owner || x.detail || ''))}</small>
+    </button>`).join('');
+  host.querySelectorAll('.action-card-v33').forEach(btn => {
+    btn.onclick = () => filterStageAndOpenBase(btn.dataset.etapa || '');
+  });
+}
+
+function renderTopPriorities(rows){
+  const host = $('topPrioridades');
+  if(!host) return;
+  const items = (rows || []).slice(0, 4);
+  if(!items.length){ host.innerHTML = '<div class="empty-state">Sem prioridade pendente</div>'; return; }
+  host.innerHTML = items.map((x, idx) => `
+    <button type="button" class="priority-row-v33 ${stageClass(x.etapa)}" data-etapa="${escapeAttr(x.etapa || '')}" title="${escapeAttr(x.fornecedor || '')} · ${escapeAttr(x.valor_full || x.valor_fmt || '')}">
+      <div class="priority-rank">${idx + 1}</div>
+      <div class="priority-main"><strong>${escapeHtml(x.codigo || '')}</strong><span>${escapeHtml(x.fornecedor || '')}</span></div>
+      <div class="priority-meta"><b>${escapeHtml(x.valor_fmt || '')}</b><span>${Number(x.dias || 0).toLocaleString('pt-BR')} dias</span></div>
+      <div class="priority-owner" title="${escapeAttr(x.owner_team || '')}">${escapeHtml(shortOwnerLabel(x.owner_team || ''))}</div>
+    </button>`).join('');
+  host.querySelectorAll('.priority-row-v33').forEach(btn => {
+    btn.onclick = () => filterStageAndOpenBase(btn.dataset.etapa || '');
+  });
+}
+
+function renderOwners(items){
+  const host = $('ownersCriticos');
+  if(!host) return;
+  const rows = (items || []).slice(0, 4);
+  if(!rows.length){ host.innerHTML = '<span class="empty-mini">Sem responsáveis críticos</span>'; return; }
+  host.innerHTML = rows.map(x => `
+    <div class="owner-row-v33" title="${escapeAttr(x.full || x.formatted || '')}">
+      <span>${escapeHtml(shortOwnerLabel(x.label || ''))}</span>
+      <strong>${escapeHtml(x.formatted || String(x.value || 0))}</strong>
+    </div>`).join('');
+}
+
+function renderInsights(alerts){
+  const attention = $('attentionList');
+  const aging = $('agingList');
+  if(attention){
+    const items = alerts?.atencao || [];
+    attention.innerHTML = items.length ? items.map(x => `
+      <div class="attention-item" style="--tone:${toneColor(x.tone || x.label)}" title="${escapeAttr(x.full || x.detail || '')}">
+        <span>${escapeHtml(x.label)}</span>
+        <strong>${escapeHtml(x.value || '0')}</strong>
+        <small>${escapeHtml(x.detail || '')}</small>
+      </div>`).join('') : '<div class="empty-state">Sem pendências no filtro atual</div>';
+  }
+  if(aging){
+    const rows = alerts?.idade_pendencias || [];
+    aging.innerHTML = rows.length ? rows.map(x => `
+      <div class="aging-row" style="--tone:${toneColor(x.tone || x.label)}" title="Mais antiga: ${escapeAttr(x.maximo || '')}">
+        <div class="aging-stage">${escapeHtml(x.label)}</div>
+        <div class="aging-metric"><span>Média</span><strong>${escapeHtml(x.media || '0 dias')}</strong></div>
+        <div class="aging-metric"><span>Mais antiga</span><strong>${escapeHtml(x.maximo || '0 dias')}</strong></div>
+      </div>`).join('') : '<div class="empty-state">Sem idade de pendência</div>';
+  }
+}
+
+function renderBars(id, items, tone){
+  const el = $(id);
+  if(!el) return;
+  const rows = (items || []).slice(0, 6);
+  if(!rows.length){ el.innerHTML = '<div class="empty-state">Sem dados para o filtro atual</div>'; return; }
+  const max = Math.max(...rows.map(x => Number(x.value)||0), 1);
+  el.innerHTML = rows.map((x, idx) => {
+    const w = Math.max(3, (Number(x.value)||0) / max * 100);
+    const detail = x.meta || (x.qtd ? `${Number(x.qtd).toLocaleString('pt-BR')} RCs` : '');
+    return `<div class="bar-row ${tone}" title="${escapeAttr(`${x.label} - ${x.full || x.formatted || x.value}`)}">
+      <div class="bar-rank">${idx + 1}</div>
+      <div class="bar-label-group"><div class="bar-label" title="${escapeAttr(x.label)}">${escapeHtml(x.label)}</div>${detail ? `<small>${escapeHtml(detail)}</small>` : ''}</div>
+      <div class="bar-track"><div class="bar-fill" style="--bar-w:${(w/100).toFixed(4)}"></div></div>
+      <div class="bar-value">${escapeHtml(x.formatted || String(x.value))}</div>
+    </div>`;
+  }).join('');
+}
+
+function compactCurrency(value){
+  const val = Number(value) || 0;
+  const abs = Math.abs(val);
+  if(abs >= 1000000) return `R$ ${(val/1000000).toFixed(1).replace('.', ',')} mi`;
+  if(abs >= 1000) return `R$ ${(val/1000).toFixed(0).replace('.', ',')} mil`;
+  return val.toLocaleString('pt-BR', {style:'currency', currency:'BRL'});
+}
