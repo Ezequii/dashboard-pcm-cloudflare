@@ -1,5 +1,5 @@
 
-const STATIC_DATA_URL = '/static/data/dashboard-data.json?v=72';
+const STATIC_DATA_URL = '/static/data/dashboard-data.json?v=76';
 let __STATIC_DATA = null;
 
 async function loadStaticData(force=false){
@@ -209,40 +209,202 @@ function farolRegional(rows){
   const totalPend = pend.length;
   const valorPend = pend.reduce((s,r)=>s+n(r._VALOR_TOTAL),0);
   const pctPendTotal = total ? totalPend/total*100 : 0;
-  if(!totalPend) return {status:'OK',label:'Sem pendência aberta',detail:'Tudo concluído no filtro atual',pct_rcs_fora_sla:0,pct_valor_fora_sla:0,pct_pendente_total:0,maior_atraso_dias:0,valor_fora_sla:brMoney(0),valor_fora_sla_compacto:compactMoney(0),rcs_fora_sla:0,rcs_criticas:0};
-  const vencidas = pend.filter(r=>['ATENÇÃO','CRÍTICO'].includes(r['SLA STATUS']));
-  const criticas = pend.filter(r=>r['SLA STATUS']==='CRÍTICO');
-  const valorVencido = vencidas.reduce((s,r)=>s+n(r._VALOR_TOTAL),0);
-  const valorCritico = criticas.reduce((s,r)=>s+n(r._VALOR_TOTAL),0);
-  const pctRcs = totalPend ? vencidas.length/totalPend*100 : 0;
-  const pctValor = valorPend ? valorVencido/valorPend*100 : 0;
-  const pctCrit = totalPend ? criticas.length/totalPend*100 : 0;
-  const pctValCrit = valorPend ? valorCritico/valorPend*100 : 0;
+  if(!totalPend){
+    return {
+      status:'BOM',
+      label:'Tudo concluído no filtro atual',
+      detail:'Sem pendência aberta',
+      pct_rcs_fora_sla:0,
+      pct_valor_fora_sla:0,
+      pct_pendente_total:0,
+      maior_atraso_dias:0,
+      valor_fora_sla:brMoney(0),
+      valor_fora_sla_compacto:compactMoney(0),
+      rcs_fora_sla:0,
+      rcs_criticas:0,
+      rcs_atrasadas:0,
+      action_hint:'Sem ação emergencial'
+    };
+  }
   const maior = Math.max(0, ...pend.map(r=>n(r._DIAS_PARADO)));
-  let status = 'OK';
-  if(pctPendTotal >= 25 || maior >= 120 || valorPend >= 5000000 || totalPend >= 600) status='CRÍTICO';
-  else if(pctPendTotal >= 7 || pctRcs >= 20 || pctValor >= 15 || criticas.length > 0 || maior >= 30 || valorPend >= 1000000) status='ATENÇÃO';
-  return {status,label:`${brPct(pctPendTotal)} pendente · ${brPct(pctRcs)} fora SLA`,detail:`${compactMoney(valorPend)} pendente · maior atraso ${brInt(maior)} dias`,pct_rcs_fora_sla:pctRcs,pct_valor_fora_sla:pctValor,pct_pendente_total:pctPendTotal,pct_criticas:pctCrit,pct_valor_critico:pctValCrit,maior_atraso_dias:maior,valor_fora_sla:brMoney(valorVencido),valor_fora_sla_compacto:compactMoney(valorVencido),valor_pendente:brMoney(valorPend),valor_pendente_compacto:compactMoney(valorPend),rcs_fora_sla:vencidas.length,rcs_criticas:criticas.length};
+  const atrasadas = pend.filter(r=>n(r._DIAS_PARADO) >= 15);
+  const muitoAtrasadas = pend.filter(r=>n(r._DIAS_PARADO) >= 60);
+  const valorAtrasado = atrasadas.reduce((s,r)=>s+n(r._VALOR_TOTAL),0);
+  const pctAtrasadas = totalPend ? atrasadas.length/totalPend*100 : 0;
+  const pctValorAtrasado = valorPend ? valorAtrasado/valorPend*100 : 0;
+  const scorePendencia = pctPendTotal >= 25 ? 40 : pctPendTotal >= 15 ? 25 : pctPendTotal >= 8 ? 12 : 4;
+  const scoreIdade = maior >= 180 ? 35 : maior >= 90 ? 22 : maior >= 45 ? 12 : maior >= 15 ? 5 : 0;
+  const scoreValor = valorPend >= 8000000 ? 25 : valorPend >= 3000000 ? 14 : valorPend >= 1000000 ? 7 : 2;
+  const scoreVolume = totalPend >= 600 ? 20 : totalPend >= 300 ? 10 : totalPend >= 100 ? 5 : 0;
+  const scoreMuitoAtrasadas = muitoAtrasadas.length >= 50 ? 12 : muitoAtrasadas.length >= 10 ? 6 : muitoAtrasadas.length ? 3 : 0;
+  const score = scorePendencia + scoreIdade + scoreValor + scoreVolume + scoreMuitoAtrasadas;
+  let status = 'BOM';
+  if(score >= 70 || (pctPendTotal >= 30 && maior >= 90) || valorPend >= 10000000) status = 'CRÍTICO';
+  else if(score >= 25 || pctPendTotal >= 8 || maior >= 30 || valorPend >= 1000000) status = 'ATENÇÃO';
+  const label = status === 'BOM'
+    ? 'Operação saudável'
+    : status === 'ATENÇÃO'
+      ? `${brPct(pctPendTotal)} em aberto · acompanhar hoje`
+      : 'Intervenção necessária';
+  const detail = `${brInt(totalPend)} pendências · ${compactMoney(valorPend)} parado · mais antiga ${brInt(maior)} dias`;
+  return {
+    status,
+    label,
+    detail,
+    pct_rcs_fora_sla:pctAtrasadas,
+    pct_valor_fora_sla:pctValorAtrasado,
+    pct_pendente_total:pctPendTotal,
+    pct_criticas: totalPend ? muitoAtrasadas.length/totalPend*100 : 0,
+    pct_valor_critico: pctValorAtrasado,
+    maior_atraso_dias:maior,
+    valor_fora_sla:brMoney(valorAtrasado),
+    valor_fora_sla_compacto:compactMoney(valorAtrasado),
+    valor_pendente:brMoney(valorPend),
+    valor_pendente_compacto:compactMoney(valorPend),
+    rcs_fora_sla:atrasadas.length,
+    rcs_criticas:muitoAtrasadas.length,
+    rcs_atrasadas:atrasadas.length,
+    score,
+    action_hint: status === 'CRÍTICO' ? 'Parar e atacar a causa hoje' : status === 'ATENÇÃO' ? 'Acompanhar prioridades do dia' : 'Manter rotina'
+  };
 }
+
+function stageActionTitle(etapa){
+  if(etapa === 'SEM NF') return 'Cobrar NF';
+  if(etapa === 'SEM PEDIDO') return 'Criar pedido';
+  if(etapa === 'SEM LANÇAMENTO') return 'Lançar RC';
+  return 'Tratar pendência';
+}
+function stageActionKind(etapa){
+  if(etapa === 'SEM NF') return 'nf';
+  if(etapa === 'SEM PEDIDO') return 'pedido';
+  if(etapa === 'SEM LANÇAMENTO') return 'lancamento';
+  return 'acao';
+}
+function stageOwnerDefault(etapa){
+  if(etapa === 'SEM NF') return 'Fornecedor';
+  if(etapa === 'SEM PEDIDO') return 'Compras';
+  if(etapa === 'SEM LANÇAMENTO') return 'PCM';
+  return 'Responsável';
+}
+function urgencyLabel(days, value){
+  const d=n(days), v=n(value);
+  if(d >= 60 || v >= 500000) return 'Resolver hoje';
+  if(d >= 30 || v >= 150000) return 'Acompanhar hoje';
+  if(d >= 15) return 'Cobrar esta semana';
+  return 'Na rotina';
+}
+
 function priorityRows(rows, count=5){
   const pend = pendingRows(rows);
   if(!pend.length) return [];
-  const maxVal = Math.max(1, ...pend.map(r=>n(r._VALOR_TOTAL)));
-  const maxDays = Math.max(1, ...pend.map(r=>n(r._DIAS_PARADO)));
-  const stageWeight={'SEM NF':1.0,'SEM PEDIDO':0.85,'SEM LANÇAMENTO':0.70,'CONCLUÍDO':0};
-  const slaWeight={'CRÍTICO':1,'ATENÇÃO':0.5};
-  return pend.map(r=>{
-    const score=0.40*(n(r._VALOR_TOTAL)/maxVal)+0.30*(n(r._DIAS_PARADO)/maxDays)+0.20*(stageWeight[r.ETAPA]??0.5)+0.10*(slaWeight[r['SLA STATUS']]??0);
-    return {codigo:cleanStatic(r['Nº ORÇAMENTO FINAL'])||cleanStatic(r['Nº REQUISIÇÃO'])||`Linha ${r._ROW_ID}`,fornecedor:(cleanStatic(r.FORNECEDOR)||'Fornecedor não informado').slice(0,70),etapa:r.ETAPA||'',dias:n(r._DIAS_PARADO),valor:n(r._VALOR_TOTAL),valor_fmt:compactMoney(r._VALOR_TOTAL),valor_full:brMoney(r._VALOR_TOTAL),owner_team:cleanStatic(r['DONO DA AÇÃO'])||'Não especificado',owner_proxy:cleanStatic(r.SOLICITANTE)||cleanStatic(r.FORNECEDOR)||'Não especificado',sla_status:r['SLA STATUS']||'OK',score,row_id:r._ROW_ID};
-  }).sort((a,b)=>b.score-a.score || b.dias-a.dias || b.valor-a.valor).slice(0,count);
+  const groups = new Map();
+  pend.forEach(r=>{
+    const etapa = r.ETAPA || 'PENDÊNCIA';
+    const fornecedor = cleanStatic(r.FORNECEDOR) || 'Fornecedor não informado';
+    const owner = cleanStatic(r['DONO DA AÇÃO']) || stageOwnerDefault(etapa);
+    const key = `${etapa}||${fornecedor}||${owner}`;
+    if(!groups.has(key)) groups.set(key, {etapa, fornecedor, owner, qtd:0, valor:0, maxDias:0, codigos:[], rows:[]});
+    const g=groups.get(key);
+    g.qtd += 1;
+    g.valor += n(r._VALOR_TOTAL);
+    g.maxDias = Math.max(g.maxDias, n(r._DIAS_PARADO));
+    const codigo = cleanStatic(r['Nº ORÇAMENTO FINAL']) || cleanStatic(r['Nº REQUISIÇÃO']) || '';
+    if(codigo && g.codigos.length < 3) g.codigos.push(codigo);
+    g.rows.push(r);
+  });
+  const arr = Array.from(groups.values());
+  const maxVal = Math.max(1, ...arr.map(g=>g.valor));
+  const maxDays = Math.max(1, ...arr.map(g=>g.maxDias));
+  const maxQtd = Math.max(1, ...arr.map(g=>g.qtd));
+  const stageWeight={'SEM NF':1.0,'SEM PEDIDO':0.88,'SEM LANÇAMENTO':0.78,'CONCLUÍDO':0};
+  return arr.map(g=>{
+    const score = 45*(g.valor/maxVal) + 25*(g.maxDias/maxDays) + 20*(stageWeight[g.etapa] ?? .6) + 10*(g.qtd/maxQtd);
+    const action = stageActionTitle(g.etapa);
+    const urgency = urgencyLabel(g.maxDias, g.valor);
+    const codigo = g.codigos[0] || `${g.qtd} RC${g.qtd!==1?'s':''}`;
+    return {
+      codigo: action,
+      fornecedor: g.fornecedor.slice(0,70),
+      etapa:g.etapa,
+      dias:g.maxDias,
+      valor:g.valor,
+      valor_fmt:compactMoney(g.valor),
+      valor_full:brMoney(g.valor),
+      owner_team:g.owner,
+      owner_proxy:g.fornecedor,
+      sla_status:urgency,
+      score,
+      row_id:g.rows[0]?._ROW_ID,
+      qtd:g.qtd,
+      qtd_fmt:`${brInt(g.qtd)} RC${g.qtd!==1?'s':''}`,
+      action,
+      urgency,
+      reason:`${urgency} · ${brInt(g.qtd)} RC${g.qtd!==1?'s':''} · ${brInt(g.maxDias)} dias`,
+      codigos:g.codigos.join(', ') || codigo
+    };
+  }).sort((a,b)=>b.score-a.score || b.valor-a.valor || b.dias-a.dias).slice(0,count);
 }
 function topPendingByStage(rows, etapa){ const subset=rows.filter(r=>r.ETAPA===etapa); return topSum(subset,'FORNECEDOR',1)[0] || null; }
 function executiveActions(rows){
   const actions=[];
-  const nfTop=topPendingByStage(rows,'SEM NF'); if(nfTop) actions.push({kind:'nf',title:'Cobrar NF',main:nfTop.label,value:nfTop.formatted,detail:nfTop.meta,etapa:'SEM NF',fornecedor:nfTop.label,owner:'Fornecedor'});
-  [['SEM PEDIDO','Criar pedido','pedido','Compras'],['SEM LANÇAMENTO','Lançar RC','lancamento','PCM']].forEach(([etapa,title,kind,owner])=>{ const subset=rows.filter(r=>r.ETAPA===etapa); if(subset.length){ const valor=subset.reduce((s,r)=>s+n(r._VALOR_TOTAL),0); actions.push({kind,title,main:`${brInt(subset.length)} RC${subset.length!==1?'s':''}`,value:compactMoney(valor),detail:etapa,etapa,owner}); } });
-  const old=oldestPending(rows); if(n(old.dias)>0) actions.push({kind:'old',title:'Mais antiga',main:old.label,value:`${brInt(old.dias)} dias`,detail:old.detail,etapa:old.etapa,owner:'Etapa'});
-  return actions;
+  const pend = pendingRows(rows);
+  if(!pend.length) return actions;
+  const prioridade = priorityRows(rows,1)[0];
+  if(prioridade){
+    actions.push({
+      kind:stageActionKind(prioridade.etapa),
+      title:'1ª ação',
+      main:prioridade.fornecedor,
+      value:prioridade.action,
+      detail:prioridade.reason,
+      etapa:prioridade.etapa,
+      owner:prioridade.owner_team
+    });
+  }
+  const byStage = groupByStage(rows).filter(e=>e.etapa !== 'CONCLUÍDO').sort((a,b)=>b.qtd-a.qtd || b.valor-a.valor)[0];
+  if(byStage){
+    actions.push({
+      kind:stageActionKind(byStage.etapa),
+      title:'Maior gargalo',
+      main:byStage.etapa,
+      value:`${brInt(byStage.qtd)} RCs`,
+      detail:`${byStage.valor_formatado} parado`,
+      etapa:byStage.etapa,
+      owner:stageOwnerDefault(byStage.etapa)
+    });
+  }
+  const byValue = priorityRows(rows,5).sort((a,b)=>b.valor-a.valor)[0];
+  if(byValue){
+    actions.push({
+      kind:stageActionKind(byValue.etapa),
+      title:'Maior valor',
+      main:byValue.fornecedor,
+      value:byValue.valor_fmt,
+      detail:byValue.reason,
+      etapa:byValue.etapa,
+      owner:byValue.owner_team
+    });
+  }
+  const old=oldestPending(rows);
+  if(n(old.dias)>0){
+    actions.push({
+      kind:'old',
+      title:'Mais antiga',
+      main:old.label,
+      value:`${brInt(old.dias)} dias`,
+      detail:old.detail,
+      etapa:old.etapa,
+      owner:stageOwnerDefault(old.etapa)
+    });
+  }
+  const seen = new Set();
+  return actions.filter(a=>{
+    const key=`${a.title}|${a.main}|${a.etapa}`;
+    if(seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  }).slice(0,4);
 }
 function topOwnersCriticos(rows){
   const pend = pendingRows(rows);
@@ -257,9 +419,15 @@ function operationalAlerts(rows){
   return {atencao:etapas,idade_pendencias:['SEM LANÇAMENTO','SEM PEDIDO','SEM NF'].map(etapa=>{ const ss=rows.filter(r=>r.ETAPA===etapa); return {label:etapa.replace('NF','NF').toLowerCase().replace(/(^|\s)\S/g,m=>m.toUpperCase()).replace('Nf','NF'),media:`${average(ss.map(r=>r._DIAS_PARADO)).toFixed(1).replace('.',',')} dias`,maximo:`${Math.max(0,...ss.map(r=>n(r._DIAS_PARADO))).toFixed(1).replace('.',',')} dias`,qtd:ss.length,tone:etapa.toLowerCase().replace(/ /g,'-')}; }),maior_gargalo:{label:'',formatted:''},pendentes:pend.length,valor_pendente:brMoney(valorP),valor_pendente_compacto:compactMoney(valorP)};
 }
 function executiveComment(rows){
-  const pend=pendingRows(rows); if(!rows.length) return 'Sem registros para o filtro atual.'; if(!pend.length) return 'Tudo concluído no filtro atual. Não há pendências abertas para tratativa.';
-  const etapas=groupByStage(rows).filter(e=>e.etapa!=='CONCLUÍDO').sort((a,b)=>b.qtd-a.qtd); const top=etapas[0]; const old=oldestPending(rows); const pri=priorityRows(rows,1)[0];
-  return `Maior gargalo: ${top?.etapa || 'pendência'} — ${brInt(top?.qtd || 0)} RCs. Mais antiga: ${old.label}, ${brInt(old.dias)} dias parado. Prioridade: ${pri?.codigo || old.label} · ${pri?.fornecedor || old.fornecedor || ''} · Dono: ${pri?.owner_team || 'Não especificado'}`;
+  const pend=pendingRows(rows);
+  if(!rows.length) return 'Sem registros para o filtro atual.';
+  if(!pend.length) return 'Tudo concluído no filtro atual. Não há pendências abertas para tratativa.';
+  const etapas=groupByStage(rows).filter(e=>e.etapa!=='CONCLUÍDO').sort((a,b)=>b.qtd-a.qtd || b.valor-a.valor);
+  const top=etapas[0];
+  const old=oldestPending(rows);
+  const pri=priorityRows(rows,1)[0];
+  const farol=farolRegional(rows);
+  return `${farol.status}: ${farol.detail}. Gargalo principal: ${top?.etapa || 'pendência'} (${brInt(top?.qtd || 0)} RCs). Comece por: ${pri?.action || 'tratar'} · ${pri?.fornecedor || old.fornecedor || ''} · ${pri?.reason || `${brInt(old.dias)} dias`}.`;
 }
 function monthly(rows){
   const map=new Map(); rows.forEach(r=>{ const iso=r._DATA_RECEBIMENTO_ISO || r._DATA_LANCAMENTO_ISO || r._DATA_PEDIDO_ISO || r._DATA_NF_ISO; if(!iso) return; const key=iso.slice(0,7); map.set(key,(map.get(key)||0)+n(r._VALOR_TOTAL)); });

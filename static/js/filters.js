@@ -154,7 +154,7 @@ function renderActiveFilters(){
   if(priority.key === 'ETAPA' && priority.values.length === 1){
     detail = `Apenas ${priority.text}`;
   }else if(priority.key === 'SLA STATUS'){
-    detail = 'Mostrando RCs conforme status de SLA';
+    detail = 'Mostrando RCs conforme atenção por prazo';
   }else if(priority.key === 'FAIXA ATRASO'){
     detail = 'Mostrando RCs por faixa de atraso';
   }else if(active.length > 1){
@@ -181,7 +181,7 @@ function renderActiveFilters(){
 
 function getFilterLabel(key){
   if(key === 'ETAPA') return 'Situação';
-  if(key === 'SLA STATUS') return 'SLA';
+  if(key === 'SLA STATUS') return 'Prazo';
   if(key === 'FAIXA ATRASO') return 'Atraso';
   if(key === 'DONO DA AÇÃO') return 'Dono da ação';
   const def = state.mainFilters.find(x => x.key === key);

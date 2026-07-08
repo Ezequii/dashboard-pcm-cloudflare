@@ -3291,3 +3291,22 @@ body.v41-final .table-card{
     scroll-behavior:auto !important;
   }
 }
+
+
+/* V76 - leitura executiva sem jargão de SLA */
+body.v76-inteligente .kpi-sla .kpi-icon{background:#FFF5DA !important;color:#B54708 !important;}
+body.v76-inteligente .farol-card-v33.farol-ok .farol-dot{background:#23A067 !important;}
+body.v76-inteligente .farol-card-v33.farol-atencao .farol-dot{background:#F2A900 !important;}
+body.v76-inteligente .farol-card-v33.farol-critico .farol-dot{background:#D32F2F !important;}
+body.v76-inteligente .farol-card-v33.farol-ok .kpi-copy strong{color:#23A067 !important;}
+body.v76-inteligente .farol-card-v33.farol-atencao .kpi-copy strong{color:#B54708 !important;}
+body.v76-inteligente .farol-card-v33.farol-critico .kpi-copy strong{color:#D32F2F !important;}
+body.v76-inteligente .priority-meta span{color:#667085 !important;font-weight:850 !important;}
+body.v76-inteligente .priority-main strong{color:#101828 !important;}
+body.v76-inteligente .action-card-v33 span{color:#344054 !important;}
+body.v76-inteligente .action-card-v33 em{font-size:18px !important;line-height:1.05 !important;}
+body.v76-inteligente .sla-badge.critical::before{content:"60+ dias · ";}
+body.v76-inteligente .sla-badge.attention::before{content:"atenção · ";}
+body.v76-inteligente .sla-badge.ok::before{content:"ok · ";}
+body.v76-inteligente .sla-badge.done::before{content:"";}
+body.v76-inteligente .stage-critical-badge{background:#FFF1F3 !important;color:#C01048 !important;}

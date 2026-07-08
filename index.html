@@ -3,11 +3,11 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Controle de Requisições PCM 2026 — Cloudflare Pages</title>
+  <title>Controle de Requisições PCM 2026</title>
   <link rel="icon" type="image/png" href="/static/favicon.png" />
   <link rel="stylesheet" href="/static/styles_v50_corrigido.css?v=72" />
 </head>
-<body class="v44-polish v48-balanced v50-real-fix v51-visual-clean v66-premium">
+<body class="v44-polish v48-balanced v50-real-fix v51-visual-clean v66-premium v76-inteligente">
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
   <div id="drawerBackdrop" class="drawer-backdrop no-print" hidden></div>
 
@@ -47,8 +47,8 @@
     <div class="topbar-row topbar-row-quick no-print">
       <div id="quickChips" class="quick-chip-row" aria-label="Filtros rápidos">
         <button type="button" class="quick-chip active" data-quick="TODAS">Todas</button>
-        <button type="button" class="quick-chip" data-quick="FORA_SLA">Fora SLA</button>
-        <button type="button" class="quick-chip" data-quick="CRITICO">Crítico</button>
+        <button type="button" class="quick-chip" data-quick="FORA_SLA">Atrasadas</button>
+        <button type="button" class="quick-chip" data-quick="CRITICO">60+ dias</button>
         <button type="button" class="quick-chip" data-quick="15_DIAS">15+ dias</button>
         <button type="button" class="quick-chip" data-quick="30_DIAS">30+ dias</button>
         <button type="button" class="quick-chip" data-quick="SEM_NF">Sem NF</button>
@@ -91,12 +91,12 @@
         <div class="kpi-copy"><span>Maior atraso</span><strong id="kMaiorAtraso">0 dias</strong><small id="kMaiorAtrasoSub">Sem pendência</small></div>
       </article>
       <article class="kpi-card metric-card money kpi-sla kpi-secondary-v41">
-        <div class="kpi-icon">SLA</div>
-        <div class="kpi-copy"><span>Valor fora SLA</span><strong id="kValorForaSla">R$ 0</strong><small id="kValorForaSlaSub">0 RCs vencidas</small></div>
+        <div class="kpi-icon">⏱</div>
+        <div class="kpi-copy"><span>Valor em atenção</span><strong id="kValorForaSla">R$ 0</strong><small id="kValorForaSlaSub">0 RCs em atenção</small></div>
       </article>
       <article id="farolRegional" class="kpi-card metric-card farol-card-v33 farol-ok kpi-secondary-v41">
         <div class="farol-dot"></div>
-        <div class="kpi-copy"><span>Farol de risco</span><strong id="kFarolStatus">OK</strong><small id="kFarolSub">Dentro do controle</small></div>
+        <div class="kpi-copy"><span>Saúde do processo</span><strong id="kFarolStatus">OK</strong><small id="kFarolSub">Dentro do controle</small></div>
       </article>
     </section>
 
@@ -107,11 +107,11 @@
 
     <section class="cockpit-grid-v33" data-panel="visao">
       <article class="chart-card cockpit-card funnel-card-v33">
-        <div class="chart-head"><h3>Fluxo de pendências</h3><span>Etapa, valor e criticidade</span></div>
+        <div class="chart-head"><h3>Fluxo de pendências</h3><span>Etapa, valor e atenção</span></div>
         <div id="processCards" class="process-grid process-grid-compact process-grid-executive process-cards-host process-v33"></div>
       </article>
       <article class="chart-card cockpit-card priority-card-v33">
-        <div class="chart-head"><h3>Prioridades de cobrança</h3><span>Maior impacto primeiro</span></div>
+        <div class="chart-head"><h3>Fila inteligente de cobrança</h3><span>Valor + idade + etapa</span></div>
         <div id="topPrioridades" class="priority-list-v33"></div>
       </article>
     </section>
@@ -119,7 +119,7 @@
     <section class="action-now-v33" data-panel="visao">
       <div class="action-title-v33">
         <strong>Ação agora</strong>
-        <span>Quem cobrar primeiro</span>
+        <span>O que fazer primeiro</span>
       </div>
       <div id="actionNowList" class="action-list-v33"></div>
       <div class="owners-mini-v33">
@@ -132,12 +132,12 @@
       <div class="base-title-v36">
         <span>Base de Tratativa</span>
         <strong>Base detalhada</strong>
-        <small>Trate primeiro o que está vencido, parado há mais dias e com responsável definido.</small>
+        <small>Trate primeiro o que está parado há mais dias, com maior valor e responsável definido.</small>
       </div>
       <div class="base-legend-v36">
-        <span><b></b> Crítico</span>
+        <span><b></b> Muito atrasado</span>
         <span><b></b> Atenção</span>
-        <span><b></b> Dentro do prazo</span>
+        <span><b></b> Em dia</span>
       </div>
     </section>
 
@@ -148,7 +148,7 @@
         <div>
           <h3>Base detalhada</h3>
           <p id="tableCounter">0 registros</p>
-          <small class="leader-table-note">Tratativa operacional: comece pelo maior atraso e pelo SLA crítico.</small>
+          <small class="leader-table-note">Tratativa operacional: comece pelo maior atraso, maior valor e dono da ação.</small>
         </div>
         <div class="table-tools no-print">
           <label class="table-search">

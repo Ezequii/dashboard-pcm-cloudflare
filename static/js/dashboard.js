@@ -43,7 +43,7 @@ function renderDashboardData(data){
   setText('kMaiorAtraso', `${Number(k.maior_atraso_dias || 0).toLocaleString('pt-BR')} dias`);
   setText('kMaiorAtrasoSub', k.maior_atraso_label || 'Sem pendência', k.maior_atraso_detail || '');
   setText('kValorForaSla', k.valor_fora_sla_compacto || k.valor_fora_sla || 'R$ 0', k.valor_fora_sla || 'R$ 0');
-  setText('kValorForaSlaSub', `${Number(k.rcs_fora_sla || 0).toLocaleString('pt-BR')} RCs fora SLA`);
+  setText('kValorForaSlaSub', `${Number(k.rcs_fora_sla || 0).toLocaleString('pt-BR')} RCs em atenção`);
 
   renderFarol(data.farol || {});
   renderExecutiveComment(data.comentario_executivo || 'Resumo executivo indisponível para o filtro atual.');
@@ -88,11 +88,11 @@ function setText(id, text, title=null){
 function renderFarol(farol){
   const card = $('farolRegional');
   if(!card) return;
-  const status = String(farol.status || 'OK').toUpperCase();
+  const status = String(farol.status || 'BOM').toUpperCase();
   card.classList.remove('farol-ok','farol-atencao','farol-critico');
   card.classList.add(status.includes('CR') ? 'farol-critico' : (status.includes('AT') ? 'farol-atencao' : 'farol-ok'));
   setText('kFarolStatus', status);
-  setText('kFarolSub', farol.label || farol.detail || 'Dentro do controle', farol.detail || '');
+  setText('kFarolSub', farol.label || farol.detail || 'Operação saudável', farol.detail || '');
 }
 
 function renderExecutiveComment(text){
@@ -121,6 +121,7 @@ function renderProcess(etapas, hostId=null){
     const cls = stageClass(e.etapa);
     const fora = Number(e.fora_sla || 0);
     const crit = Number(e.criticas || 0);
+    const prazoTexto = fora ? `${fora} em atenção` : 'em dia';
     return `
     <button type="button" class="process-card ${cls} ${active ? 'active' : ''}" style="--stage:${e.cor};--stage-soft:${hexToRgba(e.cor, .10)}" data-etapa="${escapeAttr(e.etapa)}" aria-pressed="${active ? 'true' : 'false'}" title="Clique para filtrar: ${escapeAttr(e.etapa)} | Valor: ${escapeAttr(e.valor_completo || e.valor_formatado || '')}">
       <div class="process-top">
@@ -133,9 +134,9 @@ function renderProcess(etapas, hostId=null){
       </div>
       <div class="process-foot">
         <span>${escapeHtml(e.percentual_formatado)}</span>
-        <strong>${fora ? `${fora} fora SLA` : 'SLA ok'}</strong>
+        <strong>${escapeHtml(prazoTexto)}</strong>
       </div>
-      ${crit ? `<div class="stage-critical-badge">${crit} crítico${crit > 1 ? 's' : ''}</div>` : ''}
+      ${crit ? `<div class="stage-critical-badge">${crit} 60+ dias</div>` : ''}
     </button>`;
   }).join('');
   const hosts = hostId ? [$(hostId)].filter(Boolean) : Array.from(document.querySelectorAll('.process-cards-host:not(#processCardsBase)'));
@@ -225,8 +226,8 @@ function renderTopPriorities(rows){
   host.innerHTML = items.map((x, idx) => `
     <button type="button" class="priority-row-v33 ${stageClass(x.etapa)}" data-etapa="${escapeAttr(x.etapa || '')}" title="${escapeAttr(x.fornecedor || '')} · ${escapeAttr(x.valor_full || x.valor_fmt || '')}">
       <div class="priority-rank">${idx + 1}</div>
-      <div class="priority-main"><strong>${escapeHtml(x.codigo || '')}</strong><span>${escapeHtml(x.fornecedor || '')}</span></div>
-      <div class="priority-meta"><b>${escapeHtml(x.valor_fmt || '')}</b><span>${Number(x.dias || 0).toLocaleString('pt-BR')} dias</span></div>
+      <div class="priority-main"><strong>${escapeHtml(x.action || x.codigo || '')}</strong><span>${escapeHtml(x.fornecedor || '')}</span></div>
+      <div class="priority-meta"><b>${escapeHtml(x.valor_fmt || '')}</b><span>${escapeHtml(x.reason || `${Number(x.dias || 0).toLocaleString('pt-BR')} dias`)}</span></div>
       <div class="priority-owner" title="${escapeAttr(x.owner_team || '')}">${escapeHtml(shortOwnerLabel(x.owner_team || ''))}</div>
     </button>`).join('');
   host.querySelectorAll('.priority-row-v33').forEach(btn => {

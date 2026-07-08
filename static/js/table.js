@@ -20,7 +20,7 @@ function headerInfo(col){
   const map = {
     'ETAPA': ['Etapa', 'situação'],
     'DIAS PARADO': ['Dias parado', 'prioridade'],
-    'SLA STATUS': ['SLA', 'farol'],
+    'SLA STATUS': ['Prazo', 'atenção'],
     'DONO DA AÇÃO': ['Dono da ação', 'responsável'],
     'FAIXA ATRASO': ['Faixa', 'aging'],
     'DATA DE RECEBIMENTO': ['Recebido em', 'entrada no PCM'],
@@ -68,7 +68,7 @@ function renderCell(col, value, etapa){
   if(col === 'SLA STATUS'){
     const normalized = String(val || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
     const level = normalized.includes('critico') ? 'critical' : (normalized.includes('atencao') ? 'attention' : (normalized.includes('concluido') ? 'done' : 'ok'));
-    return `<td class="${cls}" title="SLA: ${safeTitle}"><span class="sla-badge ${level}">${emptyDash(val)}</span></td>`;
+    return `<td class="${cls}" title="Status de prazo: ${safeTitle}"><span class="sla-badge ${level}">${emptyDash(val)}</span></td>`;
   }
   if(col === 'DONO DA AÇÃO'){
     return `<td class="${cls}" title="Dono da ação: ${safeTitle}"><span class="owner-pill">${emptyDash(val)}</span></td>`;
