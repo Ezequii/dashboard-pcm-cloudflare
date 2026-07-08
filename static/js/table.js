@@ -20,9 +20,9 @@ function headerInfo(col){
   const map = {
     'ETAPA': ['Etapa', 'situação'],
     'DIAS PARADO': ['Dias parado', 'prioridade'],
-    'SLA STATUS': ['Prazo', 'atenção'],
-    'DONO DA AÇÃO': ['Dono da ação', 'responsável'],
-    'FAIXA ATRASO': ['Faixa', 'aging'],
+    'SLA STATUS': ['Atenção', 'tratativa'],
+    'DONO DA AÇÃO': ['Depende de', 'responsável'],
+    'FAIXA ATRASO': ['Tempo parado', 'faixa'],
     'DATA DE RECEBIMENTO': ['Recebido em', 'entrada no PCM'],
     'DATA LANÇAMENTO': ['Lançado em', 'lançamento no sistema'],
     'Nº ORÇAMENTO FINAL': ['Orçamento', 'nº final'],
@@ -68,13 +68,14 @@ function renderCell(col, value, etapa){
   if(col === 'SLA STATUS'){
     const normalized = String(val || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
     const level = normalized.includes('critico') ? 'critical' : (normalized.includes('atencao') ? 'attention' : (normalized.includes('concluido') ? 'done' : 'ok'));
-    return `<td class="${cls}" title="Status de prazo: ${safeTitle}"><span class="sla-badge ${level}">${emptyDash(val)}</span></td>`;
+    const display = normalized.includes('critico') ? 'Muito parado' : (normalized.includes('atencao') ? 'Revisar' : (normalized.includes('concluido') ? 'Concluído' : 'Rotina'));
+    return `<td class="${cls}" title="Atenção da tratativa: ${safeTitle}"><span class="sla-badge ${level}">${escapeHtml(display)}</span></td>`;
   }
   if(col === 'DONO DA AÇÃO'){
-    return `<td class="${cls}" title="Dono da ação: ${safeTitle}"><span class="owner-pill">${emptyDash(val)}</span></td>`;
+    return `<td class="${cls}" title="Depende de: ${safeTitle}"><span class="owner-pill">${emptyDash(val)}</span></td>`;
   }
   if(col === 'FAIXA ATRASO'){
-    return `<td class="${cls}" title="Faixa de atraso: ${safeTitle}"><span class="delay-range">${emptyDash(val)}</span></td>`;
+    return `<td class="${cls}" title="Tempo parado: ${safeTitle}"><span class="delay-range">${emptyDash(val)}</span></td>`;
   }
   if(col === 'DATA DE RECEBIMENTO'){
     const content = String(val || '').trim() ? `<span class="date-chip received">${escapeHtml(val)}</span>` : `<span class="date-chip missing">Sem data</span>`;

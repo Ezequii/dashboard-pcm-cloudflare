@@ -9,7 +9,8 @@ async function init(){
   state.stageColors = boot.stage_colors || {};
   loadPreferences();
   const meta = $('meta');
-  if(meta) meta.textContent = `${Number(boot.metadata.linhas || 0).toLocaleString('pt-BR')} registros carregados · ${boot.metadata.arquivo || 'base Excel'} · Cloudflare Pages`;
+  const gerado = boot.generated_at ? new Date(boot.generated_at).toLocaleString('pt-BR', {dateStyle:'short', timeStyle:'short'}) : '';
+  if(meta) meta.textContent = `${Number(boot.metadata.linhas || 0).toLocaleString('pt-BR')} registros carregados · ${boot.metadata.arquivo || 'base Excel'} · Cloudflare Pages${gerado ? ' · atualizado em ' + gerado : ''}`;
   const uploadBtn = $('btnUploadWorkbook');
   if(uploadBtn) uploadBtn.hidden = !boot.can_upload;
   buildSmartFilters();
@@ -62,6 +63,7 @@ function bindEvents(){
   $('btnExportPdf').onclick = () => { closeExportMenu(); exportPdf(); };
   bindExportMenu();
   bindAdvancedSearchPanel();
+  $('btnCopySummary')?.addEventListener('click', copyLeaderSummary);
   if($('pageSize')){ $('pageSize').value = String(state.pageSize || 50); $('pageSize').onchange = (e) => { state.pageSize = Number(e.target.value); state.page = 1; savePreferences(); loadRows(); }; }
   $('prevPage').onclick = () => { if(state.page > 1){ state.page--; loadRows(); } };
   $('nextPage').onclick = () => { state.page++; loadRows(); };

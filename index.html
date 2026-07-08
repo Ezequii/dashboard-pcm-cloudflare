@@ -5,9 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Controle de Requisições PCM 2026</title>
   <link rel="icon" type="image/png" href="/static/favicon.png" />
-  <link rel="stylesheet" href="/static/styles_v50_corrigido.css?v=77" />
+  <link rel="stylesheet" href="/static/styles_v50_corrigido.css?v=78" />
 </head>
-<body class="v44-polish v48-balanced v50-real-fix v51-visual-clean v66-premium v76-inteligente">
+<body class="v44-polish v48-balanced v50-real-fix v51-visual-clean v66-premium v76-inteligente v78-lideranca-pcm">
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
   <div id="drawerBackdrop" class="drawer-backdrop no-print" hidden></div>
 
@@ -17,7 +17,7 @@
         <div class="brand-logo-box"><img src="/static/logo_amaggi.png" alt="AMAGGI" /></div>
         <div class="brand-copy-wrap">
           <div>
-            <div class="brand-title-line"><h1>Controle de Requisições PCM</h1><span class="version-pill-v34" aria-label="Versão visual premium">Visual v77</span></div>
+            <div class="brand-title-line"><h1>Controle de Requisições PCM</h1><span class="version-pill-v34" aria-label="Versão visual premium">Visual v78</span></div>
             <p class="subtitle-top">Controle de lançamento e acompanhamento — 2026</p>
           </div>
           <nav class="dashboard-tabs no-print prominent-tabs inline-tabs" aria-label="Navegação do dashboard">
@@ -48,9 +48,9 @@
       <div id="quickChips" class="quick-chip-row" aria-label="Filtros rápidos">
         <button type="button" class="quick-chip active" data-quick="TODAS">Todas</button>
         <button type="button" class="quick-chip" data-quick="FORA_SLA">Em atenção</button>
-        <button type="button" class="quick-chip" data-quick="CRITICO">60+ dias</button>
-        <button type="button" class="quick-chip" data-quick="15_DIAS">15+ dias</button>
-        <button type="button" class="quick-chip" data-quick="30_DIAS">30+ dias</button>
+        <button type="button" class="quick-chip" data-quick="CRITICO">Muito parado</button>
+        <button type="button" class="quick-chip" data-quick="15_DIAS">Revisar</button>
+        <button type="button" class="quick-chip" data-quick="30_DIAS">Parado há mais tempo</button>
         <button type="button" class="quick-chip" data-quick="SEM_LANCAMENTO">Sem lançamento</button>
         <button type="button" class="quick-chip" data-quick="SEM_PEDIDO">Sem pedido</button>
         <button type="button" class="quick-chip" data-quick="SEM_NF">Sem NF</button>
@@ -105,6 +105,14 @@
     <section class="executive-comment-v33" data-panel="visao">
       <div class="comment-label">Leitura rápida</div>
       <p id="executiveComment" aria-live="polite">Carregando leitura executiva...</p>
+    </section>
+
+    <section class="leader-summary-v78" data-panel="visao">
+      <div class="leader-summary-copy-v78">
+        <span>Resumo para liderança</span>
+        <p id="leaderSummary">Carregando resumo para copiar...</p>
+      </div>
+      <button id="btnCopySummary" class="btn btn-soft btn-small" type="button">Copiar resumo</button>
     </section>
 
     <section class="cockpit-grid-v33" data-panel="visao">
@@ -185,13 +193,13 @@
     </footer>
   </main>
 
-  <script src="/static/js/state.js?v=77"></script>
-  <script src="/static/js/utils.js?v=77"></script>
-  <script src="/static/js/api.js?v=77"></script>
-  <script src="/static/js/filters.js?v=77"></script>
-  <script src="/static/js/dashboard.js?v=77"></script>
-  <script src="/static/js/table.js?v=77"></script>
-  <script src="/static/js/core.js?v=77"></script>
-  <script src="/static/js/main.js?v=77"></script>
+  <script src="/static/js/state.js?v=78"></script>
+  <script src="/static/js/utils.js?v=78"></script>
+  <script src="/static/js/api.js?v=78"></script>
+  <script src="/static/js/filters.js?v=78"></script>
+  <script src="/static/js/dashboard.js?v=78"></script>
+  <script src="/static/js/table.js?v=78"></script>
+  <script src="/static/js/core.js?v=78"></script>
+  <script src="/static/js/main.js?v=78"></script>
 </body>
 </html>

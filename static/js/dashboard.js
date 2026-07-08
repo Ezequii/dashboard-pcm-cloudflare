@@ -47,6 +47,7 @@ function renderDashboardData(data){
 
   renderFarol(data.farol || {});
   renderExecutiveComment(data.comentario_executivo || 'Resumo executivo indisponível para o filtro atual.');
+  renderLeaderSummary(data);
 
   // Compatibilidade com ids antigos caso alguma customização local ainda use.
   setText('kTotalRCs', total);
@@ -89,10 +90,38 @@ function renderFarol(farol){
   const card = $('farolRegional');
   if(!card) return;
   const status = String(farol.status || 'BOM').toUpperCase();
-  card.classList.remove('farol-ok','farol-atencao','farol-critico');
-  card.classList.add(status.includes('CR') ? 'farol-critico' : (status.includes('AT') ? 'farol-atencao' : 'farol-ok'));
+  card.classList.remove('farol-ok','farol-atencao','farol-critico','farol-revisar','farol-excelente');
+  const cls = status.includes('REV') ? 'farol-revisar' : (status.includes('AT') ? 'farol-atencao' : (status.includes('EXC') ? 'farol-excelente' : 'farol-ok'));
+  card.classList.add(cls);
   setText('kFarolStatus', status);
   setText('kFarolSub', farol.label || farol.detail || 'Operação saudável', farol.detail || '');
+}
+
+function renderLeaderSummary(data){
+  const el = $('leaderSummary');
+  if(!el) return;
+  const k = data.kpis || {};
+  const farol = data.farol || {};
+  const top = (data.top5_prioridades || [])[0] || null;
+  const pend = Number(k.pendentes || 0).toLocaleString('pt-BR');
+  const pct = k.pct_concluido || '0%';
+  const semLanc = Number(k.rcs_sem_lancamento || farol.rcs_sem_lancamento || 0).toLocaleString('pt-BR');
+  const semPedido = Number(farol.sem_pedido || 0).toLocaleString('pt-BR');
+  const semNf = Number(farol.sem_nf || 0).toLocaleString('pt-BR');
+  const valorFoco = k.valor_sem_lancamento_compacto || k.valor_fora_sla_compacto || 'R$ 0';
+  const principal = top ? ` Principal tratativa: ${top.fornecedor} — ${top.qtd_fmt || ''} — ${top.valor_fmt || ''}.` : '';
+  el.textContent = `Resumo RC PCM: ${pct} concluído. ${pend} RCs em andamento. Foco PCM: ${semLanc} sem lançamento (${valorFoco}). Acompanhamento: ${semPedido} sem pedido e ${semNf} sem NF.${principal}`;
+}
+
+async function copyLeaderSummary(){
+  const txt = $('leaderSummary')?.textContent?.trim();
+  if(!txt) return;
+  try{
+    await navigator.clipboard.writeText(txt);
+    showToast('Resumo copiado para enviar no WhatsApp/Teams.');
+  }catch(e){
+    showToast('Não consegui copiar automaticamente. Selecione o texto do resumo e copie manualmente.', true);
+  }
 }
 
 function renderExecutiveComment(text){
@@ -136,7 +165,7 @@ function renderProcess(etapas, hostId=null){
         <span>${escapeHtml(e.percentual_formatado)}</span>
         <strong>${escapeHtml(prazoTexto)}</strong>
       </div>
-      ${crit ? `<div class="stage-critical-badge">${crit} 60+ dias</div>` : ''}
+      ${crit ? `<div class="stage-critical-badge">${crit} muito parado</div>` : ''}
     </button>`;
   }).join('');
   const hosts = hostId ? [$(hostId)].filter(Boolean) : Array.from(document.querySelectorAll('.process-cards-host:not(#processCardsBase)'));
@@ -190,11 +219,11 @@ function hasUsefulAction(x){
 function shortOwnerLabel(label){
   const raw = String(label || '').trim();
   const n = raw.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
-  if(n.includes('fornecedor')) return 'Fornecedor';
-  if(n.includes('compras') || n.includes('coupa')) return 'Compras';
-  if(n.includes('pcm')) return 'PCM';
-  if(n.includes('responsavel')) return 'Etapa';
-  return raw.length > 14 ? `${raw.slice(0, 14)}…` : raw;
+  if(n.includes('fornecedor')) return 'Depende do fornecedor';
+  if(n.includes('compras') || n.includes('coupa')) return 'Depende de compras';
+  if(n.includes('pcm')) return 'Depende do PCM';
+  if(n.includes('responsavel')) return 'Depende da etapa';
+  return raw.length > 22 ? `${raw.slice(0, 22)}…` : raw;
 }
 
 function renderActionNow(actions){

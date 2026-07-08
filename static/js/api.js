@@ -1,5 +1,5 @@
 
-const STATIC_DATA_URL = '/static/data/dashboard-data.json?v=77';
+const STATIC_DATA_URL = '/static/data/dashboard-data.json?v=78';
 let __STATIC_DATA = null;
 
 async function loadStaticData(force=false){
@@ -12,7 +12,7 @@ async function loadStaticData(force=false){
 
 async function api(path, body=null, asBlob=false){
   const db = await loadStaticData(path === '/api/refresh');
-  if(path === '/api/bootstrap') return db.boot;
+  if(path === '/api/bootstrap') return {...db.boot, generated_at: db.generated_at};
   if(path === '/api/refresh') return {ok:true, message:'Dados atualizados', linhas:db.rows.length, arquivo:db.boot?.metadata?.arquivo || 'base estática'};
   if(path === '/api/options') return staticOptions(db.rows, body || {});
   if(path === '/api/dashboard') return staticDashboard(db.rows, body || {});
@@ -121,9 +121,18 @@ function sortValue(row, col){
   if(col === 'DATA LANÇAMENTO NFS') return row._DATA_NF_ISO || '';
   return String(row[col] ?? '');
 }
+function etapaRank(row){
+  const ordem = {'SEM LANÇAMENTO':0,'SEM PEDIDO':1,'SEM NF':2,'CONCLUÍDO':3};
+  return ordem[String(row.ETAPA || row._ETAPA || '').toUpperCase()] ?? 9;
+}
 function sortStaticRows(rows, col, dir){
   const desc = dir === 'desc';
   return rows.slice().sort((a,b)=>{
+    // A base abre na lógica operacional do PCM: primeiro o que falta lançar, depois acompanhar pedido/NF.
+    if(col === 'DIAS PARADO'){
+      const etapaCmp = etapaRank(a) - etapaRank(b);
+      if(etapaCmp) return etapaCmp;
+    }
     const av=sortValue(a,col), bv=sortValue(b,col);
     let cmp = 0;
     if(typeof av === 'number' && typeof bv === 'number') cmp = av - bv;
@@ -251,21 +260,23 @@ function farolRegional(rows){
   // Leitura para liderança: o principal é o % concluído.
   // Dias só pesam forte quando a fila direta do PCM (SEM LANÇAMENTO) está alta ou muito velha.
   const pctSemLanc = total ? semLanc.qtd/total*100 : 0;
-  const backlogLancamentoAlto = semLanc.qtd >= 120 || pctSemLanc >= 7;
-  const lancamentoMuitoParado = semLanc.maxDias >= 45;
-  const conclusaoBaixa = pctConcluido < 75;
-  const conclusaoBoa = pctConcluido >= 85 && semLanc.qtd <= 100 && semLanc.maxDias < 45;
+  const conclusaoExcelente = pctConcluido >= 92 && semLanc.qtd <= 50;
+  const conclusaoBoa = pctConcluido >= 80 && semLanc.qtd <= 130;
+  const precisaRevisar = pctConcluido < 70 || semLanc.qtd >= 220 || semLanc.maxDias >= 90;
 
   let status = 'BOM';
-  if(conclusaoBaixa || backlogLancamentoAlto || lancamentoMuitoParado) status = 'ATENÇÃO';
-  if((pctConcluido < 65 && semLanc.qtd >= 100) || semLanc.maxDias >= 75 || pctSemLanc >= 12) status = 'CRÍTICO';
-  if(conclusaoBoa) status = 'BOM';
+  if(conclusaoExcelente) status = 'EXCELENTE';
+  else if(conclusaoBoa) status = 'BOM';
+  else if(precisaRevisar) status = 'REVISAR';
+  else status = 'ATENÇÃO';
 
-  const label = status === 'BOM'
-    ? `${brPct(pctConcluido)} concluído · rotina sob controle`
-    : status === 'ATENÇÃO'
-      ? `${brPct(pctConcluido)} concluído · revisar lançamentos`
-      : `${brPct(pctConcluido)} concluído · ação imediata no PCM`;
+  const label = status === 'EXCELENTE'
+    ? `${brPct(pctConcluido)} concluído · fila muito enxuta`
+    : status === 'BOM'
+      ? `${brPct(pctConcluido)} concluído · rotina sob controle`
+      : status === 'ATENÇÃO'
+        ? `${brPct(pctConcluido)} concluído · revisar fila PCM`
+        : `${brPct(pctConcluido)} concluído · reorganizar lançamentos`;
 
   const detail = `${brInt(semLanc.qtd)} sem lançamento · ${brInt(semPedido.qtd)} sem pedido · ${brInt(semNf.qtd)} sem NF`;
   const rcsAcompanhar = semLanc.qtd;
@@ -293,7 +304,7 @@ function farolRegional(rows){
     sem_pedido:semPedido.qtd,
     sem_nf:semNf.qtd,
     score:Math.round((100-pctConcluido) + pctSemLanc*3 + Math.min(semLanc.maxDias,90)/3),
-    action_hint: status === 'CRÍTICO' ? 'Atacar lançamentos hoje' : status === 'ATENÇÃO' ? 'Revisar fila de lançamento' : 'Manter rotina e acompanhar exceções'
+    action_hint: status === 'REVISAR' ? 'Reorganizar fila de lançamento' : status === 'ATENÇÃO' ? 'Revisar fila PCM' : 'Manter rotina e acompanhar exceções'
   };
 }
 
@@ -323,7 +334,7 @@ function urgencyLabel(days, value, etapa=''){
     return 'Lançar na rotina';
   }
   if(d >= 60 || v >= 500000) return 'Entender causa';
-  if(d >= 30 || v >= 150000) return 'Acompanhar';
+  if(d >= 30 || v >= 150000) return 'Acompanhar de perto';
   return 'Monitorar';
 }
 
@@ -374,7 +385,7 @@ function priorityRows(rows, count=5){
       qtd_fmt:`${brInt(g.qtd)} RC${g.qtd!==1?'s':''}`,
       action,
       urgency,
-      reason:`${urgency} · ${brInt(g.qtd)} RC${g.qtd!==1?'s':''} · ${brInt(g.maxDias)} dias parado`,
+      reason:`${urgency} · ${brInt(g.qtd)} RC${g.qtd!==1?'s':''} · ${brInt(g.maxDias)} dias`,
       codigos:g.codigos.join(', ') || codigo
     };
   }).sort((a,b)=>b.score-a.score || b.valor-a.valor || b.dias-a.dias).slice(0,count);
@@ -469,7 +480,7 @@ function executiveComment(rows){
   const foco = semLanc.qtd
     ? `Foco do PCM: lançar/conferir ${brInt(semLanc.qtd)} RCs (${compactMoney(semLanc.valor)}).`
     : 'Foco do PCM em dia; acompanhar pedido e NF.';
-  const start = first ? ` Comece por ${first.fornecedor} · ${first.reason}.` : '';
+  const start = first ? ` Primeiro foco: ${first.fornecedor} · ${first.reason}.` : '';
   return `${pct} concluído. ${foco} Acompanhamento: ${brInt(semPedido.qtd)} sem pedido e ${brInt(semNf.qtd)} sem NF.${start}`;
 }
 function monthly(rows){
