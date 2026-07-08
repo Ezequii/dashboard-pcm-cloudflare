@@ -309,8 +309,8 @@ function farolRegional(rows){
 }
 
 function stageActionTitle(etapa){
-  if(etapa === 'SEM NF') return 'Cobrar NF';
-  if(etapa === 'SEM PEDIDO') return 'Criar pedido';
+  if(etapa === 'SEM NF') return 'Conferir NF';
+  if(etapa === 'SEM PEDIDO') return 'Acompanhar pedido';
   if(etapa === 'SEM LANÇAMENTO') return 'Conferir lançamento';
   return 'Tratar pendência';
 }
@@ -330,8 +330,18 @@ function urgencyLabel(days, value, etapa=''){
   const d=n(days), v=n(value);
   if(etapa === 'SEM LANÇAMENTO'){
     if(d >= 30 || v >= 250000) return 'Conferir primeiro';
-    if(d >= 15 || v >= 100000) return 'Revisar na sequência';
+    if(d >= 15 || v >= 100000) return 'Conferir na sequência';
     return 'Rotina PCM';
+  }
+  if(etapa === 'SEM PEDIDO'){
+    if(d >= 30 || v >= 250000) return 'Acompanhar pedido';
+    if(d >= 15 || v >= 100000) return 'Acompanhar';
+    return 'Em acompanhamento';
+  }
+  if(etapa === 'SEM NF'){
+    if(d >= 30 || v >= 250000) return 'Conferir NF';
+    if(d >= 15 || v >= 100000) return 'Acompanhar NF';
+    return 'Aguardando NF';
   }
   if(d >= 60 || v >= 500000) return 'Entender causa';
   if(d >= 30 || v >= 150000) return 'Acompanhar de perto';
@@ -478,7 +488,7 @@ function executiveComment(rows){
   const semNf=stageSummary(rows,'SEM NF');
   const first=priorityRows(rows.filter(r=>r.ETAPA==='SEM LANÇAMENTO'),1)[0];
   const foco = semLanc.qtd
-    ? `Foco do PCM: lançar/conferir ${brInt(semLanc.qtd)} RCs (${compactMoney(semLanc.valor)}).`
+    ? `Foco do PCM: conferir lançamento de ${brInt(semLanc.qtd)} RCs (${compactMoney(semLanc.valor)}).`
     : 'Foco do PCM em dia; acompanhar pedido e NF.';
   const start = first ? ` Primeiro foco: ${first.fornecedor} · ${first.reason}.` : '';
   return `${pct} concluído. ${foco} Acompanhamento: ${brInt(semPedido.qtd)} sem pedido e ${brInt(semNf.qtd)} sem NF.${start}`;
