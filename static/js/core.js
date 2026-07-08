@@ -63,7 +63,6 @@ function bindEvents(){
   $('btnExportPdf').onclick = () => { closeExportMenu(); exportPdf(); };
   bindExportMenu();
   bindAdvancedSearchPanel();
-  $('btnCopySummary')?.addEventListener('click', copyLeaderSummary);
   if($('pageSize')){ $('pageSize').value = String(state.pageSize || 50); $('pageSize').onchange = (e) => { state.pageSize = Number(e.target.value); state.page = 1; savePreferences(); loadRows(); }; }
   $('prevPage').onclick = () => { if(state.page > 1){ state.page--; loadRows(); } };
   $('nextPage').onclick = () => { state.page++; loadRows(); };

@@ -311,7 +311,7 @@ function farolRegional(rows){
 function stageActionTitle(etapa){
   if(etapa === 'SEM NF') return 'Cobrar NF';
   if(etapa === 'SEM PEDIDO') return 'Criar pedido';
-  if(etapa === 'SEM LANÇAMENTO') return 'Lançar RC';
+  if(etapa === 'SEM LANÇAMENTO') return 'Conferir lançamento';
   return 'Tratar pendência';
 }
 function stageActionKind(etapa){
@@ -329,9 +329,9 @@ function stageOwnerDefault(etapa){
 function urgencyLabel(days, value, etapa=''){
   const d=n(days), v=n(value);
   if(etapa === 'SEM LANÇAMENTO'){
-    if(d >= 30 || v >= 250000) return 'Lançar hoje';
-    if(d >= 15 || v >= 100000) return 'Lançar na sequência';
-    return 'Lançar na rotina';
+    if(d >= 30 || v >= 250000) return 'Conferir primeiro';
+    if(d >= 15 || v >= 100000) return 'Revisar na sequência';
+    return 'Rotina PCM';
   }
   if(d >= 60 || v >= 500000) return 'Entender causa';
   if(d >= 30 || v >= 150000) return 'Acompanhar de perto';

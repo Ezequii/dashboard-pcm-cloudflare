@@ -47,7 +47,6 @@ function renderDashboardData(data){
 
   renderFarol(data.farol || {});
   renderExecutiveComment(data.comentario_executivo || 'Resumo executivo indisponível para o filtro atual.');
-  renderLeaderSummary(data);
 
   // Compatibilidade com ids antigos caso alguma customização local ainda use.
   setText('kTotalRCs', total);
@@ -97,32 +96,6 @@ function renderFarol(farol){
   setText('kFarolSub', farol.label || farol.detail || 'Operação saudável', farol.detail || '');
 }
 
-function renderLeaderSummary(data){
-  const el = $('leaderSummary');
-  if(!el) return;
-  const k = data.kpis || {};
-  const farol = data.farol || {};
-  const top = (data.top5_prioridades || [])[0] || null;
-  const pend = Number(k.pendentes || 0).toLocaleString('pt-BR');
-  const pct = k.pct_concluido || '0%';
-  const semLanc = Number(k.rcs_sem_lancamento || farol.rcs_sem_lancamento || 0).toLocaleString('pt-BR');
-  const semPedido = Number(farol.sem_pedido || 0).toLocaleString('pt-BR');
-  const semNf = Number(farol.sem_nf || 0).toLocaleString('pt-BR');
-  const valorFoco = k.valor_sem_lancamento_compacto || k.valor_fora_sla_compacto || 'R$ 0';
-  const principal = top ? ` Principal tratativa: ${top.fornecedor} — ${top.qtd_fmt || ''} — ${top.valor_fmt || ''}.` : '';
-  el.textContent = `Resumo RC PCM: ${pct} concluído. ${pend} RCs em andamento. Foco PCM: ${semLanc} sem lançamento (${valorFoco}). Acompanhamento: ${semPedido} sem pedido e ${semNf} sem NF.${principal}`;
-}
-
-async function copyLeaderSummary(){
-  const txt = $('leaderSummary')?.textContent?.trim();
-  if(!txt) return;
-  try{
-    await navigator.clipboard.writeText(txt);
-    showToast('Resumo copiado para enviar no WhatsApp/Teams.');
-  }catch(e){
-    showToast('Não consegui copiar automaticamente. Selecione o texto do resumo e copie manualmente.', true);
-  }
-}
 
 function renderExecutiveComment(text){
   const el = $('executiveComment');
@@ -143,6 +116,23 @@ function normalizeExecutiveComment(text){
     .replace(/ · dono /i, ' · Dono: ');
 }
 
+function stageReviewText(etapa, qtd){
+  const n = Number(qtd || 0).toLocaleString('pt-BR');
+  if(!Number(qtd || 0)) return 'na rotina';
+  if(etapa === 'SEM LANÇAMENTO') return `${n} para revisar`;
+  if(etapa === 'SEM PEDIDO') return `${n} para acompanhar`;
+  if(etapa === 'SEM NF') return `${n} para conferir`;
+  return `${n} para revisar`;
+}
+function stageTopBadgeText(etapa, qtd){
+  const n = Number(qtd || 0).toLocaleString('pt-BR');
+  if(!Number(qtd || 0) || etapa === 'CONCLUÍDO') return '';
+  if(etapa === 'SEM LANÇAMENTO') return `${n} para revisar`;
+  if(etapa === 'SEM PEDIDO') return `${n} para acompanhar`;
+  if(etapa === 'SEM NF') return `${n} para conferir`;
+  return `${n} para revisar`;
+}
+
 function renderProcess(etapas, hostId=null){
   const selected = new Set(state.filters.ETAPA || []);
   const markup = etapas.map(e => {
@@ -150,7 +140,7 @@ function renderProcess(etapas, hostId=null){
     const cls = stageClass(e.etapa);
     const fora = Number(e.fora_sla || 0);
     const crit = Number(e.criticas || 0);
-    const prazoTexto = e.etapa === 'CONCLUÍDO' ? 'concluído' : (fora ? `${fora} para revisar` : 'na rotina');
+    const prazoTexto = e.etapa === 'CONCLUÍDO' ? 'concluído' : stageReviewText(e.etapa, fora);
     return `
     <button type="button" class="process-card ${cls} ${active ? 'active' : ''}" style="--stage:${e.cor};--stage-soft:${hexToRgba(e.cor, .10)}" data-etapa="${escapeAttr(e.etapa)}" aria-pressed="${active ? 'true' : 'false'}" title="Clique para filtrar: ${escapeAttr(e.etapa)} | Valor: ${escapeAttr(e.valor_completo || e.valor_formatado || '')}">
       <div class="process-top">
@@ -165,7 +155,7 @@ function renderProcess(etapas, hostId=null){
         <span>${escapeHtml(e.percentual_formatado)}</span>
         <strong>${escapeHtml(prazoTexto)}</strong>
       </div>
-      ${crit ? `<div class="stage-critical-badge">${crit} muito parado</div>` : ''}
+      ${stageTopBadgeText(e.etapa, crit) ? `<div class="stage-critical-badge">${stageTopBadgeText(e.etapa, crit)}</div>` : ''}
     </button>`;
   }).join('');
   const hosts = hostId ? [$(hostId)].filter(Boolean) : Array.from(document.querySelectorAll('.process-cards-host:not(#processCardsBase)'));
