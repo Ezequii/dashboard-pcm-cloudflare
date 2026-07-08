@@ -8,7 +8,7 @@ async function loadRows(seq=null){
   const thead = table.querySelector('thead');
   const tbody = table.querySelector('tbody');
   thead.innerHTML = '<tr>' + data.columns.map(c => renderHeader(c)).join('') + '</tr>';
-  tbody.innerHTML = data.rows.map(row => `<tr class="${stageClass(row._ETAPA)}">` + data.columns.map(c => renderCell(c, row[c], row._ETAPA, row)).join('') + '</tr>').join('');
+  tbody.innerHTML = data.rows.map(row => `<tr class="${stageClass(row._ETAPA)}">` + data.columns.map(c => renderCell(c, row[c], row._ETAPA)).join('') + '</tr>').join('');
   thead.querySelectorAll('th.sortable').forEach(th => th.onclick = () => sortBy(th.dataset.col));
   $('tableCounter').textContent = `${Number(data.from).toLocaleString('pt-BR')}-${Number(data.to).toLocaleString('pt-BR')} de ${Number(data.total).toLocaleString('pt-BR')} registros`;
   $('pageInfo').textContent = `${data.page}/${data.pages}`;
@@ -50,7 +50,7 @@ function emptyDash(val){
   return String(val || '').trim() ? escapeHtml(val) : '<span class="empty-dash">—</span>';
 }
 
-function renderCell(col, value, etapa, row={}){
+function renderCell(col, value, etapa){
   const val = value || '';
   const cls = colClass(col);
   const safeTitle = escapeAttr(val || '');
@@ -67,27 +67,9 @@ function renderCell(col, value, etapa, row={}){
   }
   if(col === 'SLA STATUS'){
     const normalized = String(val || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
-    const etapaNorm = String(etapa || row.ETAPA || '').toUpperCase();
-    const dias = parseInt(String(row['DIAS PARADO'] || row._DIAS_PARADO || '0').replace(/[^0-9]/g, ''), 10) || 0;
-    let level = normalized.includes('concluido') ? 'done' : 'ok';
-    let display = 'Rotina';
-
-    if(etapaNorm === 'CONCLUÍDO' || etapaNorm === 'CONCLUIDO'){
-      level = 'done'; display = 'Concluído';
-    } else if(dias >= 30){
-      level = 'critical'; display = 'Muito parado';
-    } else if(etapaNorm === 'SEM LANÇAMENTO' || etapaNorm === 'SEM LANCAMENTO'){
-      level = dias >= 15 ? 'attention' : 'ok'; display = 'Conferir lançamento';
-    } else if(etapaNorm === 'SEM PEDIDO'){
-      level = dias >= 15 ? 'attention' : 'ok'; display = 'Acompanhar pedido';
-    } else if(etapaNorm === 'SEM NF'){
-      level = dias >= 15 ? 'attention' : 'ok'; display = 'Conferir NF';
-    } else if(normalized.includes('critico')){
-      level = 'critical'; display = 'Muito parado';
-    } else if(normalized.includes('atencao')){
-      level = 'attention'; display = 'Acompanhar';
-    }
-    return `<td class="${cls}" title="Tratativa: ${escapeAttr(display)} · ${Number(dias).toLocaleString('pt-BR')} dias"><span class="sla-badge ${level}">${escapeHtml(display)}</span></td>`;
+    const level = normalized.includes('critico') ? 'critical' : (normalized.includes('atencao') ? 'attention' : (normalized.includes('concluido') ? 'done' : 'ok'));
+    const display = normalized.includes('critico') ? 'Muito parado' : (normalized.includes('atencao') ? 'Revisar' : (normalized.includes('concluido') ? 'Concluído' : 'Rotina'));
+    return `<td class="${cls}" title="Atenção da tratativa: ${safeTitle}"><span class="sla-badge ${level}">${escapeHtml(display)}</span></td>`;
   }
   if(col === 'DONO DA AÇÃO'){
     return `<td class="${cls}" title="Depende de: ${safeTitle}"><span class="owner-pill">${emptyDash(val)}</span></td>`;
