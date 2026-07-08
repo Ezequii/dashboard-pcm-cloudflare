@@ -201,12 +201,14 @@ function applyQuickFilter(kind){
   // Mantém filtros principais de solicitante/fornecedor/mês e só altera os filtros rápidos.
   state.filters['SLA STATUS'] = [];
   state.filters['FAIXA ATRASO'] = [];
-  if(kind !== 'SEM_NF') state.filters['ETAPA'] = [];
+  if(!['SEM_NF','SEM_LANCAMENTO','SEM_PEDIDO'].includes(kind)) state.filters['ETAPA'] = [];
   if(kind === 'FORA_SLA') state.filters['SLA STATUS'] = ['ATENÇÃO','CRÍTICO'];
   if(kind === 'CRITICO') state.filters['SLA STATUS'] = ['CRÍTICO'];
   if(kind === '15_DIAS') state.filters['FAIXA ATRASO'] = ['15+ dias','30+ dias'];
   if(kind === '30_DIAS') state.filters['FAIXA ATRASO'] = ['30+ dias'];
   if(kind === 'SEM_NF') state.filters['ETAPA'] = ['SEM NF'];
+  if(kind === 'SEM_LANCAMENTO') state.filters['ETAPA'] = ['SEM LANÇAMENTO'];
+  if(kind === 'SEM_PEDIDO') state.filters['ETAPA'] = ['SEM PEDIDO'];
   if(kind === 'TODAS'){
     state.filters['SLA STATUS'] = [];
     state.filters['FAIXA ATRASO'] = [];
@@ -223,7 +225,9 @@ function syncQuickChips(activeKind=null){
   const sla = state.filters['SLA STATUS'] || [];
   const faixa = state.filters['FAIXA ATRASO'] || [];
   const etapa = state.filters['ETAPA'] || [];
-  if(etapa.includes('SEM NF')) kind = 'SEM_NF';
+  if(etapa.includes('SEM LANÇAMENTO')) kind = 'SEM_LANCAMENTO';
+  else if(etapa.includes('SEM PEDIDO')) kind = 'SEM_PEDIDO';
+  else if(etapa.includes('SEM NF')) kind = 'SEM_NF';
   else if(sla.length === 1 && sla.includes('CRÍTICO')) kind = 'CRITICO';
   else if(sla.includes('ATENÇÃO') && sla.includes('CRÍTICO')) kind = 'FORA_SLA';
   else if(faixa.includes('30+ dias') && faixa.includes('15+ dias')) kind = '15_DIAS';

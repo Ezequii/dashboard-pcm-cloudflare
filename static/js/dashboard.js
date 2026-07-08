@@ -42,8 +42,8 @@ function renderDashboardData(data){
   setText('kConcluidoSub', `${concluidas} concluídas`);
   setText('kMaiorAtraso', `${Number(k.maior_atraso_dias || 0).toLocaleString('pt-BR')} dias`);
   setText('kMaiorAtrasoSub', k.maior_atraso_label || 'Sem pendência', k.maior_atraso_detail || '');
-  setText('kValorForaSla', k.valor_fora_sla_compacto || k.valor_fora_sla || 'R$ 0', k.valor_fora_sla || 'R$ 0');
-  setText('kValorForaSlaSub', `${Number(k.rcs_fora_sla || 0).toLocaleString('pt-BR')} RCs em atenção`);
+  setText('kValorForaSla', k.valor_sem_lancamento_compacto || k.valor_fora_sla_compacto || k.valor_fora_sla || 'R$ 0', k.valor_sem_lancamento || k.valor_fora_sla || 'R$ 0');
+  setText('kValorForaSlaSub', `${Number(k.rcs_sem_lancamento || k.rcs_fora_sla || 0).toLocaleString('pt-BR')} RCs sem lançamento`);
 
   renderFarol(data.farol || {});
   renderExecutiveComment(data.comentario_executivo || 'Resumo executivo indisponível para o filtro atual.');
@@ -121,7 +121,7 @@ function renderProcess(etapas, hostId=null){
     const cls = stageClass(e.etapa);
     const fora = Number(e.fora_sla || 0);
     const crit = Number(e.criticas || 0);
-    const prazoTexto = fora ? `${fora} em atenção` : 'em dia';
+    const prazoTexto = e.etapa === 'CONCLUÍDO' ? 'concluído' : (fora ? `${fora} para revisar` : 'na rotina');
     return `
     <button type="button" class="process-card ${cls} ${active ? 'active' : ''}" style="--stage:${e.cor};--stage-soft:${hexToRgba(e.cor, .10)}" data-etapa="${escapeAttr(e.etapa)}" aria-pressed="${active ? 'true' : 'false'}" title="Clique para filtrar: ${escapeAttr(e.etapa)} | Valor: ${escapeAttr(e.valor_completo || e.valor_formatado || '')}">
       <div class="process-top">

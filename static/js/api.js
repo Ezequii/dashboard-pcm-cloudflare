@@ -1,5 +1,5 @@
 
-const STATIC_DATA_URL = '/static/data/dashboard-data.json?v=76';
+const STATIC_DATA_URL = '/static/data/dashboard-data.json?v=77';
 let __STATIC_DATA = null;
 
 async function loadStaticData(force=false){
@@ -83,6 +83,14 @@ function compactMoney(v){ const val=n(v), abs=Math.abs(val); if(abs>=1000000) re
 function average(arr){ const vals=arr.map(n).filter(x=>Number.isFinite(x)); return vals.length ? vals.reduce((a,b)=>a+b,0)/vals.length : 0; }
 function uniqueCount(rows, key){ return new Set(rows.map(r=>cleanStatic(r[key])).filter(Boolean)).size; }
 function pendingRows(rows){ return rows.filter(r => r.ETAPA !== 'CONCLUÍDO'); }
+function stageRows(rows, etapa){ return rows.filter(r => r.ETAPA === etapa); }
+function stageSummary(rows, etapa){
+  const ss = stageRows(rows, etapa);
+  const valor = ss.reduce((s,r)=>s+n(r._VALOR_TOTAL),0);
+  const maxDias = Math.max(0, ...ss.map(r=>n(r._DIAS_PARADO)));
+  return {qtd:ss.length, valor, maxDias, rows:ss};
+}
+
 
 function applyStaticQuery(rows, query={}){
   let out = rows.slice();
@@ -205,67 +213,87 @@ function oldestPending(rows){
 }
 function farolRegional(rows){
   const total = rows.length;
+  const concluidas = rows.filter(r=>r.ETAPA === 'CONCLUÍDO').length;
   const pend = pendingRows(rows);
   const totalPend = pend.length;
   const valorPend = pend.reduce((s,r)=>s+n(r._VALOR_TOTAL),0);
-  const pctPendTotal = total ? totalPend/total*100 : 0;
+  const pctConcluido = total ? concluidas/total*100 : 0;
+  const pctPendente = total ? totalPend/total*100 : 0;
+  const semLanc = stageSummary(rows, 'SEM LANÇAMENTO');
+  const semPedido = stageSummary(rows, 'SEM PEDIDO');
+  const semNf = stageSummary(rows, 'SEM NF');
+  const valorAcompanhar = semLanc.valor;
+  const maxGeral = Math.max(0, ...pend.map(r=>n(r._DIAS_PARADO)));
+
   if(!totalPend){
     return {
       status:'BOM',
-      label:'Tudo concluído no filtro atual',
-      detail:'Sem pendência aberta',
+      label:'100% concluído · sem fila aberta',
+      detail:'Tudo lançado, pedido e NF concluídos no filtro atual',
       pct_rcs_fora_sla:0,
       pct_valor_fora_sla:0,
       pct_pendente_total:0,
       maior_atraso_dias:0,
       valor_fora_sla:brMoney(0),
       valor_fora_sla_compacto:compactMoney(0),
+      valor_pendente:brMoney(0),
+      valor_pendente_compacto:compactMoney(0),
       rcs_fora_sla:0,
       rcs_criticas:0,
       rcs_atrasadas:0,
-      action_hint:'Sem ação emergencial'
+      rcs_sem_lancamento:0,
+      valor_sem_lancamento:brMoney(0),
+      valor_sem_lancamento_compacto:compactMoney(0),
+      action_hint:'Sem ação pendente'
     };
   }
-  const maior = Math.max(0, ...pend.map(r=>n(r._DIAS_PARADO)));
-  const atrasadas = pend.filter(r=>n(r._DIAS_PARADO) >= 15);
-  const muitoAtrasadas = pend.filter(r=>n(r._DIAS_PARADO) >= 60);
-  const valorAtrasado = atrasadas.reduce((s,r)=>s+n(r._VALOR_TOTAL),0);
-  const pctAtrasadas = totalPend ? atrasadas.length/totalPend*100 : 0;
-  const pctValorAtrasado = valorPend ? valorAtrasado/valorPend*100 : 0;
-  const scorePendencia = pctPendTotal >= 25 ? 40 : pctPendTotal >= 15 ? 25 : pctPendTotal >= 8 ? 12 : 4;
-  const scoreIdade = maior >= 180 ? 35 : maior >= 90 ? 22 : maior >= 45 ? 12 : maior >= 15 ? 5 : 0;
-  const scoreValor = valorPend >= 8000000 ? 25 : valorPend >= 3000000 ? 14 : valorPend >= 1000000 ? 7 : 2;
-  const scoreVolume = totalPend >= 600 ? 20 : totalPend >= 300 ? 10 : totalPend >= 100 ? 5 : 0;
-  const scoreMuitoAtrasadas = muitoAtrasadas.length >= 50 ? 12 : muitoAtrasadas.length >= 10 ? 6 : muitoAtrasadas.length ? 3 : 0;
-  const score = scorePendencia + scoreIdade + scoreValor + scoreVolume + scoreMuitoAtrasadas;
+
+  // Leitura para liderança: o principal é o % concluído.
+  // Dias só pesam forte quando a fila direta do PCM (SEM LANÇAMENTO) está alta ou muito velha.
+  const pctSemLanc = total ? semLanc.qtd/total*100 : 0;
+  const backlogLancamentoAlto = semLanc.qtd >= 120 || pctSemLanc >= 7;
+  const lancamentoMuitoParado = semLanc.maxDias >= 45;
+  const conclusaoBaixa = pctConcluido < 75;
+  const conclusaoBoa = pctConcluido >= 85 && semLanc.qtd <= 100 && semLanc.maxDias < 45;
+
   let status = 'BOM';
-  if(score >= 70 || (pctPendTotal >= 30 && maior >= 90) || valorPend >= 10000000) status = 'CRÍTICO';
-  else if(score >= 25 || pctPendTotal >= 8 || maior >= 30 || valorPend >= 1000000) status = 'ATENÇÃO';
+  if(conclusaoBaixa || backlogLancamentoAlto || lancamentoMuitoParado) status = 'ATENÇÃO';
+  if((pctConcluido < 65 && semLanc.qtd >= 100) || semLanc.maxDias >= 75 || pctSemLanc >= 12) status = 'CRÍTICO';
+  if(conclusaoBoa) status = 'BOM';
+
   const label = status === 'BOM'
-    ? 'Operação saudável'
+    ? `${brPct(pctConcluido)} concluído · rotina sob controle`
     : status === 'ATENÇÃO'
-      ? `${brPct(pctPendTotal)} em aberto · acompanhar hoje`
-      : 'Intervenção necessária';
-  const detail = `${brInt(totalPend)} pendências · ${compactMoney(valorPend)} parado · mais antiga ${brInt(maior)} dias`;
+      ? `${brPct(pctConcluido)} concluído · revisar lançamentos`
+      : `${brPct(pctConcluido)} concluído · ação imediata no PCM`;
+
+  const detail = `${brInt(semLanc.qtd)} sem lançamento · ${brInt(semPedido.qtd)} sem pedido · ${brInt(semNf.qtd)} sem NF`;
+  const rcsAcompanhar = semLanc.qtd;
   return {
     status,
     label,
     detail,
-    pct_rcs_fora_sla:pctAtrasadas,
-    pct_valor_fora_sla:pctValorAtrasado,
-    pct_pendente_total:pctPendTotal,
-    pct_criticas: totalPend ? muitoAtrasadas.length/totalPend*100 : 0,
-    pct_valor_critico: pctValorAtrasado,
-    maior_atraso_dias:maior,
-    valor_fora_sla:brMoney(valorAtrasado),
-    valor_fora_sla_compacto:compactMoney(valorAtrasado),
+    pct_concluido:pctConcluido,
+    pct_rcs_fora_sla:pctSemLanc,
+    pct_valor_fora_sla: valorPend ? valorAcompanhar/valorPend*100 : 0,
+    pct_pendente_total:pctPendente,
+    pct_criticas: totalPend ? pend.filter(r=>n(r._DIAS_PARADO)>=60).length/totalPend*100 : 0,
+    pct_valor_critico:0,
+    maior_atraso_dias:maxGeral,
+    valor_fora_sla:brMoney(valorAcompanhar),
+    valor_fora_sla_compacto:compactMoney(valorAcompanhar),
     valor_pendente:brMoney(valorPend),
     valor_pendente_compacto:compactMoney(valorPend),
-    rcs_fora_sla:atrasadas.length,
-    rcs_criticas:muitoAtrasadas.length,
-    rcs_atrasadas:atrasadas.length,
-    score,
-    action_hint: status === 'CRÍTICO' ? 'Parar e atacar a causa hoje' : status === 'ATENÇÃO' ? 'Acompanhar prioridades do dia' : 'Manter rotina'
+    rcs_fora_sla:rcsAcompanhar,
+    rcs_criticas:semLanc.rows.filter(r=>n(r._DIAS_PARADO)>=45).length,
+    rcs_atrasadas:rcsAcompanhar,
+    rcs_sem_lancamento:semLanc.qtd,
+    valor_sem_lancamento:brMoney(semLanc.valor),
+    valor_sem_lancamento_compacto:compactMoney(semLanc.valor),
+    sem_pedido:semPedido.qtd,
+    sem_nf:semNf.qtd,
+    score:Math.round((100-pctConcluido) + pctSemLanc*3 + Math.min(semLanc.maxDias,90)/3),
+    action_hint: status === 'CRÍTICO' ? 'Atacar lançamentos hoje' : status === 'ATENÇÃO' ? 'Revisar fila de lançamento' : 'Manter rotina e acompanhar exceções'
   };
 }
 
@@ -287,12 +315,16 @@ function stageOwnerDefault(etapa){
   if(etapa === 'SEM LANÇAMENTO') return 'PCM';
   return 'Responsável';
 }
-function urgencyLabel(days, value){
+function urgencyLabel(days, value, etapa=''){
   const d=n(days), v=n(value);
-  if(d >= 60 || v >= 500000) return 'Resolver hoje';
-  if(d >= 30 || v >= 150000) return 'Acompanhar hoje';
-  if(d >= 15) return 'Cobrar esta semana';
-  return 'Na rotina';
+  if(etapa === 'SEM LANÇAMENTO'){
+    if(d >= 30 || v >= 250000) return 'Lançar hoje';
+    if(d >= 15 || v >= 100000) return 'Lançar na sequência';
+    return 'Lançar na rotina';
+  }
+  if(d >= 60 || v >= 500000) return 'Entender causa';
+  if(d >= 30 || v >= 150000) return 'Acompanhar';
+  return 'Monitorar';
 }
 
 function priorityRows(rows, count=5){
@@ -317,11 +349,13 @@ function priorityRows(rows, count=5){
   const maxVal = Math.max(1, ...arr.map(g=>g.valor));
   const maxDays = Math.max(1, ...arr.map(g=>g.maxDias));
   const maxQtd = Math.max(1, ...arr.map(g=>g.qtd));
-  const stageWeight={'SEM NF':1.0,'SEM PEDIDO':0.88,'SEM LANÇAMENTO':0.78,'CONCLUÍDO':0};
+  // O ranking prioriza o que é trabalho direto do PCM: lançamento.
+  // Pedido e NF entram como acompanhamento/causa, sem roubar todo o painel.
+  const stageWeight={'SEM LANÇAMENTO':1.0,'SEM PEDIDO':0.45,'SEM NF':0.35,'CONCLUÍDO':0};
   return arr.map(g=>{
-    const score = 45*(g.valor/maxVal) + 25*(g.maxDias/maxDays) + 20*(stageWeight[g.etapa] ?? .6) + 10*(g.qtd/maxQtd);
+    const score = 60*(stageWeight[g.etapa] ?? .35) + 20*(g.maxDias/maxDays) + 15*(g.valor/maxVal) + 5*(g.qtd/maxQtd);
     const action = stageActionTitle(g.etapa);
-    const urgency = urgencyLabel(g.maxDias, g.valor);
+    const urgency = urgencyLabel(g.maxDias, g.valor, g.etapa);
     const codigo = g.codigos[0] || `${g.qtd} RC${g.qtd!==1?'s':''}`;
     return {
       codigo: action,
@@ -340,7 +374,7 @@ function priorityRows(rows, count=5){
       qtd_fmt:`${brInt(g.qtd)} RC${g.qtd!==1?'s':''}`,
       action,
       urgency,
-      reason:`${urgency} · ${brInt(g.qtd)} RC${g.qtd!==1?'s':''} · ${brInt(g.maxDias)} dias`,
+      reason:`${urgency} · ${brInt(g.qtd)} RC${g.qtd!==1?'s':''} · ${brInt(g.maxDias)} dias parado`,
       codigos:g.codigos.join(', ') || codigo
     };
   }).sort((a,b)=>b.score-a.score || b.valor-a.valor || b.dias-a.dias).slice(0,count);
@@ -350,54 +384,59 @@ function executiveActions(rows){
   const actions=[];
   const pend = pendingRows(rows);
   if(!pend.length) return actions;
-  const prioridade = priorityRows(rows,1)[0];
-  if(prioridade){
+
+  const lancamentos = priorityRows(rows.filter(r=>r.ETAPA === 'SEM LANÇAMENTO'), 1)[0];
+  if(lancamentos){
     actions.push({
-      kind:stageActionKind(prioridade.etapa),
-      title:'1ª ação',
-      main:prioridade.fornecedor,
-      value:prioridade.action,
-      detail:prioridade.reason,
-      etapa:prioridade.etapa,
-      owner:prioridade.owner_team
+      kind:'lancamento',
+      title:'Meu foco',
+      main:lancamentos.fornecedor,
+      value:lancamentos.action,
+      detail:lancamentos.reason,
+      etapa:'SEM LANÇAMENTO',
+      owner:'PCM'
     });
   }
-  const byStage = groupByStage(rows).filter(e=>e.etapa !== 'CONCLUÍDO').sort((a,b)=>b.qtd-a.qtd || b.valor-a.valor)[0];
-  if(byStage){
+
+  const semLanc = stageSummary(rows, 'SEM LANÇAMENTO');
+  if(semLanc.qtd){
     actions.push({
-      kind:stageActionKind(byStage.etapa),
-      title:'Maior gargalo',
-      main:byStage.etapa,
-      value:`${brInt(byStage.qtd)} RCs`,
-      detail:`${byStage.valor_formatado} parado`,
-      etapa:byStage.etapa,
-      owner:stageOwnerDefault(byStage.etapa)
+      kind:'lancamento',
+      title:'Fila PCM',
+      main:'Sem lançamento',
+      value:`${brInt(semLanc.qtd)} RCs`,
+      detail:`${compactMoney(semLanc.valor)} para lançar/conferir`,
+      etapa:'SEM LANÇAMENTO',
+      owner:'PCM'
     });
   }
-  const byValue = priorityRows(rows,5).sort((a,b)=>b.valor-a.valor)[0];
-  if(byValue){
+
+  const semPedido = stageSummary(rows, 'SEM PEDIDO');
+  if(semPedido.qtd){
     actions.push({
-      kind:stageActionKind(byValue.etapa),
-      title:'Maior valor',
-      main:byValue.fornecedor,
-      value:byValue.valor_fmt,
-      detail:byValue.reason,
-      etapa:byValue.etapa,
-      owner:byValue.owner_team
+      kind:'pedido',
+      title:'Acompanhar',
+      main:'Sem pedido',
+      value:`${brInt(semPedido.qtd)} RCs`,
+      detail:`${compactMoney(semPedido.valor)} aguardando pedido`,
+      etapa:'SEM PEDIDO',
+      owner:'Compras'
     });
   }
-  const old=oldestPending(rows);
-  if(n(old.dias)>0){
+
+  const semNf = stageSummary(rows, 'SEM NF');
+  if(semNf.qtd){
     actions.push({
-      kind:'old',
-      title:'Mais antiga',
-      main:old.label,
-      value:`${brInt(old.dias)} dias`,
-      detail:old.detail,
-      etapa:old.etapa,
-      owner:stageOwnerDefault(old.etapa)
+      kind:'nf',
+      title:'Conferir NF',
+      main:'Sem NF',
+      value:`${brInt(semNf.qtd)} RCs`,
+      detail:`${compactMoney(semNf.valor)} aguardando NF`,
+      etapa:'SEM NF',
+      owner:'Fornecedor'
     });
   }
+
   const seen = new Set();
   return actions.filter(a=>{
     const key=`${a.title}|${a.main}|${a.etapa}`;
@@ -408,9 +447,7 @@ function executiveActions(rows){
 }
 function topOwnersCriticos(rows){
   const pend = pendingRows(rows);
-  let subset = pend.filter(r=>['ATENÇÃO','CRÍTICO'].includes(r['SLA STATUS']));
-  if(!subset.length) subset = pend;
-  return topSum(subset,'DONO DA AÇÃO',6);
+  return topSum(pend,'DONO DA AÇÃO',6);
 }
 function operationalAlerts(rows){
   const etapas = groupByStage(rows).filter(e=>e.etapa!=='CONCLUÍDO').map(e=>({label:e.etapa.replace('NF','NF').toLowerCase().replace(/(^|\s)\S/g,m=>m.toUpperCase()).replace('Nf','NF'),value:brInt(e.qtd),detail:compactMoney(e.valor),full:brMoney(e.valor),tone:e.etapa.toLowerCase().replace(/ /g,'-')}));
@@ -421,13 +458,19 @@ function operationalAlerts(rows){
 function executiveComment(rows){
   const pend=pendingRows(rows);
   if(!rows.length) return 'Sem registros para o filtro atual.';
-  if(!pend.length) return 'Tudo concluído no filtro atual. Não há pendências abertas para tratativa.';
-  const etapas=groupByStage(rows).filter(e=>e.etapa!=='CONCLUÍDO').sort((a,b)=>b.qtd-a.qtd || b.valor-a.valor);
-  const top=etapas[0];
-  const old=oldestPending(rows);
-  const pri=priorityRows(rows,1)[0];
-  const farol=farolRegional(rows);
-  return `${farol.status}: ${farol.detail}. Gargalo principal: ${top?.etapa || 'pendência'} (${brInt(top?.qtd || 0)} RCs). Comece por: ${pri?.action || 'tratar'} · ${pri?.fornecedor || old.fornecedor || ''} · ${pri?.reason || `${brInt(old.dias)} dias`}.`;
+  const total=rows.length;
+  const concl=rows.filter(r=>r.ETAPA==='CONCLUÍDO').length;
+  const pct=brPct(total?concl/total*100:0);
+  if(!pend.length) return '100% concluído no filtro atual. Nada para lançar, acompanhar pedido ou cobrar NF.';
+  const semLanc=stageSummary(rows,'SEM LANÇAMENTO');
+  const semPedido=stageSummary(rows,'SEM PEDIDO');
+  const semNf=stageSummary(rows,'SEM NF');
+  const first=priorityRows(rows.filter(r=>r.ETAPA==='SEM LANÇAMENTO'),1)[0];
+  const foco = semLanc.qtd
+    ? `Foco do PCM: lançar/conferir ${brInt(semLanc.qtd)} RCs (${compactMoney(semLanc.valor)}).`
+    : 'Foco do PCM em dia; acompanhar pedido e NF.';
+  const start = first ? ` Comece por ${first.fornecedor} · ${first.reason}.` : '';
+  return `${pct} concluído. ${foco} Acompanhamento: ${brInt(semPedido.qtd)} sem pedido e ${brInt(semNf.qtd)} sem NF.${start}`;
 }
 function monthly(rows){
   const map=new Map(); rows.forEach(r=>{ const iso=r._DATA_RECEBIMENTO_ISO || r._DATA_LANCAMENTO_ISO || r._DATA_PEDIDO_ISO || r._DATA_NF_ISO; if(!iso) return; const key=iso.slice(0,7); map.set(key,(map.get(key)||0)+n(r._VALOR_TOTAL)); });
@@ -439,7 +482,7 @@ function staticDashboard(rows, query){
   const total=out.length, pend=pendingRows(out), concl=out.filter(r=>r.ETAPA==='CONCLUÍDO');
   const valorTotal=out.reduce((s,r)=>s+n(r._VALOR_TOTAL),0), serv=out.reduce((s,r)=>s+n(r._VALOR_SERVICO),0), pecas=out.reduce((s,r)=>s+n(r._VALOR_PECAS),0), valorPend=pend.reduce((s,r)=>s+n(r._VALOR_TOTAL),0);
   const farol=farolRegional(out), old=oldestPending(out), etapas=groupByStage(out), owners=topOwnersCriticos(out), top5=priorityRows(out,5);
-  const kpis={total_rcs:total,valor_total:brMoney(valorTotal),valor_total_compacto:compactMoney(valorTotal),valor_servicos:brMoney(serv),valor_servicos_compacto:compactMoney(serv),valor_pecas:brMoney(pecas),valor_pecas_compacto:compactMoney(pecas),ticket_medio:brMoney(total?valorTotal/total:0),ticket_medio_compacto:compactMoney(total?valorTotal/total:0),ticket_tempo_dias:`${average(out.map(r=>r._DIAS_PARADO)).toFixed(1).replace('.',',')} dias`,ticket_tempo_dias_valor:average(out.map(r=>r._DIAS_PARADO)),fornecedores:uniqueCount(out,'FORNECEDOR'),equipamentos:uniqueCount(out,'EQUIPAMENTO'),concluidas:concl.length,pendentes:pend.length,pct_concluido:brPct(total?concl.length/total*100:0),pct_pendente:brPct(total?pend.length/total*100:0),valor_pendente:brMoney(valorPend),valor_pendente_compacto:compactMoney(valorPend),valor_fora_sla:farol.valor_fora_sla,valor_fora_sla_compacto:farol.valor_fora_sla_compacto,rcs_fora_sla:farol.rcs_fora_sla,rcs_criticas:farol.rcs_criticas,farol_status:farol.status,maior_atraso_dias:n(old.dias),maior_atraso_label:old.label,maior_atraso_detail:old.detail};
+  const kpis={total_rcs:total,valor_total:brMoney(valorTotal),valor_total_compacto:compactMoney(valorTotal),valor_servicos:brMoney(serv),valor_servicos_compacto:compactMoney(serv),valor_pecas:brMoney(pecas),valor_pecas_compacto:compactMoney(pecas),ticket_medio:brMoney(total?valorTotal/total:0),ticket_medio_compacto:compactMoney(total?valorTotal/total:0),ticket_tempo_dias:`${average(out.map(r=>r._DIAS_PARADO)).toFixed(1).replace('.',',')} dias`,ticket_tempo_dias_valor:average(out.map(r=>r._DIAS_PARADO)),fornecedores:uniqueCount(out,'FORNECEDOR'),equipamentos:uniqueCount(out,'EQUIPAMENTO'),concluidas:concl.length,pendentes:pend.length,pct_concluido:brPct(total?concl.length/total*100:0),pct_pendente:brPct(total?pend.length/total*100:0),valor_pendente:brMoney(valorPend),valor_pendente_compacto:compactMoney(valorPend),valor_fora_sla:farol.valor_fora_sla,valor_fora_sla_compacto:farol.valor_fora_sla_compacto,valor_sem_lancamento:farol.valor_sem_lancamento,valor_sem_lancamento_compacto:farol.valor_sem_lancamento_compacto,rcs_fora_sla:farol.rcs_fora_sla,rcs_sem_lancamento:farol.rcs_sem_lancamento,rcs_criticas:farol.rcs_criticas,farol_status:farol.status,maior_atraso_dias:n(old.dias),maior_atraso_label:old.label,maior_atraso_detail:old.detail};
   return {kpis,etapas,farol,top5_prioridades:top5,comentario_executivo:executiveComment(out),alerts:{...operationalAlerts(out),action_now:executiveActions(out),owners_criticos:owners},charts:{funil:etapas.map(e=>({label:e.etapa,value:e.qtd,formatted:brInt(e.qtd),color:e.cor})),top_fornecedores:topSum(out,'FORNECEDOR'),top_fornecedores_pendentes:topSum(pend,'FORNECEDOR'),top_gargalos:[],solicitantes_pendentes:topSum(pend,'SOLICITANTE'),owners_criticos:owners,custo_solicitante:topSum(out,'SOLICITANTE'),qtd_solicitante:topCount(out,'SOLICITANTE'),qtd_fornecedor:topCount(out,'FORNECEDOR'),mensal:monthly(out),pecas_servicos:[{label:'Serviços',value:serv,formatted:compactMoney(serv),full:brMoney(serv)},{label:'Peças',value:pecas,formatted:compactMoney(pecas),full:brMoney(pecas)}],tempo_medio:[]}};
 }
 function toCsv(columns, rows){
