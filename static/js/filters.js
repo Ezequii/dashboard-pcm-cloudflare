@@ -150,13 +150,13 @@ function renderActiveFilters(){
   host.classList.add('has-context');
   const priority = active.find(x => ['ETAPA','SLA STATUS','FAIXA ATRASO'].includes(x.key)) || active[0];
   let title = priority.text;
-  let detail = 'Leitura recalculada com filtro';
+  let detail = 'Cards gerais mantidos; fila e base filtradas';
   if(priority.key === 'ETAPA' && priority.values.length === 1){
-    detail = `Apenas ${priority.text}`;
+    detail = `Fila e base: apenas ${priority.text}`;
   }else if(priority.key === 'SLA STATUS'){
-    detail = 'Mostrando RCs conforme atenção por prazo';
+    detail = 'Fila e base com itens em atenção';
   }else if(priority.key === 'FAIXA ATRASO'){
-    detail = 'Mostrando RCs por faixa de atraso';
+    detail = 'Fila e base por tempo parado';
   }else if(active.length > 1){
     detail = `${active.length} filtros ativos`;
   }

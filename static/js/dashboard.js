@@ -119,18 +119,15 @@ function normalizeExecutiveComment(text){
 function stageReviewText(etapa, qtd){
   const n = Number(qtd || 0).toLocaleString('pt-BR');
   if(!Number(qtd || 0)) return 'na rotina';
-  if(etapa === 'SEM LANÇAMENTO') return `${n} para revisar`;
-  if(etapa === 'SEM PEDIDO') return `${n} para acompanhar`;
-  if(etapa === 'SEM NF') return `${n} para conferir`;
-  return `${n} para revisar`;
+  if(etapa === 'SEM LANÇAMENTO') return `${n} para conferir lançamento`;
+  if(etapa === 'SEM PEDIDO') return `${n} em acompanhamento`;
+  if(etapa === 'SEM NF') return `${n} para conferir NF`;
+  return `${n} em tratativa`;
 }
 function stageTopBadgeText(etapa, qtd){
-  const n = Number(qtd || 0).toLocaleString('pt-BR');
-  if(!Number(qtd || 0) || etapa === 'CONCLUÍDO') return '';
-  if(etapa === 'SEM LANÇAMENTO') return `${n} para revisar`;
-  if(etapa === 'SEM PEDIDO') return `${n} para acompanhar`;
-  if(etapa === 'SEM NF') return `${n} para conferir`;
-  return `${n} para revisar`;
+  // V80: removido para evitar duas contagens diferentes no mesmo card.
+  // O número oficial da etapa fica no título e no rodapé do card.
+  return '';
 }
 
 function renderProcess(etapas, hostId=null){
@@ -138,9 +135,9 @@ function renderProcess(etapas, hostId=null){
   const markup = etapas.map(e => {
     const active = selected.has(e.etapa);
     const cls = stageClass(e.etapa);
-    const fora = Number(e.fora_sla || 0);
+    const stageQty = Number(e.qtd || 0);
     const crit = Number(e.criticas || 0);
-    const prazoTexto = e.etapa === 'CONCLUÍDO' ? 'concluído' : stageReviewText(e.etapa, fora);
+    const prazoTexto = e.etapa === 'CONCLUÍDO' ? 'concluído' : stageReviewText(e.etapa, stageQty);
     return `
     <button type="button" class="process-card ${cls} ${active ? 'active' : ''}" style="--stage:${e.cor};--stage-soft:${hexToRgba(e.cor, .10)}" data-etapa="${escapeAttr(e.etapa)}" aria-pressed="${active ? 'true' : 'false'}" title="Clique para filtrar: ${escapeAttr(e.etapa)} | Valor: ${escapeAttr(e.valor_completo || e.valor_formatado || '')}">
       <div class="process-top">

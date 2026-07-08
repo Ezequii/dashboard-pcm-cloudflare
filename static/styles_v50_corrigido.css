@@ -5816,3 +5816,45 @@ body.v79-refino-pcm .priority-row-v33.sem-lancamento .priority-main strong,
 body.v79-refino-pcm .action-card-v33 em{
   color:#00629E !important;
 }
+
+
+/* V81 — estável: cards executivos não mudam com filtros rápidos; status BOM sempre verde */
+body.v81-estavel #farolRegional.farol-ok,
+body.v81-estavel #farolRegional.farol-excelente,
+body.v81-estavel.active-tab-visao #farolRegional.farol-ok,
+body.v81-estavel.active-tab-visao #farolRegional.farol-excelente,
+body.v81-estavel.active-tab-base #farolRegional.farol-ok,
+body.v81-estavel.active-tab-base #farolRegional.farol-excelente{
+  background:linear-gradient(135deg,#FFFFFF 0%,#F0FBF6 100%) !important;
+  border-color:rgba(35,160,103,.24) !important;
+}
+body.v81-estavel #farolRegional.farol-ok::before,
+body.v81-estavel #farolRegional.farol-excelente::before,
+body.v81-estavel.active-tab-visao #farolRegional.farol-ok::before,
+body.v81-estavel.active-tab-visao #farolRegional.farol-excelente::before,
+body.v81-estavel.active-tab-base #farolRegional.farol-ok::before,
+body.v81-estavel.active-tab-base #farolRegional.farol-excelente::before{
+  display:block !important;
+  left:0 !important;top:14px !important;bottom:14px !important;width:4px !important;right:auto !important;inset:auto auto 14px 0 !important;
+  opacity:1 !important;border-radius:999px !important;background:linear-gradient(180deg,#23A067,#0E7A4F) !important;
+}
+body.v81-estavel #farolRegional.farol-ok strong,
+body.v81-estavel #farolRegional.farol-excelente strong,
+body.v81-estavel.active-tab-visao #farolRegional.farol-ok strong,
+body.v81-estavel.active-tab-visao #farolRegional.farol-excelente strong,
+body.v81-estavel.active-tab-base #farolRegional.farol-ok strong,
+body.v81-estavel.active-tab-base #farolRegional.farol-excelente strong{
+  color:#067647 !important;
+}
+body.v81-estavel #farolRegional.farol-ok .farol-dot,
+body.v81-estavel #farolRegional.farol-excelente .farol-dot,
+body.v81-estavel.active-tab-visao #farolRegional.farol-ok .farol-dot,
+body.v81-estavel.active-tab-visao #farolRegional.farol-excelente .farol-dot{
+  background:#EAF7F0 !important;
+  box-shadow:0 0 0 6px rgba(35,160,103,.10) !important;
+}
+body.v81-estavel #farolRegional.farol-ok .farol-dot::after,
+body.v81-estavel #farolRegional.farol-excelente .farol-dot::after{background:#23A067 !important;}
+body.v81-estavel .filter-context-chip-v35 small{max-width:360px;}
+body.v81-estavel .process-card .process-foot strong{white-space:normal !important;text-align:right;line-height:1.08;}
+body.v81-estavel .stage-critical-badge{display:none !important;}
