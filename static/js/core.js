@@ -21,6 +21,16 @@ async function init(){
   document.body.classList.add('v34-ready');
   const seconds = Number(boot.auto_reload_seconds || 0);
   if(seconds >= 30) setInterval(() => refreshAll(false), seconds * 1000);
+  
+  // V83: Verificação de novos dados a cada 5 minutos (300 segundos)
+  // Isso resolve o problema de o usuário deixar o dash aberto e os dados mudarem no Cloudflare
+  setInterval(async () => {
+    const updated = await checkForDataUpdates();
+    if(updated) {
+      showToast('Novos dados detectados. Atualizando painel...');
+      await refreshAll(false);
+    }
+  }, 300000);
 }
 
 function bindEvents(){
@@ -282,13 +292,22 @@ async function refreshData(){
 
 async function refreshAll(withLoader=true){
   const seq = ++state.dashboardSeq;
+  // Previne requisições concorrentes: se houver uma requisição em andamento, ignora esta
+  if(state.isRefreshing && seq !== state.dashboardSeq) return;
   try{
     if(withLoader) setLoading(true);
     updateFilterUI();
     await loadDashboard(seq);
     if(state.activeTab === 'base') await loadRows(seq);
-  }catch(err){ showToast(err.message, true); }
-  finally{ if(withLoader && seq === state.dashboardSeq) setLoading(false); }
+  }catch(err){ 
+    console.error('Erro em refreshAll:', err);
+    showToast(err.message || 'Erro ao atualizar dashboard', true); 
+  }
+  finally{ 
+    if(seq === state.dashboardSeq) {
+      if(withLoader) setLoading(false);
+    }
+  }
 }
 
 function setLoading(on){

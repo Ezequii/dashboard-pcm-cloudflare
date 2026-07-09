@@ -64,19 +64,27 @@ def _is_blank_text_series(series: pd.Series) -> pd.Series:
 def etapa_mask(df: pd.DataFrame, etapa: str) -> pd.Series:
     """
     Máscara exclusiva dos cards executivos.
-
-    Regra v69: células "-" e "*" contam como feito/preenchido.
-    A classificação usa o avanço mais alto do processo:
-    - CONCLUÍDO: tem NF ou marcador de feito na NF.
-    - SEM NF: tem pedido ou marcador de feito no pedido, mas não tem NF.
-    - SEM PEDIDO: tem lançamento ou marcador de feito no lançamento, mas não tem pedido.
-    - SEM LANÇAMENTO: não tem lançamento, pedido nem NF.
+    
+    REGRA V83: Usa a coluna ETAPA como fonte oficial (já calculada em tratamento_dados.py).
+    A coluna ETAPA é preenchida por criar_etapa() que usa STATUS como fonte oficial.
+    
+    Se por algum motivo ETAPA não existir ou estiver vazia, usa fallback com campos preenchidos.
+    Regra v69 mantida: "-" e "*" contam como feito/preenchido.
     """
     etapa_norm = str(etapa or "").strip().upper()
     idx = df.index
     if df.empty:
         return pd.Series(False, index=idx)
-
+    
+    # V83: Usa ETAPA como fonte oficial
+    if "ETAPA" in df.columns:
+        etapa_series = df["ETAPA"].fillna("").astype(str).str.strip().str.upper()
+        mask = etapa_series == etapa_norm
+        # Se encontrou resultados, retorna
+        if mask.any():
+            return mask
+    
+    # Fallback seguro: recalcula apenas se ETAPA não estiver preenchida
     if "DATA_LANCAMENTO_DT" in df.columns:
         tem_lancamento = df["DATA_LANCAMENTO_DT"].notna()
         if "DATA LANÇAMENTO" in df.columns:

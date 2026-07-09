@@ -1,13 +1,66 @@
 
-const STATIC_DATA_URL = '/static/data/dashboard-data.json?v=81';
+// V83: Cache Busting definitivo - lê versão do arquivo de versão
+let __STATIC_DATA_VERSION = null;
+const STATIC_DATA_URL = '/static/data/dashboard-data.json';
+const VERSION_URL = '/static/data/version.json';
 let __STATIC_DATA = null;
+
+async function getDataVersion(){
+  try{
+    const res = await fetch(VERSION_URL, {
+      cache: 'no-store',
+      headers: { 'Cache-Control': 'no-cache, no-store, must-revalidate' }
+    });
+    if(res.ok){
+      const data = await res.json();
+      return data.v || '';
+    }
+  }catch(err){
+    console.warn('Não consegui ler versão:', err);
+  }
+  return '';
+}
 
 async function loadStaticData(force=false){
   if(__STATIC_DATA && !force) return __STATIC_DATA;
-  const res = await fetch(STATIC_DATA_URL, {cache: force ? 'reload' : 'default'});
-  if(!res.ok) throw new Error('Não consegui carregar a base estática do dashboard.');
-  __STATIC_DATA = await res.json();
-  return __STATIC_DATA;
+  
+  try{
+    // Obtém a versão atual do servidor
+    const version = await getDataVersion();
+    
+    // Se a versão mudou, força recarregamento
+    if(version && version !== __STATIC_DATA_VERSION){
+      __STATIC_DATA = null;
+      __STATIC_DATA_VERSION = version;
+      console.log(`📊 Nova versão detectada: ${version}`);
+    }
+    
+    // Monta URL com versão para quebra de cache
+    const url = version ? `${STATIC_DATA_URL}?v=${version}` : STATIC_DATA_URL;
+    
+    const res = await fetch(url, {
+      cache: 'no-store',
+      headers: {
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
+        'Pragma': 'no-cache',
+        'Expires': '0'
+      }
+    });
+    
+    if(!res.ok) throw new Error('Não consegui carregar a base estática do dashboard.');
+    
+    __STATIC_DATA = await res.json();
+    __STATIC_DATA_VERSION = version;
+    
+    if(__STATIC_DATA.generated_at){
+      console.log(`✅ Dashboard atualizado em: ${new Date(__STATIC_DATA.generated_at).toLocaleString('pt-BR')}`);
+    }
+    
+    return __STATIC_DATA;
+  }catch(err){
+    console.error('Erro ao carregar dados estáticos:', err);
+    throw err;
+  }
 }
 
 async function api(path, body=null, asBlob=false){
@@ -27,6 +80,8 @@ async function api(path, body=null, asBlob=false){
   if(path === '/api/upload-workbook') throw new Error('Troca de base não existe no Cloudflare Pages. Atualize a planilha no GitHub e faça novo deploy.');
   throw new Error('Rota estática não suportada: ' + path);
 }
+
+
 
 function baseQuery(){
   return {
@@ -93,23 +148,40 @@ function stageSummary(rows, etapa){
 
 
 function applyStaticQuery(rows, query={}){
-  let out = rows.slice();
-  const filters = query.filters || {};
-  for(const [key, values] of Object.entries(filters)){
-    const vals = (values || []).filter(v=>String(v).trim());
-    if(!vals.length) continue;
-    const set = new Set(vals.map(String));
-    out = out.filter(r => set.has(String(r[key] ?? '')));
+  try{
+    let out = rows.slice();
+    const filters = query.filters || {};
+    for(const [key, values] of Object.entries(filters)){
+      const vals = (values || []).filter(v=>String(v).trim());
+      if(!vals.length) continue;
+      const set = new Set(vals.map(String));
+      out = out.filter(r => set.has(String(r[key] ?? '')));
+    }
+    if(query.search){
+      const term = normalizeText(String(query.search || '').substring(0, 200));
+      out = out.filter(r => String(r._SEARCH || '').includes(term));
+    }
+    if(query.date_from){
+      const dateFrom = String(query.date_from || '').substring(0, 10);
+      if(/^\d{4}-\d{2}-\d{2}$/.test(dateFrom)) out = out.filter(r => String(r._DATA_RECEBIMENTO_ISO || '') >= dateFrom);
+    }
+    if(query.date_to){
+      const dateTo = String(query.date_to || '').substring(0, 10);
+      if(/^\d{4}-\d{2}-\d{2}$/.test(dateTo)) out = out.filter(r => String(r._DATA_RECEBIMENTO_ISO || '') <= dateTo);
+    }
+    if(query.value_min !== null && query.value_min !== undefined){
+      const min = n(query.value_min);
+      if(Number.isFinite(min)) out = out.filter(r => n(r._VALOR_TOTAL) >= min);
+    }
+    if(query.value_max !== null && query.value_max !== undefined){
+      const max = n(query.value_max);
+      if(Number.isFinite(max)) out = out.filter(r => n(r._VALOR_TOTAL) <= max);
+    }
+    return sortStaticRows(out, query.sort_col || 'DIAS PARADO', String(query.sort_dir || 'desc').toLowerCase());
+  }catch(err){
+    console.error('Erro em applyStaticQuery:', err);
+    return sortStaticRows(rows.slice(), 'DIAS PARADO', 'desc');
   }
-  if(query.search){
-    const term = normalizeText(query.search);
-    out = out.filter(r => String(r._SEARCH || '').includes(term));
-  }
-  if(query.date_from) out = out.filter(r => String(r._DATA_RECEBIMENTO_ISO || '') >= String(query.date_from));
-  if(query.date_to) out = out.filter(r => String(r._DATA_RECEBIMENTO_ISO || '') <= String(query.date_to));
-  if(query.value_min !== null && query.value_min !== undefined) out = out.filter(r => n(r._VALOR_TOTAL) >= n(query.value_min));
-  if(query.value_max !== null && query.value_max !== undefined) out = out.filter(r => n(r._VALOR_TOTAL) <= n(query.value_max));
-  return sortStaticRows(out, query.sort_col || 'DIAS PARADO', String(query.sort_dir || 'desc').toLowerCase());
 }
 
 function sortValue(row, col){
@@ -142,35 +214,52 @@ function sortStaticRows(rows, col, dir){
 }
 
 function staticOptions(rows, query){
-  const key=query.filter_key;
-  const filterCopy = JSON.parse(JSON.stringify(query.filters || {}));
-  filterCopy[key] = [];
-  let out = applyStaticQuery(rows, {...query, filters:filterCopy, search:''});
-  let opts = Array.from(new Set(out.map(r=>cleanStatic(r[key])).filter(Boolean))).sort((a,b)=>String(a).localeCompare(String(b),'pt-BR',{numeric:true,sensitivity:'base'}));
-  if(query.option_search){ const term=normalizeText(query.option_search); opts=opts.filter(x=>normalizeText(x).includes(term)); }
-  const selected = ((query.filters || {})[key] || []).filter(Boolean);
-  const limit = Math.max(10, Math.min(Number(query.limit || 50), 300));
-  const ordered = Array.from(new Set([...selected, ...opts.slice(0, limit)]));
-  return {options:ordered, total:opts.length};
+  try{
+    const key = String(query.filter_key || '').substring(0, 100);
+    if(!key) throw new Error('filter_key invalida');
+    const filterCopy = JSON.parse(JSON.stringify(query.filters || {}));
+    filterCopy[key] = [];
+    let out = applyStaticQuery(rows, {...query, filters:filterCopy, search:''});
+    let opts = Array.from(new Set(out.map(r=>cleanStatic(r[key])).filter(Boolean))).sort((a,b)=>String(a).localeCompare(String(b),'pt-BR',{numeric:true,sensitivity:'base'}));
+    if(query.option_search){ 
+      const term = normalizeText(String(query.option_search || '').substring(0, 100)); 
+      opts = opts.filter(x=>normalizeText(x).includes(term)); 
+    }
+    const selected = ((query.filters || {})[key] || []).filter(Boolean);
+    const limit = Math.max(10, Math.min(Number(query.limit || 50), 300));
+    const ordered = Array.from(new Set([...selected, ...opts.slice(0, limit)]));
+    return {options:ordered, total:opts.length};
+  }catch(err){
+    console.error('Erro em staticOptions:', err);
+    return {options:[], total:0};
+  }
 }
 
 function staticRows(rows, query){
-  const out = applyStaticQuery(rows, query);
-  const columns = (__STATIC_DATA?.boot?.table_columns || []).filter(Boolean);
-  const total = out.length;
-  const pageSize = Math.max(10, Math.min(Number(query.page_size || 50), 100000));
-  const pages = Math.max(1, Math.ceil(total / pageSize));
-  const page = Math.min(Math.max(1, Number(query.page || 1)), pages);
-  const start = (page - 1) * pageSize;
-  const end = Math.min(start + pageSize, total);
-  const pageRows = out.slice(start, end).map(row => {
-    const rec = {};
-    columns.forEach(c => rec[c] = row[c] ?? '');
-    rec._ETAPA = row._ETAPA || row.ETAPA || '';
-    rec._ROW_ID = row._ROW_ID;
-    return rec;
-  });
-  return {columns, rows:pageRows, total, page, page_size:pageSize, pages, from: total ? start+1 : 0, to:end};
+  try{
+    const out = applyStaticQuery(rows, query);
+    const columns = (__STATIC_DATA?.boot?.table_columns || []).filter(Boolean);
+    const total = out.length;
+    const pageSize = Math.max(10, Math.min(Number(query.page_size || 50), 100000));
+    const pages = Math.max(1, Math.ceil(total / pageSize));
+    const page = Math.min(Math.max(1, Number(query.page || 1)), pages);
+    const start = (page - 1) * pageSize;
+    const end = Math.min(start + pageSize, total);
+    const pageRows = out.slice(start, end).map(row => {
+      const rec = {};
+      columns.forEach(c => {
+        const val = row[c];
+        rec[c] = (val === null || val === undefined) ? '' : String(val);
+      });
+      rec._ETAPA = row._ETAPA || row.ETAPA || '';
+      rec._ROW_ID = row._ROW_ID || 0;
+      return rec;
+    });
+    return {columns, rows:pageRows, total, page, page_size:pageSize, pages, from: total ? start+1 : 0, to:end};
+  }catch(err){
+    console.error('Erro em staticRows:', err);
+    return {columns:[], rows:[], total:0, page:1, page_size:50, pages:1, from:0, to:0};
+  }
 }
 
 function groupByStage(rows){
@@ -512,24 +601,29 @@ function hasOperationalQuickFilter(query={}){
   return Boolean((f['ETAPA']||[]).length || (f['SLA STATUS']||[]).length || (f['FAIXA ATRASO']||[]).length);
 }
 function staticDashboard(rows, query){
-  const globalQuery = dashboardGlobalQuery(query || {});
-  const geral = applyStaticQuery(rows, globalQuery);
-  const filtrado = applyStaticQuery(rows, query || {});
-  const visaoFila = hasOperationalQuickFilter(query || {}) ? filtrado : geral;
+  try{
+    const globalQuery = dashboardGlobalQuery(query || {});
+    const geral = applyStaticQuery(rows, globalQuery);
+    const filtrado = applyStaticQuery(rows, query || {});
+    const visaoFila = hasOperationalQuickFilter(query || {}) ? filtrado : geral;
 
-  const total=geral.length, pend=pendingRows(geral), concl=geral.filter(r=>r.ETAPA==='CONCLUÍDO');
-  const valorTotal=geral.reduce((s,r)=>s+n(r._VALOR_TOTAL),0), serv=geral.reduce((s,r)=>s+n(r._VALOR_SERVICO),0), pecas=geral.reduce((s,r)=>s+n(r._VALOR_PECAS),0), valorPend=pend.reduce((s,r)=>s+n(r._VALOR_TOTAL),0);
-  const farol=farolRegional(geral), old=oldestPending(geral), etapas=groupByStage(geral), owners=topOwnersCriticos(geral), top5=priorityRows(visaoFila.length ? visaoFila : geral,5);
-  const kpis={total_rcs:total,valor_total:brMoney(valorTotal),valor_total_compacto:compactMoney(valorTotal),valor_servicos:brMoney(serv),valor_servicos_compacto:compactMoney(serv),valor_pecas:brMoney(pecas),valor_pecas_compacto:compactMoney(pecas),ticket_medio:brMoney(total?valorTotal/total:0),ticket_medio_compacto:compactMoney(total?valorTotal/total:0),ticket_tempo_dias:`${average(geral.map(r=>r._DIAS_PARADO)).toFixed(1).replace('.',',')} dias`,ticket_tempo_dias_valor:average(geral.map(r=>r._DIAS_PARADO)),fornecedores:uniqueCount(geral,'FORNECEDOR'),equipamentos:uniqueCount(geral,'EQUIPAMENTO'),concluidas:concl.length,pendentes:pend.length,pct_concluido:brPct(total?concl.length/total*100:0),pct_pendente:brPct(total?pend.length/total*100:0),valor_pendente:brMoney(valorPend),valor_pendente_compacto:compactMoney(valorPend),valor_fora_sla:farol.valor_fora_sla,valor_fora_sla_compacto:farol.valor_fora_sla_compacto,valor_sem_lancamento:farol.valor_sem_lancamento,valor_sem_lancamento_compacto:farol.valor_sem_lancamento_compacto,rcs_fora_sla:farol.rcs_fora_sla,rcs_sem_lancamento:farol.rcs_sem_lancamento,rcs_criticas:farol.rcs_criticas,farol_status:farol.status,maior_atraso_dias:n(old.dias),maior_atraso_label:old.label,maior_atraso_detail:old.detail};
-  return {
-    kpis,
-    etapas,
-    farol,
-    top5_prioridades:top5,
-    comentario_executivo:executiveComment(geral),
-    alerts:{...operationalAlerts(geral),action_now:executiveActions(visaoFila.length ? visaoFila : geral),owners_criticos:owners},
-    charts:{funil:etapas.map(e=>({label:e.etapa,value:e.qtd,formatted:brInt(e.qtd),color:e.cor})),top_fornecedores:topSum(geral,'FORNECEDOR'),top_fornecedores_pendentes:topSum(pend,'FORNECEDOR'),top_gargalos:[],solicitantes_pendentes:topSum(pend,'SOLICITANTE'),owners_criticos:owners,custo_solicitante:topSum(geral,'SOLICITANTE'),qtd_solicitante:topCount(geral,'SOLICITANTE'),qtd_fornecedor:topCount(geral,'FORNECEDOR'),mensal:monthly(geral),pecas_servicos:[{label:'Serviços',value:serv,formatted:compactMoney(serv),full:brMoney(serv)},{label:'Peças',value:pecas,formatted:compactMoney(pecas),full:brMoney(pecas)}],tempo_medio:[]}
-  };
+    const total=geral.length, pend=pendingRows(geral), concl=geral.filter(r=>r.ETAPA==='CONCLUÍDO');
+    const valorTotal=geral.reduce((s,r)=>s+n(r._VALOR_TOTAL),0), serv=geral.reduce((s,r)=>s+n(r._VALOR_SERVICO),0), pecas=geral.reduce((s,r)=>s+n(r._VALOR_PECAS),0), valorPend=pend.reduce((s,r)=>s+n(r._VALOR_TOTAL),0);
+    const farol=farolRegional(geral), old=oldestPending(geral), etapas=groupByStage(geral), owners=topOwnersCriticos(geral), top5=priorityRows(visaoFila.length ? visaoFila : geral,5);
+    const kpis={total_rcs:total,valor_total:brMoney(valorTotal),valor_total_compacto:compactMoney(valorTotal),valor_servicos:brMoney(serv),valor_servicos_compacto:compactMoney(serv),valor_pecas:brMoney(pecas),valor_pecas_compacto:compactMoney(pecas),ticket_medio:brMoney(total?valorTotal/total:0),ticket_medio_compacto:compactMoney(total?valorTotal/total:0),ticket_tempo_dias:`${average(geral.map(r=>r._DIAS_PARADO)).toFixed(1).replace('.',',')} dias`,ticket_tempo_dias_valor:average(geral.map(r=>r._DIAS_PARADO)),fornecedores:uniqueCount(geral,'FORNECEDOR'),equipamentos:uniqueCount(geral,'EQUIPAMENTO'),concluidas:concl.length,pendentes:pend.length,pct_concluido:brPct(total?concl.length/total*100:0),pct_pendente:brPct(total?pend.length/total*100:0),valor_pendente:brMoney(valorPend),valor_pendente_compacto:compactMoney(valorPend),valor_fora_sla:farol.valor_fora_sla,valor_fora_sla_compacto:farol.valor_fora_sla_compacto,valor_sem_lancamento:farol.valor_sem_lancamento,valor_sem_lancamento_compacto:farol.valor_sem_lancamento_compacto,rcs_fora_sla:farol.rcs_fora_sla,rcs_sem_lancamento:farol.rcs_sem_lancamento,rcs_criticas:farol.rcs_criticas,farol_status:farol.status,maior_atraso_dias:n(old.dias),maior_atraso_label:old.label,maior_atraso_detail:old.detail};
+    return {
+      kpis,
+      etapas,
+      farol,
+      top5_prioridades:top5,
+      comentario_executivo:executiveComment(geral),
+      alerts:{...operationalAlerts(geral),action_now:executiveActions(visaoFila.length ? visaoFila : geral),owners_criticos:owners},
+      charts:{funil:etapas.map(e=>({label:e.etapa,value:e.qtd,formatted:brInt(e.qtd),color:e.cor})),top_fornecedores:topSum(geral,'FORNECEDOR'),top_fornecedores_pendentes:topSum(pend,'FORNECEDOR'),top_gargalos:[],solicitantes_pendentes:topSum(pend,'SOLICITANTE'),owners_criticos:owners,custo_solicitante:topSum(geral,'SOLICITANTE'),qtd_solicitante:topCount(geral,'SOLICITANTE'),qtd_fornecedor:topCount(geral,'FORNECEDOR'),mensal:monthly(geral),pecas_servicos:[{label:'Serviços',value:serv,formatted:compactMoney(serv),full:brMoney(serv)},{label:'Peças',value:pecas,formatted:compactMoney(pecas),full:brMoney(pecas)}],tempo_medio:[]}
+    };
+  }catch(err){
+    console.error('Erro em staticDashboard:', err);
+    return {kpis:{},etapas:[],farol:{status:'ERRO'},top5_prioridades:[],comentario_executivo:'Erro ao carregar dashboard',alerts:{},charts:{}};
+  }
 }
 function toCsv(columns, rows){
   const esc=v=>`"${String(v ?? '').replace(/"/g,'""')}"`;

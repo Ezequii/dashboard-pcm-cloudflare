@@ -66,26 +66,45 @@ function renderCell(col, value, etapa, row={}){
     return `<td class="${cls}" title="Dias parado: ${safeTitle}"><span class="delay-badge ${level}">${escapeHtml(val || '0 dias')}</span></td>`;
   }
   if(col === 'SLA STATUS'){
-    const normalized = String(val || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+    // V83: Usa o valor de SLA STATUS já calculado no backend (tratamento_dados.py)
+    // Thresholds backend: SEM LANÇAMENTO (5+ crítico, 3+ atenção), SEM PEDIDO (8+ crítico, 5+ atenção), SEM NF (11+ crítico, 8+ atenção), 30+ sempre crítico
+    const slaValue = String(val || '').trim().toUpperCase();
     const etapaNorm = String(etapa || row.ETAPA || '').toUpperCase();
     const dias = parseInt(String(row['DIAS PARADO'] || row._DIAS_PARADO || '0').replace(/[^0-9]/g, ''), 10) || 0;
-    let level = normalized.includes('concluido') ? 'done' : 'ok';
+    
+    let level = 'ok';
     let display = 'Rotina';
-
-    if(etapaNorm === 'CONCLUÍDO' || etapaNorm === 'CONCLUIDO'){
-      level = 'done'; display = 'Concluído';
-    } else if(dias >= 30){
-      level = 'critical'; display = 'Muito parado';
-    } else if(etapaNorm === 'SEM LANÇAMENTO' || etapaNorm === 'SEM LANCAMENTO'){
-      level = dias >= 15 ? 'attention' : 'ok'; display = 'Conferir lançamento';
-    } else if(etapaNorm === 'SEM PEDIDO'){
-      level = dias >= 15 ? 'attention' : 'ok'; display = 'Acompanhar pedido';
-    } else if(etapaNorm === 'SEM NF'){
-      level = dias >= 15 ? 'attention' : 'ok'; display = 'Conferir NF';
-    } else if(normalized.includes('critico')){
-      level = 'critical'; display = 'Muito parado';
-    } else if(normalized.includes('atencao')){
-      level = 'attention'; display = 'Acompanhar';
+    
+    // Usa o valor de SLA STATUS do backend como fonte oficial
+    if(slaValue === 'CONCLUÍDO' || slaValue === 'CONCLUIDO'){
+      level = 'done';
+      display = 'Concluído';
+    } else if(slaValue === 'CRÍTICO'){
+      level = 'critical';
+      display = 'Muito parado';
+    } else if(slaValue === 'ATENÇÃO'){
+      level = 'attention';
+      if(etapaNorm === 'SEM LANÇAMENTO' || etapaNorm === 'SEM LANCAMENTO'){
+        display = 'Conferir lançamento';
+      } else if(etapaNorm === 'SEM PEDIDO'){
+        display = 'Acompanhar pedido';
+      } else if(etapaNorm === 'SEM NF'){
+        display = 'Conferir NF';
+      } else {
+        display = 'Acompanhar';
+      }
+    } else {
+      // OK ou valor não reconhecido
+      level = 'ok';
+      if(etapaNorm === 'SEM LANÇAMENTO' || etapaNorm === 'SEM LANCAMENTO'){
+        display = 'Conferir lançamento';
+      } else if(etapaNorm === 'SEM PEDIDO'){
+        display = 'Acompanhar pedido';
+      } else if(etapaNorm === 'SEM NF'){
+        display = 'Conferir NF';
+      } else {
+        display = 'Rotina';
+      }
     }
     return `<td class="${cls}" title="Tratativa: ${escapeAttr(display)} · ${Number(dias).toLocaleString('pt-BR')} dias"><span class="sla-badge ${level}">${escapeHtml(display)}</span></td>`;
   }

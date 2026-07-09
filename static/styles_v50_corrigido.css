@@ -5858,3 +5858,43 @@ body.v81-estavel #farolRegional.farol-excelente .farol-dot::after{background:#23
 body.v81-estavel .filter-context-chip-v35 small{max-width:360px;}
 body.v81-estavel .process-card .process-foot strong{white-space:normal !important;text-align:right;line-height:1.08;}
 body.v81-estavel .stage-critical-badge{display:none !important;}
+
+
+/* V86 - mais linhas visíveis na tabela sem mudar o visual do dashboard
+   Regra: não altera cores, cards, filtros nem narrativa; só aproveita melhor a altura disponível da tabela. */
+body.v86-table-lines.active-tab-base .table-card{
+  display:flex !important;
+  flex-direction:column !important;
+}
+body.v86-table-lines.active-tab-base .table-wrap{
+  flex:1 1 auto !important;
+  max-height:clamp(520px, calc(100vh - 205px), 82vh) !important;
+}
+body.v86-table-lines.active-tab-base #dataTable thead th{
+  padding-top:9px !important;
+  padding-bottom:9px !important;
+}
+body.v86-table-lines.active-tab-base #dataTable tbody td{
+  padding-top:8px !important;
+  padding-bottom:8px !important;
+}
+body.v86-table-lines.active-tab-base .tag-etapa,
+body.v86-table-lines.active-tab-base .delay-badge,
+body.v86-table-lines.active-tab-base .sla-badge,
+body.v86-table-lines.active-tab-base .owner-pill,
+body.v86-table-lines.active-tab-base .delay-range,
+body.v86-table-lines.active-tab-base .date-chip,
+body.v86-table-lines.active-tab-base .orcamento-pill{
+  padding-top:4px !important;
+  padding-bottom:4px !important;
+}
+@media(max-width:1180px){
+  body.v86-table-lines.active-tab-base .table-wrap{
+    max-height:72vh !important;
+  }
+}
+@media(max-width:720px){
+  body.v86-table-lines.active-tab-base .table-wrap{
+    max-height:70vh !important;
+  }
+}

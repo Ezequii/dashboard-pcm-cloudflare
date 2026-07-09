@@ -84,13 +84,22 @@ def iso_date(value: Any) -> str:
         return ""
 
 
+def _safe_text(value: Any) -> str:
+    try:
+        if value is None or pd.isna(value):
+            return ""
+    except Exception:
+        pass
+    text = str(value).strip()
+    return "" if text.lower() in {"nan", "nat", "none", "null"} else text
+
 def br_date(value: Any, fallback: Any = "") -> str:
     try:
         if pd.isna(value):
-            return str(fallback or "")
+            return _safe_text(fallback)
         return pd.Timestamp(value).strftime("%d/%m/%Y")
     except Exception:
-        return str(fallback or "")
+        return _safe_text(fallback)
 
 
 def money_number(value: Any) -> float:
@@ -211,6 +220,9 @@ def main() -> int:
             date_min = vals.min().strftime("%Y-%m-%d")
             date_max = vals.max().strftime("%Y-%m-%d")
 
+    etapa_counts = df["ETAPA"].value_counts().to_dict() if "ETAPA" in df.columns else {}
+    status_counts = df["STATUS"].value_counts().to_dict() if "STATUS" in df.columns else {}
+
     boot["metadata"] = {
         "arquivo": workbook.name,
         "arquivo_caminho": workbook.name,
@@ -221,6 +233,8 @@ def main() -> int:
         "date_min": date_min,
         "date_max": date_max,
         "modo": "Cloudflare Pages estático",
+        "contagem_etapas": {str(k): int(v) for k, v in etapa_counts.items()},
+        "contagem_status_excel": {str(k): int(v) for k, v in status_counts.items()},
     }
 
     payload = {
@@ -231,8 +245,18 @@ def main() -> int:
     }
     DATA_JSON.parent.mkdir(parents=True, exist_ok=True)
     DATA_JSON.write_text(json.dumps(payload, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
+    
+    # V83: Cria um arquivo de versão com o timestamp atual para quebra de cache
+    version_file = ROOT / "static" / "data" / "version.json"
+    version_payload = {"v": datetime.now(timezone.utc).strftime("%Y%m%d%H%M%S")}
+    version_file.write_text(json.dumps(version_payload), encoding="utf-8")
+    
     print(f"OK: {len(rows):,} linhas geradas em {DATA_JSON}".replace(",", "."))
-    print("Agora faça Commit e Push no GitHub Desktop.")
+    print(f"Versão gerada: {version_payload['v']}")
+    print("Contagem oficial por etapa:")
+    for etapa in ["CONCLUÍDO", "SEM LANÇAMENTO", "SEM PEDIDO", "SEM NF"]:
+        print(f" - {etapa}: {int(etapa_counts.get(etapa, 0))}")
+    print("Se esses números baterem com os filtros do Excel, faça Commit e Push no GitHub Desktop.")
     return 0
 
 

@@ -4,7 +4,7 @@ const state = {
   columns: [],
   search: '',
   page: 1,
-  pageSize: 50,
+  pageSize: 200,
   sortCol: 'DIAS PARADO',
   sortDir: 'desc',
   stageColors: {},

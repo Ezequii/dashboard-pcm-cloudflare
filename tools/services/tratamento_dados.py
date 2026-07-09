@@ -285,33 +285,49 @@ def normalize_status(value: Any) -> str:
 
 def criar_etapa(df: pd.DataFrame) -> pd.Series:
     """
-    Regra executiva exclusiva para os cards de acompanhamento.
+    Regra V83: a coluna STATUS da planilha é a fonte oficial.
 
-    A classificação usa o avanço mais alto do processo.
-    Regra v69: "-" e "*" contam como feito/preenchido.
+    Isso evita o dashboard divergir do filtro do Excel.
+    Quando STATUS estiver preenchido com:
+    - CONCLUÍDO -> CONCLUÍDO
+    - FALTA LANÇAMENTO -> SEM LANÇAMENTO
+    - FALTA O PEDIDO / FALTA PEDIDO -> SEM PEDIDO
+    - FALTA NF -> SEM NF
 
-    1. CONCLUÍDO: possui Nº NFS/DANFE, inclusive se for "-" ou "*".
-    2. SEM NF: possui Nº PEDIDO DE COMPRA, inclusive se for "-" ou "*", mas não possui NF.
-    3. SEM PEDIDO: possui DATA LANÇAMENTO, inclusive se for "-" ou "*", mas não possui pedido.
-    4. SEM LANÇAMENTO: não possui DATA LANÇAMENTO, pedido nem NF.
+    Se a coluna STATUS vier vazia ou com texto não reconhecido, usa o fallback
+    por campos preenchidos: lançamento -> pedido -> NF.
+    Regra v69 mantida: "-" e "*" contam como feito/preenchido.
     """
+    idx = df.index
+
+    if "STATUS" in df.columns:
+        status_norm = df["STATUS"].map(normalize_text)
+        etapa_status = pd.Series("", index=idx, dtype="object")
+        etapa_status = etapa_status.mask(status_norm.str.contains("CONCLUID", na=False), "CONCLUÍDO")
+        etapa_status = etapa_status.mask(status_norm.str.contains("FALTA LANC", na=False), "SEM LANÇAMENTO")
+        etapa_status = etapa_status.mask(status_norm.str.contains("FALTA O PEDIDO", na=False) | status_norm.str.fullmatch("FALTA PEDIDO", na=False), "SEM PEDIDO")
+        etapa_status = etapa_status.mask(status_norm.str.contains("FALTA NF", na=False), "SEM NF")
+    else:
+        etapa_status = pd.Series("", index=idx, dtype="object")
+
+    # Fallback seguro caso alguma linha não tenha STATUS válido.
     if "DATA_LANCAMENTO_DT" in df.columns:
         tem_lancamento = df["DATA_LANCAMENTO_DT"].notna()
         if "DATA LANÇAMENTO" in df.columns:
             tem_lancamento = tem_lancamento | ~df["DATA LANÇAMENTO"].map(is_blank_value)
-    else:
+    elif "DATA LANÇAMENTO" in df.columns:
         tem_lancamento = ~df["DATA LANÇAMENTO"].map(is_blank_value)
+    else:
+        tem_lancamento = pd.Series(False, index=idx)
 
-    tem_pedido = ~df["Nº PEDIDO DE COMPRA"].map(is_blank_value)
-    tem_nf = ~df["Nº NFS/DANFE"].map(is_blank_value)
+    tem_pedido = ~df["Nº PEDIDO DE COMPRA"].map(is_blank_value) if "Nº PEDIDO DE COMPRA" in df.columns else pd.Series(False, index=idx)
+    tem_nf = ~df["Nº NFS/DANFE"].map(is_blank_value) if "Nº NFS/DANFE" in df.columns else pd.Series(False, index=idx)
 
-    conditions = [
-        tem_nf,
-        tem_pedido & ~tem_nf,
-        tem_lancamento & ~tem_pedido,
-    ]
+    conditions = [tem_nf, tem_pedido & ~tem_nf, tem_lancamento & ~tem_pedido]
     choices = ["CONCLUÍDO", "SEM NF", "SEM PEDIDO"]
-    return pd.Series(np.select(conditions, choices, default="SEM LANÇAMENTO"), index=df.index)
+    fallback = pd.Series(np.select(conditions, choices, default="SEM LANÇAMENTO"), index=idx)
+
+    return etapa_status.where(etapa_status.ne(""), fallback)
 
 
 def calcular_dias_parado(df: pd.DataFrame) -> pd.Series:
