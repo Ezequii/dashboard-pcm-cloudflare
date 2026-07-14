@@ -10,9 +10,10 @@ async function loadRows(seq=null){
   // V90: mantém os dados intactos, mas coloca o valor total junto do orçamento,
   // antes dos nomes, para a liderança enxergar dinheiro sem rolar horizontalmente.
   const preferredOrder = [
-    'ETAPA','DIAS PARADO','SLA STATUS','DONO DA AÇÃO','FAIXA ATRASO',
+    'ETAPA','DIAS PARADO','SLA STATUS','DONO DA AÇÃO',
     'DATA DE RECEBIMENTO','DATA LANÇAMENTO','Nº ORÇAMENTO FINAL','VALOR TOTAL',
-    'FORNECEDOR','SOLICITANTE','PREFIXO','EQUIPAMENTO','Nº REQUISIÇÃO','Nº PEDIDO DE COMPRA'
+    'FORNECEDOR','SOLICITANTE','PREFIXO','EQUIPAMENTO','Nº REQUISIÇÃO','Nº PEDIDO DE COMPRA',
+    'FAIXA ATRASO'
   ];
   const sourceColumns = Array.isArray(data.columns) ? data.columns : [];
   const columns = [
@@ -92,46 +93,39 @@ function renderCell(col, value, etapa, row={}){
     return `<td class="${cls}" title="Dias parado: ${safeTitle}"><span class="delay-badge ${level}">${escapeHtml(val || '0 dias')}</span></td>`;
   }
   if(col === 'SLA STATUS'){
-    // V83: Usa o valor de SLA STATUS já calculado no backend (tratamento_dados.py)
-    // Thresholds backend: SEM LANÇAMENTO (5+ crítico, 3+ atenção), SEM PEDIDO (8+ crítico, 5+ atenção), SEM NF (11+ crítico, 8+ atenção), 30+ sempre crítico
+    // V92: a linguagem exibida segue o tempo real parado e a etapa.
+    // O SLA do backend continua disponível para ordenação e consistência,
+    // mas não é apresentado com rótulos exagerados para poucos dias.
     const slaValue = String(val || '').trim().toUpperCase();
     const etapaNorm = String(etapa || row.ETAPA || '').toUpperCase();
     const dias = parseInt(String(row['DIAS PARADO'] || row._DIAS_PARADO || '0').replace(/[^0-9]/g, ''), 10) || 0;
-    
+
     let level = 'ok';
     let display = 'Rotina';
-    
-    // Usa o valor de SLA STATUS do backend como fonte oficial
-    if(slaValue === 'CONCLUÍDO' || slaValue === 'CONCLUIDO'){
+
+    if(slaValue === 'CONCLUÍDO' || slaValue === 'CONCLUIDO' || etapaNorm === 'CONCLUÍDO' || etapaNorm === 'CONCLUIDO'){
       level = 'done';
       display = 'Concluído';
-    } else if(slaValue === 'CRÍTICO'){
+    }else if(dias >= 30){
       level = 'critical';
       display = 'Muito parado';
-    } else if(slaValue === 'ATENÇÃO'){
+    }else if(dias >= 16){
+      level = 'critical';
+      display = 'Prioridade alta';
+    }else if(dias >= 8){
       level = 'attention';
-      if(etapaNorm === 'SEM LANÇAMENTO' || etapaNorm === 'SEM LANCAMENTO'){
-        display = 'Conferir lançamento';
-      } else if(etapaNorm === 'SEM PEDIDO'){
-        display = 'Acompanhar pedido';
-      } else if(etapaNorm === 'SEM NF'){
-        display = 'Conferir NF';
-      } else {
-        display = 'Acompanhar';
-      }
-    } else {
-      // OK ou valor não reconhecido
-      level = 'ok';
-      if(etapaNorm === 'SEM LANÇAMENTO' || etapaNorm === 'SEM LANCAMENTO'){
-        display = 'Conferir lançamento';
-      } else if(etapaNorm === 'SEM PEDIDO'){
-        display = 'Acompanhar pedido';
-      } else if(etapaNorm === 'SEM NF'){
-        display = 'Conferir NF';
-      } else {
-        display = 'Rotina';
-      }
+      display = 'Acompanhar';
+    }else if(etapaNorm === 'SEM LANÇAMENTO' || etapaNorm === 'SEM LANCAMENTO'){
+      level = slaValue === 'CRÍTICO' ? 'attention' : 'ok';
+      display = 'Conferir lançamento';
+    }else if(etapaNorm === 'SEM PEDIDO'){
+      level = slaValue === 'CRÍTICO' ? 'attention' : 'ok';
+      display = 'Acompanhar pedido';
+    }else if(etapaNorm === 'SEM NF'){
+      level = slaValue === 'CRÍTICO' ? 'attention' : 'ok';
+      display = 'Conferir NF';
     }
+
     return `<td class="${cls}" title="Tratativa: ${escapeAttr(display)} · ${Number(dias).toLocaleString('pt-BR')} dias"><span class="sla-badge ${level}">${escapeHtml(display)}</span></td>`;
   }
   if(col === 'DONO DA AÇÃO'){

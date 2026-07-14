@@ -125,7 +125,13 @@ function updateFilterUI(){
     const trigger = wrap.querySelector('.smart-trigger');
     const value = wrap.querySelector('.smart-value');
     trigger.classList.toggle('has-value', values.length > 0);
-    value.textContent = values.length ? `${values.length} selecionado${values.length > 1 ? 's' : ''}` : 'Todos';
+    if(values.length === 1){
+      value.textContent = values[0];
+    }else if(values.length > 1){
+      value.textContent = `${values.length} selecionados`;
+    }else{
+      value.textContent = 'Todos';
+    }
     value.title = values.length ? values.join(', ') : `Todos os itens de ${label}`;
   });
   renderActiveFilters();

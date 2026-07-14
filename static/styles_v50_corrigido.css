@@ -6525,3 +6525,87 @@ body.v91-layout-final.active-tab-base .base-commandbar-v36{
   }
   body.v91-layout-final .meta-chip-v40{white-space:normal !important;}
 }
+
+
+/* =========================================================
+   V92 — polimento inteligente e leitura mais segura
+   - mostra o valor real quando há apenas um filtro selecionado
+   - alinha a tratativa visual com os dias parados
+   - mantém as colunas-chave visíveis no scroll horizontal
+   - move a faixa redundante para o fim da tabela
+   - melhora leitura sem alterar KPIs, STATUS ou cálculos
+   ========================================================= */
+body.v92-smart-polish .smart-trigger.has-value{
+  border-color:#9BCBE5 !important;
+  background:linear-gradient(180deg,#FFFFFF 0%,#F5FBFE 100%) !important;
+  box-shadow:0 0 0 3px rgba(0,98,158,.055),0 8px 18px rgba(16,24,40,.025) !important;
+}
+body.v92-smart-polish .smart-trigger.has-value .smart-title{color:#00629E !important;}
+body.v92-smart-polish .smart-trigger.has-value .smart-value{color:#0B4F78 !important;}
+
+/* Evita repetição visual e deixa a área operacional mais objetiva. */
+body.v92-smart-polish.active-tab-base .table-head h3{font-size:20px !important;}
+body.v92-smart-polish.active-tab-base .table-hint{
+  color:#667085 !important;
+  background:#F8FBFC !important;
+}
+
+/* Colunas essenciais fixas durante a rolagem horizontal. */
+body.v92-smart-polish.active-tab-base #dataTable th.col-etapa,
+body.v92-smart-polish.active-tab-base #dataTable td.col-etapa{
+  position:sticky !important;
+  left:0 !important;
+  min-width:132px !important;
+  width:132px !important;
+}
+body.v92-smart-polish.active-tab-base #dataTable th.col-dias-parado,
+body.v92-smart-polish.active-tab-base #dataTable td.col-dias-parado{
+  position:sticky !important;
+  left:132px !important;
+  min-width:92px !important;
+  width:92px !important;
+  box-shadow:8px 0 14px -14px rgba(16,24,40,.45) !important;
+}
+body.v92-smart-polish.active-tab-base #dataTable thead th.col-etapa,
+body.v92-smart-polish.active-tab-base #dataTable thead th.col-dias-parado{
+  z-index:12 !important;
+  background:#F7FAFC !important;
+}
+body.v92-smart-polish.active-tab-base #dataTable tbody td.col-etapa,
+body.v92-smart-polish.active-tab-base #dataTable tbody td.col-dias-parado{
+  z-index:4 !important;
+  background:#FFFFFF !important;
+}
+body.v92-smart-polish.active-tab-base #dataTable tbody tr:nth-child(even) td.col-etapa,
+body.v92-smart-polish.active-tab-base #dataTable tbody tr:nth-child(even) td.col-dias-parado{
+  background:#FCFDFE !important;
+}
+body.v92-smart-polish.active-tab-base #dataTable tbody tr:hover td.col-etapa,
+body.v92-smart-polish.active-tab-base #dataTable tbody tr:hover td.col-dias-parado{
+  background:#F4FAFD !important;
+}
+
+/* Larguras mais previsíveis para leitura executiva da base. */
+body.v92-smart-polish.active-tab-base #dataTable th.col-sla-status,
+body.v92-smart-polish.active-tab-base #dataTable td.col-sla-status{min-width:150px !important;}
+body.v92-smart-polish.active-tab-base #dataTable th.col-fornecedor,
+body.v92-smart-polish.active-tab-base #dataTable td.col-fornecedor{min-width:180px !important;max-width:220px !important;}
+body.v92-smart-polish.active-tab-base #dataTable th.col-solicitante,
+body.v92-smart-polish.active-tab-base #dataTable td.col-solicitante{min-width:150px !important;max-width:180px !important;}
+body.v92-smart-polish.active-tab-base #dataTable th.col-faixa-atraso,
+body.v92-smart-polish.active-tab-base #dataTable td.col-faixa-atraso{min-width:110px !important;}
+
+/* Rótulos de prioridade sem leitura exagerada. */
+body.v92-smart-polish .sla-badge.critical{background:#FFF4ED !important;color:#B54708 !important;border-color:#FEDF89 !important;}
+body.v92-smart-polish .sla-badge.attention{background:#FFFAEB !important;color:#B54708 !important;border-color:#FEC84B !important;}
+body.v92-smart-polish .sla-badge.ok{background:#F0F9F4 !important;color:#067647 !important;border-color:#ABEFC6 !important;}
+
+@media(max-width:720px){
+  body.v92-smart-polish.active-tab-base #dataTable th.col-etapa,
+  body.v92-smart-polish.active-tab-base #dataTable td.col-etapa,
+  body.v92-smart-polish.active-tab-base #dataTable th.col-dias-parado,
+  body.v92-smart-polish.active-tab-base #dataTable td.col-dias-parado{
+    position:static !important;
+    box-shadow:none !important;
+  }
+}
