@@ -14,6 +14,7 @@ async function loadRows(seq=null){
   $('pageInfo').textContent = `${data.page}/${data.pages}`;
   $('prevPage').disabled = data.page <= 1;
   $('nextPage').disabled = data.page >= data.pages;
+  updateSearchUI(data.total);
 }
 
 function headerInfo(col){
@@ -48,6 +49,19 @@ function renderHeader(col){
 
 function emptyDash(val){
   return String(val || '').trim() ? escapeHtml(val) : '<span class="empty-dash">—</span>';
+}
+
+function parseCurrencyValue(value){
+  if(typeof value === 'number') return Number.isFinite(value) ? value : 0;
+  const raw = String(value ?? '').trim();
+  if(!raw) return 0;
+  let clean = raw.replace(/R\$/gi,'').replace(/\s/g,'').replace(/[^0-9,.-]/g,'');
+  if(clean.includes(',')) clean = clean.replace(/\./g,'').replace(',','.');
+  const number = Number(clean);
+  return Number.isFinite(number) ? number : 0;
+}
+function formatCurrencyBR(value){
+  return parseCurrencyValue(value).toLocaleString('pt-BR',{style:'currency',currency:'BRL',minimumFractionDigits:2,maximumFractionDigits:2});
 }
 
 function renderCell(col, value, etapa, row={}){
@@ -132,7 +146,8 @@ function renderCell(col, value, etapa, row={}){
     return `<td class="${cls}" title="Solicitante: ${safeTitle}"><span class="person-text">${emptyDash(val)}</span></td>`;
   }
   if(col === 'VALOR TOTAL'){
-    return `<td class="${cls}" title="Valor total: ${safeTitle}"><span class="money-cell">${emptyDash(val)}</span></td>`;
+    const formatted = formatCurrencyBR(row._VALOR_TOTAL ?? val);
+    return `<td class="${cls} money-td-v89" title="Valor total: ${escapeAttr(formatted)}"><span class="money-cell money-cell-v89">${escapeHtml(formatted)}</span></td>`;
   }
   if(col === 'Nº REQUISIÇÃO' || col === 'Nº PEDIDO DE COMPRA' || col === 'PREFIXO'){
     return `<td class="${cls}" title="${safeTitle}"><span class="code-cell">${emptyDash(val)}</span></td>`;

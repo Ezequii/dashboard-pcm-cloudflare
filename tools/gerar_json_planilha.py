@@ -25,6 +25,7 @@ DEFAULT_EXCEL = DATA_DIR / "CONTROLE_DE_REQUISICOES_2026.xlsx"
 MAIN_FILTERS = [
     {"key": "SOLICITANTE", "label": "Solicitante", "type": "search-select"},
     {"key": "FORNECEDOR", "label": "Fornecedor", "type": "search-select"},
+    {"key": "ETAPA", "label": "Etapas", "type": "search-select"},
     {"key": "MES_RECEBIMENTO", "label": "Mês", "type": "search-select"},
 ]
 

@@ -4,10 +4,20 @@ const scheduleRows = debounce(() => { savePreferences(); loadRows(); }, 220);
 async function init(){
   nowClock();
   const boot = await api('/api/bootstrap');
-  state.mainFilters = boot.main_filters || [];
+  // V89: somente quatro filtros principais, em ordem clara para a liderança.
+  state.mainFilters = [
+    {key:'SOLICITANTE', label:'Solicitante', type:'search-select'},
+    {key:'FORNECEDOR', label:'Fornecedor', type:'search-select'},
+    {key:'ETAPA', label:'Etapas', type:'search-select'},
+    {key:'MES_RECEBIMENTO', label:'Mês', type:'search-select'},
+  ];
   state.columns = boot.table_columns || [];
   state.stageColors = boot.stage_colors || {};
   loadPreferences();
+  // Remove filtros antigos que ficariam invisíveis depois da retirada dos chips rápidos.
+  const allowedFilterKeys = new Set(state.mainFilters.map(x => x.key));
+  Object.keys(state.filters || {}).forEach(key => { if(!allowedFilterKeys.has(key)) delete state.filters[key]; });
+  state.mainFilters.forEach(def => { if(!Array.isArray(state.filters[def.key])) state.filters[def.key] = []; });
   const meta = $('meta');
   const gerado = boot.generated_at ? new Date(boot.generated_at).toLocaleString('pt-BR', {dateStyle:'short', timeStyle:'short'}) : '';
   if(meta) meta.textContent = `${Number(boot.metadata.linhas || 0).toLocaleString('pt-BR')} registros carregados · ${boot.metadata.arquivo || 'base Excel'} · Cloudflare Pages${gerado ? ' · atualizado em ' + gerado : ''}`;
@@ -35,14 +45,39 @@ async function init(){
 
 function bindEvents(){
   const globalSearch = $('globalSearch');
+  const searchScope = $('searchScope');
+  const clearSearch = $('btnClearSearch');
+  if(searchScope){
+    searchScope.value = state.searchScope || 'ALL';
+    searchScope.addEventListener('change', () => {
+      state.searchScope = searchScope.value || 'ALL';
+      state.page = 1;
+      updateSearchUI();
+      savePreferences();
+      loadRows();
+    });
+  }
   if(globalSearch){
     globalSearch.value = state.search || '';
     globalSearch.addEventListener('input', debounce((e) => {
-      state.search = e.target.value || '';
+      state.search = String(e.target.value || '').slice(0, 200);
       state.page = 1;
+      updateSearchUI();
       scheduleRows();
-    }, 250));
+    }, 220));
   }
+  if(clearSearch){
+    clearSearch.addEventListener('click', () => {
+      state.search = '';
+      if(globalSearch) globalSearch.value = '';
+      state.page = 1;
+      updateSearchUI();
+      savePreferences();
+      loadRows();
+      globalSearch?.focus();
+    });
+  }
+  updateSearchUI();
 
   ['advDateFrom','advDateTo','advValueMin','advValueMax'].forEach(id => {
     const el = $(id);
@@ -66,7 +101,6 @@ function bindEvents(){
 
   $('btnClear').onclick = clearAll;
   bindFilterDrawer();
-  bindQuickChips();
   $('btnRefresh').onclick = refreshData;
   bindWorkbookUpload();
   $('btnExportExcel').onclick = () => { closeExportMenu(); exportFile('excel'); };
@@ -99,6 +133,47 @@ function bindEvents(){
   document.querySelectorAll('.tab-btn').forEach(btn => {
     btn.addEventListener('click', () => switchTab(btn.dataset.tab));
   });
+}
+
+
+function searchScopeLabel(scope){
+  const labels = {
+    ALL:'Tudo', REQUISICAO:'RC / Requisição', PEDIDO:'Pedido', FORNECEDOR:'Fornecedor',
+    SOLICITANTE:'Solicitante', EQUIPAMENTO:'Equipamento / Prefixo', DOCUMENTO:'Orçamento / OS / NF'
+  };
+  return labels[scope] || labels.ALL;
+}
+
+function searchPlaceholder(scope){
+  const labels = {
+    ALL:'Digite um número, nome ou equipamento...',
+    REQUISICAO:'Digite o número da RC...',
+    PEDIDO:'Digite o número do pedido...',
+    FORNECEDOR:'Digite o nome do fornecedor...',
+    SOLICITANTE:'Digite o nome do solicitante...',
+    EQUIPAMENTO:'Digite equipamento ou prefixo...',
+    DOCUMENTO:'Digite orçamento, OS ou NF...'
+  };
+  return labels[scope] || labels.ALL;
+}
+
+function updateSearchUI(total=null){
+  const input = $('globalSearch');
+  const clear = $('btnClearSearch');
+  const help = $('searchHelp');
+  const scope = state.searchScope || 'ALL';
+  const term = String(state.search || '').trim();
+  if(input) input.placeholder = searchPlaceholder(scope);
+  if(clear) clear.hidden = !term;
+  if(!help) return;
+  if(!term){
+    help.textContent = 'Escolha o tipo de busca para encontrar o registro com mais precisão.';
+    help.classList.remove('no-results');
+    return;
+  }
+  const countText = total === null ? 'Buscando' : `${Number(total).toLocaleString('pt-BR')} resultado${Number(total) === 1 ? '' : 's'}`;
+  help.textContent = `${countText} para “${term}” em ${searchScopeLabel(scope)}.`;
+  help.classList.toggle('no-results', total === 0);
 }
 
 function bindWorkbookUpload(){
@@ -270,6 +345,7 @@ function clearAll(){
   state.dateFrom = state.dateTo = state.valueMin = state.valueMax = '';
   state.page = 1;
   if($('globalSearch')) $('globalSearch').value = '';
+  updateSearchUI();
   hydrateAdvancedSearch();
   updateFilterUI();
   syncQuickChips('TODAS');
@@ -314,5 +390,5 @@ function setLoading(on){
   state.isRefreshing = on;
   document.body.classList.toggle('loading', on);
   document.body.setAttribute('aria-busy', on ? 'true' : 'false');
-  ['btnRefresh','btnUploadWorkbook','btnExportExcel','btnExportPdf','btnClear','btnExportMenu','btnToggleAdvancedSearch'].forEach(id => { const el=$(id); if(el) el.disabled=on; });
+  ['btnRefresh','btnUploadWorkbook','btnExportExcel','btnExportPdf','btnClear','btnExportMenu','btnToggleAdvancedSearch','btnClearSearch'].forEach(id => { const el=$(id); if(el) el.disabled=on; });
 }

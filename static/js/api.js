@@ -87,6 +87,7 @@ function baseQuery(){
   return {
     filters: state.filters,
     search: '',
+    search_scope: state.searchScope || 'ALL',
     page: state.page,
     page_size: state.pageSize,
     sort_col: state.sortCol,
@@ -147,6 +148,45 @@ function stageSummary(rows, etapa){
 }
 
 
+const SEARCH_SCOPE_FIELDS = {
+  ALL:['Nº REQUISIÇÃO','Nº PEDIDO DE COMPRA','FORNECEDOR','SOLICITANTE','EQUIPAMENTO','PREFIXO','Nº ORÇAMENTO FINAL','Nº ORDEM SERVIÇO','Nº NFS/DANFE','ETAPA'],
+  REQUISICAO:['Nº REQUISIÇÃO'],
+  PEDIDO:['Nº PEDIDO DE COMPRA'],
+  FORNECEDOR:['FORNECEDOR'],
+  SOLICITANTE:['SOLICITANTE'],
+  EQUIPAMENTO:['EQUIPAMENTO','PREFIXO'],
+  DOCUMENTO:['Nº ORÇAMENTO FINAL','Nº ORDEM SERVIÇO','Nº NFS/DANFE'],
+};
+const SEARCH_CODE_FIELDS = ['Nº REQUISIÇÃO','Nº PEDIDO DE COMPRA','Nº ORÇAMENTO FINAL','Nº ORDEM SERVIÇO','Nº NFS/DANFE','PREFIXO'];
+function normalizeSearchValue(value){
+  return normalizeText(cleanStatic(value)).replace(/[^A-Z0-9]+/g,' ').replace(/\s+/g,' ').trim();
+}
+function searchFieldText(row, fields){
+  return fields.map(field => normalizeSearchValue(row[field])).filter(Boolean).join(' ');
+}
+function exactCodeMatch(value, term){
+  const normalized = normalizeSearchValue(value);
+  if(!normalized) return false;
+  return normalized === term || normalized.split(' ').includes(term);
+}
+function smartSearchRows(rows, rawSearch, scope='ALL'){
+  const term = normalizeSearchValue(String(rawSearch || '').slice(0,200));
+  if(!term) return rows;
+  const fields = SEARCH_SCOPE_FIELDS[scope] || SEARCH_SCOPE_FIELDS.ALL;
+  const tokens = term.split(' ').filter(Boolean);
+  const codeFields = scope === 'ALL' ? SEARCH_CODE_FIELDS : fields.filter(field => SEARCH_CODE_FIELDS.includes(field));
+  const singleCodeLike = tokens.length === 1 && /^[A-Z0-9\-/.]{3,}$/.test(term);
+  if(singleCodeLike && codeFields.length){
+    const exact = rows.filter(row => codeFields.some(field => exactCodeMatch(row[field], term)));
+    if(exact.length) return exact;
+  }
+  return rows.filter(row => {
+    const haystack = searchFieldText(row, fields);
+    return tokens.every(token => haystack.includes(token));
+  });
+}
+
+
 function applyStaticQuery(rows, query={}){
   try{
     let out = rows.slice();
@@ -158,8 +198,7 @@ function applyStaticQuery(rows, query={}){
       out = out.filter(r => set.has(String(r[key] ?? '')));
     }
     if(query.search){
-      const term = normalizeText(String(query.search || '').substring(0, 200));
-      out = out.filter(r => String(r._SEARCH || '').includes(term));
+      out = smartSearchRows(out, query.search, String(query.search_scope || 'ALL').toUpperCase());
     }
     if(query.date_from){
       const dateFrom = String(query.date_from || '').substring(0, 10);
@@ -253,6 +292,7 @@ function staticRows(rows, query){
       });
       rec._ETAPA = row._ETAPA || row.ETAPA || '';
       rec._ROW_ID = row._ROW_ID || 0;
+      rec._VALOR_TOTAL = n(row._VALOR_TOTAL ?? row['VALOR TOTAL']);
       return rec;
     });
     return {columns, rows:pageRows, total, page, page_size:pageSize, pages, from: total ? start+1 : 0, to:end};
@@ -610,7 +650,7 @@ function staticDashboard(rows, query){
     const total=geral.length, pend=pendingRows(geral), concl=geral.filter(r=>r.ETAPA==='CONCLUÍDO');
     const valorTotal=geral.reduce((s,r)=>s+n(r._VALOR_TOTAL),0), serv=geral.reduce((s,r)=>s+n(r._VALOR_SERVICO),0), pecas=geral.reduce((s,r)=>s+n(r._VALOR_PECAS),0), valorPend=pend.reduce((s,r)=>s+n(r._VALOR_TOTAL),0);
     const farol=farolRegional(geral), old=oldestPending(geral), etapas=groupByStage(geral), owners=topOwnersCriticos(geral), top5=priorityRows(visaoFila.length ? visaoFila : geral,5);
-    const kpis={total_rcs:total,valor_total:brMoney(valorTotal),valor_total_compacto:compactMoney(valorTotal),valor_servicos:brMoney(serv),valor_servicos_compacto:compactMoney(serv),valor_pecas:brMoney(pecas),valor_pecas_compacto:compactMoney(pecas),ticket_medio:brMoney(total?valorTotal/total:0),ticket_medio_compacto:compactMoney(total?valorTotal/total:0),ticket_tempo_dias:`${average(geral.map(r=>r._DIAS_PARADO)).toFixed(1).replace('.',',')} dias`,ticket_tempo_dias_valor:average(geral.map(r=>r._DIAS_PARADO)),fornecedores:uniqueCount(geral,'FORNECEDOR'),equipamentos:uniqueCount(geral,'EQUIPAMENTO'),concluidas:concl.length,pendentes:pend.length,pct_concluido:brPct(total?concl.length/total*100:0),pct_pendente:brPct(total?pend.length/total*100:0),valor_pendente:brMoney(valorPend),valor_pendente_compacto:compactMoney(valorPend),valor_fora_sla:farol.valor_fora_sla,valor_fora_sla_compacto:farol.valor_fora_sla_compacto,valor_sem_lancamento:farol.valor_sem_lancamento,valor_sem_lancamento_compacto:farol.valor_sem_lancamento_compacto,rcs_fora_sla:farol.rcs_fora_sla,rcs_sem_lancamento:farol.rcs_sem_lancamento,rcs_criticas:farol.rcs_criticas,farol_status:farol.status,maior_atraso_dias:n(old.dias),maior_atraso_label:old.label,maior_atraso_detail:old.detail};
+    const kpis={total_rcs:total,valor_total:brMoney(valorTotal),valor_total_compacto:compactMoney(valorTotal),valor_servicos:brMoney(serv),valor_servicos_compacto:compactMoney(serv),valor_pecas:brMoney(pecas),valor_pecas_compacto:compactMoney(pecas),ticket_medio:brMoney(total?valorTotal/total:0),ticket_medio_compacto:compactMoney(total?valorTotal/total:0),ticket_tempo_dias:`${average(geral.map(r=>r._DIAS_PARADO)).toFixed(1).replace('.',',')} dias`,ticket_tempo_dias_valor:average(geral.map(r=>r._DIAS_PARADO)),fornecedores:uniqueCount(geral,'FORNECEDOR'),equipamentos:uniqueCount(geral,'EQUIPAMENTO'),concluidas:concl.length,pendentes:pend.length,pct_concluido:brPct(total?concl.length/total*100:0),pct_pendente:brPct(total?pend.length/total*100:0),valor_pendente:brMoney(valorPend),valor_pendente_compacto:compactMoney(valorPend),valor_fora_sla:farol.valor_fora_sla,valor_fora_sla_compacto:farol.valor_fora_sla_compacto,valor_sem_lancamento:farol.valor_sem_lancamento,valor_sem_lancamento_compacto:farol.valor_sem_lancamento_compacto,rcs_fora_sla:farol.rcs_fora_sla,rcs_sem_lancamento:farol.rcs_sem_lancamento,rcs_criticas:farol.rcs_criticas,farol_status:farol.status,maior_atraso_dias:n(old.dias),maior_atraso_label:old.label,maior_atraso_detail:old.detail,maior_atraso_etapa:old.etapa || '',maior_atraso_fornecedor:old.fornecedor || '',maior_atraso_valor:old.valor || ''};
     return {
       kpis,
       etapas,

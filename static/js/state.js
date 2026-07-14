@@ -3,6 +3,7 @@ const state = {
   mainFilters: [],
   columns: [],
   search: '',
+  searchScope: 'ALL',
   page: 1,
   pageSize: 200,
   sortCol: 'DIAS PARADO',
@@ -26,14 +27,15 @@ const DESC_FIRST_COLUMNS = new Set([
 ]);
 
 const $ = (id) => document.getElementById(id);
-const STORAGE_KEY = 'pcm-dashboard-preferences-v72-cloudflare';
-const DASH_CACHE_PREFIX = 'pcm-dashboard-cache-v72-cloudflare:';
+const STORAGE_KEY = 'pcm-dashboard-preferences-v89-cloudflare';
+const DASH_CACHE_PREFIX = 'pcm-dashboard-cache-v89-cloudflare:';
 
 function loadPreferences(){
   try{
     const prefs = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
     state.filters = prefs.filters || {};
     state.search = prefs.search || '';
+    state.searchScope = prefs.searchScope || 'ALL';
     state.pageSize = Number(prefs.pageSize || state.pageSize);
     state.sortCol = prefs.sortCol || state.sortCol;
     state.sortDir = prefs.sortDir || state.sortDir;
@@ -48,7 +50,7 @@ function loadPreferences(){
 function savePreferences(){
   try{
     localStorage.setItem(STORAGE_KEY, JSON.stringify({
-      filters: state.filters, search: state.search, pageSize: state.pageSize,
+      filters: state.filters, search: state.search, searchScope: state.searchScope, pageSize: state.pageSize,
       sortCol: state.sortCol, sortDir: state.sortDir, activeTab: state.activeTab,
       dateFrom: state.dateFrom, dateTo: state.dateTo, valueMin: state.valueMin, valueMax: state.valueMax
     }));

@@ -5927,3 +5927,305 @@ body.v87-ranking .ranking-owner-v87:hover{
     grid-template-columns:1fr !important;
   }
 }
+
+
+/* V88 — rankings mais legíveis e identificação da etapa no card "Mais parado" */
+body.v88-ranking-clear .rankings-zone-v88{
+  display:grid !important;
+  grid-template-columns:repeat(2,minmax(0,1fr)) !important;
+  gap:12px !important;
+  min-height:154px !important;
+  padding:12px !important;
+  background:#FFFFFF !important;
+}
+body.v88-ranking-clear .ranking-panel-v88{
+  min-width:0;
+  padding:12px 14px;
+  border:1px solid #DCE8F0;
+  border-radius:16px;
+  background:linear-gradient(180deg,#FFFFFF 0%,#FBFDFE 100%);
+}
+body.v88-ranking-clear .ranking-panel-head-v88{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:12px;
+  margin-bottom:8px;
+}
+body.v88-ranking-clear .ranking-panel-head-v88 div{min-width:0}
+body.v88-ranking-clear .ranking-panel-head-v88 strong{
+  display:block;
+  color:#111827;
+  font-size:13px;
+  font-weight:900;
+  letter-spacing:0;
+  text-transform:none;
+}
+body.v88-ranking-clear .ranking-panel-head-v88 span{
+  display:block;
+  margin-top:2px;
+  color:#667085;
+  font-size:10.5px;
+  font-weight:700;
+}
+body.v88-ranking-clear .ranking-panel-head-v88 small{
+  flex:0 0 auto;
+  color:#7B8A9C;
+  font-size:9px;
+  font-weight:800;
+  white-space:nowrap;
+}
+body.v88-ranking-clear .ranking-list-v88{
+  display:grid;
+  gap:6px;
+}
+body.v88-ranking-clear .ranking-row-v88{
+  appearance:none;
+  -webkit-appearance:none;
+  width:100%;
+  min-height:34px;
+  display:grid;
+  grid-template-columns:28px minmax(0,1fr) auto;
+  align-items:center;
+  gap:9px;
+  padding:6px 9px;
+  border:1px solid #E1EAF0;
+  border-radius:11px;
+  background:#FFFFFF;
+  color:inherit;
+  font:inherit;
+  text-align:left;
+  cursor:pointer;
+  transition:border-color .18s ease, box-shadow .18s ease, transform .18s ease;
+}
+body.v88-ranking-clear .ranking-row-v88:hover{
+  border-color:#BCD9E9;
+  box-shadow:0 6px 15px rgba(15,23,42,.055);
+  transform:translateY(-1px);
+}
+body.v88-ranking-clear .ranking-position-v88{
+  width:26px;
+  height:26px;
+  display:grid;
+  place-items:center;
+  border-radius:9px;
+  background:#EAF6FC;
+  color:#00629E;
+  font-size:11px;
+  font-weight:900;
+}
+body.v88-ranking-clear .ranking-content-v88{
+  min-width:0;
+  display:grid;
+  grid-template-columns:minmax(0,1fr) auto;
+  column-gap:8px;
+  align-items:center;
+}
+body.v88-ranking-clear .ranking-content-v88 strong{
+  min-width:0;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+  color:#263445;
+  font-size:10.5px;
+  font-weight:850;
+}
+body.v88-ranking-clear .ranking-content-v88 small{
+  color:#7B8A9C;
+  font-size:9px;
+  font-weight:750;
+  white-space:nowrap;
+}
+body.v88-ranking-clear .ranking-track-v88{
+  grid-column:1 / -1;
+  height:3px;
+  margin-top:4px;
+  border-radius:999px;
+  background:#EAF0F4;
+  overflow:hidden;
+}
+body.v88-ranking-clear .ranking-track-v88 i{
+  display:block;
+  width:var(--ranking-width,0%);
+  height:100%;
+  border-radius:inherit;
+  background:linear-gradient(90deg,#00A3E0,#00629E);
+}
+body.v88-ranking-clear .ranking-panel-requesters-v88 .ranking-track-v88 i{
+  background:linear-gradient(90deg,#58C28A,#23A067);
+}
+body.v88-ranking-clear .ranking-row-v88 em{
+  color:#00629E;
+  font-size:12px;
+  font-style:normal;
+  font-weight:900;
+  white-space:nowrap;
+}
+body.v88-ranking-clear .ranking-panel-requesters-v88 .ranking-row-v88 em{color:#18885A}
+
+body.v88-ranking-clear .oldest-stage-row-v88{
+  display:flex !important;
+  align-items:center;
+  gap:5px;
+  min-width:0;
+  overflow:hidden;
+}
+body.v88-ranking-clear .oldest-stage-pill-v88{
+  flex:0 0 auto;
+  display:inline-flex;
+  align-items:center;
+  height:18px;
+  padding:0 6px;
+  border-radius:999px;
+  border:1px solid #DCE7EE;
+  background:#F8FAFC;
+  color:#475467;
+  font-size:8.7px;
+  font-weight:900;
+  line-height:1;
+  white-space:nowrap;
+}
+body.v88-ranking-clear .oldest-stage-pill-v88.stage-red{background:#FFF1F1;border-color:#F6CACA;color:#C52D2D}
+body.v88-ranking-clear .oldest-stage-pill-v88.stage-amber{background:#FFF8E6;border-color:#F6D995;color:#9A6700}
+body.v88-ranking-clear .oldest-stage-pill-v88.stage-blue{background:#EAF6FC;border-color:#C9E4F2;color:#00629E}
+body.v88-ranking-clear .oldest-stage-pill-v88.stage-gray{background:#F3F5F7;border-color:#DCE2E8;color:#596779}
+body.v88-ranking-clear .oldest-code-v88{
+  min-width:0;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+  color:#7B8A9C;
+  font-size:9px;
+  font-weight:800;
+}
+
+@media(max-width:980px){
+  body.v88-ranking-clear .rankings-zone-v88{grid-template-columns:1fr !important}
+}
+@media(max-width:560px){
+  body.v88-ranking-clear .ranking-panel-head-v88 small{display:none}
+  body.v88-ranking-clear .ranking-row-v88{grid-template-columns:26px minmax(0,1fr) auto}
+}
+
+
+/* V89 — quatro filtros principais, busca guiada e valores monetários claros */
+body.v89-simple-filters-search-money .topbar-row-filters-v40{
+  grid-template-columns:minmax(0,1fr) auto !important;
+  align-items:end !important;
+}
+body.v89-simple-filters-search-money .top-inline-filters{
+  display:grid !important;
+  grid-template-columns:repeat(4,minmax(150px,1fr)) !important;
+  gap:10px !important;
+  min-width:0 !important;
+}
+body.v89-simple-filters-search-money .top-meta-v40{align-self:end !important;}
+
+body.v89-simple-filters-search-money .smart-search-v89{
+  flex:1 1 700px;
+  min-width:min(760px,100%);
+  display:grid;
+  grid-template-columns:170px minmax(300px,1fr) auto;
+  align-items:end;
+  gap:8px;
+}
+body.v89-simple-filters-search-money .search-scope-v89,
+body.v89-simple-filters-search-money .smart-search-v89 .table-search{
+  min-width:0 !important;
+  width:auto !important;
+  display:grid !important;
+  gap:6px !important;
+  grid-column:auto !important;
+  grid-row:auto !important;
+}
+body.v89-simple-filters-search-money .search-scope-v89 span,
+body.v89-simple-filters-search-money .smart-search-v89 .table-search span{
+  color:#667085;
+  font-size:10px;
+  font-weight:850;
+  letter-spacing:.08em;
+  text-transform:uppercase;
+}
+body.v89-simple-filters-search-money .search-scope-v89 select,
+body.v89-simple-filters-search-money .smart-search-v89 .table-search input{
+  width:100% !important;
+  height:42px !important;
+  border-radius:15px !important;
+}
+body.v89-simple-filters-search-money .search-clear-v89{
+  height:42px !important;
+  min-width:72px;
+}
+body.v89-simple-filters-search-money .search-help-v89{
+  grid-column:1 / -1;
+  display:block;
+  margin-top:-1px;
+  color:#7B8A9C;
+  font-size:10.5px;
+  font-weight:700;
+}
+body.v89-simple-filters-search-money .search-help-v89.no-results{color:#B42318;}
+
+body.v89-simple-filters-search-money .money-td-v89{text-align:right;}
+body.v89-simple-filters-search-money .money-cell-v89{
+  display:inline-flex;
+  align-items:center;
+  justify-content:flex-end;
+  min-width:118px;
+  padding:5px 9px;
+  border:1px solid #CFE3EF;
+  border-radius:10px;
+  background:#F1F8FC;
+  color:#005B91;
+  font-weight:900;
+  font-variant-numeric:tabular-nums;
+  letter-spacing:-.015em;
+  white-space:nowrap;
+}
+
+@media(max-width:1120px){
+  body.v89-simple-filters-search-money .top-inline-filters{grid-template-columns:repeat(2,minmax(0,1fr)) !important;}
+  body.v89-simple-filters-search-money .smart-search-v89{grid-template-columns:155px minmax(260px,1fr) auto;min-width:100%;}
+}
+@media(max-width:720px){
+  body.v89-simple-filters-search-money .topbar-row-filters-v40{grid-template-columns:1fr !important;}
+  body.v89-simple-filters-search-money .top-inline-filters{grid-template-columns:1fr !important;}
+  body.v89-simple-filters-search-money .smart-search-v89{grid-template-columns:1fr !important;}
+  body.v89-simple-filters-search-money .search-help-v89{grid-column:1;}
+  body.v89-simple-filters-search-money .search-clear-v89{width:100%;}
+}
+
+/* V89 final — refinamentos solicitados: ranking apenas executivo e cards da base menos arredondados */
+body.v89-simple-filters-search-money [data-panel][hidden]{
+  display:none !important;
+}
+body.v89-simple-filters-search-money .rankings-zone-v88{
+  width:100% !important;
+  min-height:0 !important;
+  grid-template-columns:repeat(2,minmax(0,1fr)) !important;
+  gap:10px !important;
+  padding:10px !important;
+  align-items:stretch !important;
+}
+body.v89-simple-filters-search-money .ranking-panel-v88{
+  border-radius:12px !important;
+  padding:11px 12px !important;
+  overflow:hidden !important;
+}
+body.v89-simple-filters-search-money .ranking-row-v88{
+  border-radius:9px !important;
+}
+body.v89-simple-filters-search-money.active-tab-base #processCardsBase .process-card{
+  border-radius:10px !important;
+}
+body.v89-simple-filters-search-money.active-tab-base #processCardsBase .process-card::before{
+  border-radius:0 !important;
+}
+body.v89-simple-filters-search-money .money-cell-v89::first-letter{
+  letter-spacing:0;
+}
+@media(max-width:980px){
+  body.v89-simple-filters-search-money .rankings-zone-v88{
+    grid-template-columns:1fr !important;
+  }
+}
