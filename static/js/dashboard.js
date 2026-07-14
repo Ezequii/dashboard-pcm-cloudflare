@@ -34,18 +34,28 @@ function renderDashboardData(data){
   const pend = Number(k.pendentes || 0).toLocaleString('pt-BR');
   const concluidas = Number(k.concluidas || 0).toLocaleString('pt-BR');
 
+  const stageMap = new Map((data.etapas || []).map(item => [String(item.etapa || '').toUpperCase(), item]));
+  const semLanc = stageMap.get('SEM LANÇAMENTO') || {};
+  const semPedido = stageMap.get('SEM PEDIDO') || {};
+  const semNf = stageMap.get('SEM NF') || {};
+  const semLancQtd = Number(semLanc.qtd || k.rcs_sem_lancamento || k.rcs_fora_sla || 0);
+  const semPedidoQtd = Number(semPedido.qtd || data.farol?.sem_pedido || 0);
+  const semNfQtd = Number(semNf.qtd || data.farol?.sem_nf || 0);
+  const acompanhamentoValor = Number(semPedido.valor || 0) + Number(semNf.valor || 0);
+
   setText('kValorPendente', k.valor_pendente_compacto || k.valor_pendente || 'R$ 0', k.valor_pendente || 'R$ 0');
-  setText('kValorPendenteSub', `${pend} RCs em aberto`);
+  setText('kValorPendenteSub', `${compactCurrency(Number(semLanc.valor || 0))} PCM · ${compactCurrency(acompanhamentoValor)} acompanhamento`);
   setText('kPendencias', pend);
-  setText('kPendenciasSub', `${k.pct_pendente || '0%'} do total`);
+  setText('kPendenciasSub', `${semLancQtd.toLocaleString('pt-BR')} lançamento · ${semPedidoQtd.toLocaleString('pt-BR')} pedido · ${semNfQtd.toLocaleString('pt-BR')} NF`);
   setText('kPctConcluido', k.pct_concluido || '0%');
-  setText('kConcluidoSub', `${concluidas} concluídas`);
+  setText('kConcluidoSub', `${concluidas} de ${total} RCs`);
   setText('kMaiorAtraso', `${Number(k.maior_atraso_dias || 0).toLocaleString('pt-BR')} dias`);
   renderOldestPending(k);
   setText('kValorForaSla', k.valor_sem_lancamento_compacto || k.valor_fora_sla_compacto || k.valor_fora_sla || 'R$ 0', k.valor_sem_lancamento || k.valor_fora_sla || 'R$ 0');
-  setText('kValorForaSlaSub', `${Number(k.rcs_sem_lancamento || k.rcs_fora_sla || 0).toLocaleString('pt-BR')} RCs sem lançamento`);
+  setText('kValorForaSlaSub', `${semLancQtd.toLocaleString('pt-BR')} RCs · ${semLanc.percentual_formatado || '0%'} da base`);
 
-  renderFarol(data.farol || {});
+  renderFarol(data.farol || {}, {pendentes: Number(k.pendentes || 0), semLancamento: semLancQtd});
+  bindSmartKpiActions();
   renderExecutiveComment(data.comentario_executivo || 'Resumo executivo indisponível para o filtro atual.');
 
   // Compatibilidade com ids antigos caso alguma customização local ainda use.
@@ -165,7 +175,7 @@ function renderOldestPending(k){
   }
 }
 
-function renderFarol(farol){
+function renderFarol(farol, context={}){
   const card = $('farolRegional');
   if(!card) return;
   const status = String(farol.status || 'BOM').toUpperCase();
@@ -173,7 +183,54 @@ function renderFarol(farol){
   const cls = status.includes('REV') ? 'farol-revisar' : (status.includes('AT') ? 'farol-atencao' : (status.includes('EXC') ? 'farol-excelente' : 'farol-ok'));
   card.classList.add(cls);
   setText('kFarolStatus', status);
-  setText('kFarolSub', farol.label || farol.detail || 'Operação saudável', farol.detail || '');
+  const pendentes = Number(context.pendentes || 0).toLocaleString('pt-BR');
+  const semLanc = Number(context.semLancamento || 0).toLocaleString('pt-BR');
+  const subtitle = `${pendentes} em andamento · ${semLanc} no PCM`;
+  setText('kFarolSub', subtitle, `${farol.label || 'Operação saudável'} · ${farol.detail || ''}`);
+}
+
+function clearKpiNavigationState(){
+  state.search = '';
+  state.searchScope = 'ALL';
+  state.page = 1;
+  const search = $('globalSearch');
+  const scope = $('searchScope');
+  if(search) search.value = '';
+  if(scope) scope.value = 'ALL';
+  updateSearchUI?.();
+}
+
+function openBaseFromKpi(etapa=null){
+  clearKpiNavigationState();
+  state.filters.ETAPA = etapa ? [etapa] : [];
+  updateFilterUI();
+  switchTab('base');
+  loadRows();
+}
+
+function makeKpiActionable(id, label, handler){
+  const card = $(id);
+  if(!card || card.dataset.kpiActionBound === '1') return;
+  card.dataset.kpiActionBound = '1';
+  card.classList.add('kpi-actionable-v94');
+  card.setAttribute('role','button');
+  card.setAttribute('tabindex','0');
+  card.setAttribute('aria-label', label);
+  card.title = label;
+  card.addEventListener('click', handler);
+  card.addEventListener('keydown', event => {
+    if(event.key === 'Enter' || event.key === ' '){
+      event.preventDefault();
+      handler();
+    }
+  });
+}
+
+function bindSmartKpiActions(){
+  makeKpiActionable('kpiValorAndamentoCard', 'Abrir todas as RCs em andamento na Base de Tratativa', () => openBaseFromKpi());
+  makeKpiActionable('kpiPendenciasCard', 'Abrir todas as RCs em andamento na Base de Tratativa', () => openBaseFromKpi());
+  makeKpiActionable('kpiConcluidoCard', 'Abrir as RCs concluídas na Base de Tratativa', () => openBaseFromKpi('CONCLUÍDO'));
+  makeKpiActionable('kpiFocoPcmCard', 'Abrir as RCs sem lançamento, foco direto do PCM', () => openBaseFromKpi('SEM LANÇAMENTO'));
 }
 
 

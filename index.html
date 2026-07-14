@@ -5,9 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Controle de Requisições PCM 2026</title>
   <link rel="icon" type="image/png" href="/static/favicon.png" />
-  <link rel="stylesheet" href="/static/styles_v50_corrigido.css?v=93" />
+  <link rel="stylesheet" href="/static/styles_v50_corrigido.css?v=94" />
 </head>
-<body class="v44-polish v48-balanced v50-real-fix v51-visual-clean v66-premium v76-inteligente v78-lideranca-pcm v79-sem-resumo v79-refino-pcm v80-confiavel v81-estavel v82-oficial v86-table-lines v87-ranking v88-ranking-clear v89-simple-filters-search-money v90-layout-safe v91-layout-final v92-smart-polish v93-oldest-clear">
+<body class="v44-polish v48-balanced v50-real-fix v51-visual-clean v66-premium v76-inteligente v78-lideranca-pcm v79-sem-resumo v79-refino-pcm v80-confiavel v81-estavel v82-oficial v86-table-lines v87-ranking v88-ranking-clear v89-simple-filters-search-money v90-layout-safe v91-layout-final v92-smart-polish v93-oldest-clear v94-kpis-smart">
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
   <div id="drawerBackdrop" class="drawer-backdrop no-print" hidden></div>
 
@@ -17,7 +17,7 @@
         <div class="brand-logo-box"><img src="/static/logo_amaggi.png" alt="AMAGGI" /></div>
         <div class="brand-copy-wrap">
           <div>
-            <div class="brand-title-line"><h1>Controle de Requisições PCM</h1>        <span class="version-pill-v34" aria-label="Versão visual premium">Visual v93 • leitura mais clara</span></div>
+            <div class="brand-title-line"><h1>Controle de Requisições PCM</h1>        <span class="version-pill-v34" aria-label="Versão visual premium">Visual v94 • KPIs inteligentes</span></div>
             <p class="subtitle-top">Controle de lançamento e acompanhamento — 2026</p>
           </div>
           <nav class="dashboard-tabs no-print prominent-tabs inline-tabs" aria-label="Navegação do dashboard">
@@ -62,25 +62,25 @@
   <main class="page executive-page page-v33 page-v34 page-v35 page-v38 page-v39 page-v40 page-v41">
 
     <section class="kpi-grid essential-kpis executive-essential-kpis kpis-v33 kpi-no-scroll-v45" data-panel="visao">
-      <article class="kpi-card metric-card kpi-pendente principal kpi-primary-v41">
+      <article id="kpiValorAndamentoCard" class="kpi-card metric-card kpi-pendente principal kpi-primary-v41" aria-live="polite">
         <div class="kpi-icon">R$</div>
         <div class="kpi-copy"><span>Valor em andamento</span><strong id="kValorPendente">R$ 0</strong><small id="kValorPendenteSub">Aguardando ação</small></div>
       </article>
-      <article class="kpi-card metric-card kpi-pendencias kpi-primary-v41">
+      <article id="kpiPendenciasCard" class="kpi-card metric-card kpi-pendencias kpi-primary-v41" aria-live="polite">
         <div class="kpi-icon">!</div>
-        <div class="kpi-copy"><span>Em aberto</span><strong id="kPendencias">0</strong><small id="kPendenciasSub">RCs em aberto</small></div>
+        <div class="kpi-copy"><span>RCs em andamento</span><strong id="kPendencias">0</strong><small id="kPendenciasSub">Carregando composição...</small></div>
       </article>
-      <article class="kpi-card metric-card kpi-concluido kpi-primary-v41">
+      <article id="kpiConcluidoCard" class="kpi-card metric-card kpi-concluido kpi-primary-v41" aria-live="polite">
         <div class="kpi-icon">%</div>
-        <div class="kpi-copy"><span>% concluído</span><strong id="kPctConcluido">0%</strong><small id="kConcluidoSub">0 concluídas</small></div>
+        <div class="kpi-copy"><span>Processo concluído</span><strong id="kPctConcluido">0%</strong><small id="kConcluidoSub">0 de 0 RCs</small></div>
       </article>
       <article id="kpiMaisParadoCard" class="kpi-card metric-card tempo kpi-atraso kpi-secondary-v41" aria-live="polite">
         <div class="kpi-icon">D</div>
-        <div class="kpi-copy"><span>Mais parado</span><strong id="kMaiorAtraso">0 dias</strong><small id="kMaiorAtrasoSub">Sem pendência</small></div>
+        <div class="kpi-copy"><span>Pendência mais antiga</span><strong id="kMaiorAtraso">0 dias</strong><small id="kMaiorAtrasoSub">Sem pendência</small></div>
       </article>
-      <article class="kpi-card metric-card money kpi-sla kpi-secondary-v41">
+      <article id="kpiFocoPcmCard" class="kpi-card metric-card money kpi-sla kpi-secondary-v41" aria-live="polite">
         <div class="kpi-icon">⏱</div>
-        <div class="kpi-copy"><span>Meu foco</span><strong id="kValorForaSla">R$ 0</strong><small id="kValorForaSlaSub">0 RCs sem lançamento</small></div>
+        <div class="kpi-copy"><span>Foco do PCM</span><strong id="kValorForaSla">R$ 0</strong><small id="kValorForaSlaSub">0 RCs sem lançamento</small></div>
       </article>
       <article id="farolRegional" class="kpi-card metric-card farol-card-v33 farol-ok kpi-secondary-v41">
         <div class="farol-dot"></div>

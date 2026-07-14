@@ -6686,3 +6686,59 @@ body.v93-oldest-clear .base-legend-v36 span:nth-child(2){white-space:nowrap}
   body.v93-oldest-clear .oldest-stage-v93,
   body.v93-oldest-clear .oldest-ref-v93{font-size:8.3px}
 }
+
+
+/* =========================================================
+   V94 — KPIs executivos mais inteligentes e acionáveis
+   - subtítulos mostram composição real da fila
+   - linguagem mais clara para liderança
+   - cards úteis abrem a Base de Tratativa já no contexto certo
+   - sem alterar STATUS, cálculos ou dados
+   ========================================================= */
+body.v94-kpis-smart .kpis-v33 .kpi-card{
+  cursor:default;
+}
+body.v94-kpis-smart .kpis-v33 .kpi-copy small{
+  display:block !important;
+  max-width:100% !important;
+  white-space:nowrap !important;
+  overflow:hidden !important;
+  text-overflow:ellipsis !important;
+}
+body.v94-kpis-smart .kpi-actionable-v94{
+  cursor:pointer !important;
+  transition:transform .16s ease,border-color .16s ease,box-shadow .16s ease !important;
+}
+body.v94-kpis-smart .kpi-actionable-v94:hover{
+  transform:translateY(-1px) !important;
+  border-color:rgba(0,98,158,.24) !important;
+  box-shadow:0 8px 22px rgba(16,24,40,.08) !important;
+}
+body.v94-kpis-smart .kpi-actionable-v94:focus-visible{
+  outline:3px solid rgba(0,98,158,.22) !important;
+  outline-offset:2px !important;
+}
+body.v94-kpis-smart .kpi-actionable-v94::before{
+  content:"";
+  position:absolute;
+  right:9px;
+  bottom:8px;
+  width:5px;
+  height:5px;
+  border-right:1.5px solid rgba(0,98,158,.48);
+  border-bottom:1.5px solid rgba(0,98,158,.48);
+  transform:rotate(-45deg);
+  opacity:.45;
+}
+body.v94-kpis-smart #kpiMaisParadoCard .kpi-copy strong{
+  letter-spacing:-.035em !important;
+}
+body.v94-kpis-smart #kpiMaisParadoCard .oldest-context-v93{
+  gap:5px !important;
+}
+body.v94-kpis-smart #farolRegional .kpi-copy small{
+  color:#5E6D81 !important;
+}
+@media(max-width:1180px){
+  body.v94-kpis-smart .kpis-v33 .kpi-copy small{font-size:8.6px !important;}
+}
