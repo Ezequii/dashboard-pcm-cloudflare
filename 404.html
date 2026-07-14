@@ -5,9 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Controle de Requisições PCM 2026</title>
   <link rel="icon" type="image/png" href="/static/favicon.png" />
-  <link rel="stylesheet" href="/static/styles_v50_corrigido.css?v=72" />
+  <link rel="stylesheet" href="/static/styles_v50_corrigido.css?v=87" />
 </head>
-<body class="v44-polish v48-balanced v50-real-fix v51-visual-clean v66-premium v76-inteligente">
+<body class="v44-polish v48-balanced v50-real-fix v51-visual-clean v66-premium v76-inteligente v78-lideranca-pcm v79-sem-resumo v79-refino-pcm v80-confiavel v81-estavel v82-oficial v86-table-lines v87-ranking">
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
   <div id="drawerBackdrop" class="drawer-backdrop no-print" hidden></div>
 
@@ -17,8 +17,8 @@
         <div class="brand-logo-box"><img src="/static/logo_amaggi.png" alt="AMAGGI" /></div>
         <div class="brand-copy-wrap">
           <div>
-            <div class="brand-title-line"><h1>Controle de Requisições PCM</h1><span class="version-pill-v34" aria-label="Versão visual premium">Visual v72</span></div>
-            <p class="subtitle-top">Gestão executiva de requisições — 2026</p>
+            <div class="brand-title-line"><h1>Controle de Requisições PCM</h1>        <span class="version-pill-v34" aria-label="Versão visual premium">Visual v87 • rankings</span></div>
+            <p class="subtitle-top">Controle de lançamento e acompanhamento — 2026</p>
           </div>
           <nav class="dashboard-tabs no-print prominent-tabs inline-tabs" aria-label="Navegação do dashboard">
             <button class="tab-btn active" data-tab="visao"><span>Visão Executiva</span><small>visão gerencial</small></button>
@@ -47,10 +47,12 @@
     <div class="topbar-row topbar-row-quick no-print">
       <div id="quickChips" class="quick-chip-row" aria-label="Filtros rápidos">
         <button type="button" class="quick-chip active" data-quick="TODAS">Todas</button>
-        <button type="button" class="quick-chip" data-quick="FORA_SLA">Atrasadas</button>
-        <button type="button" class="quick-chip" data-quick="CRITICO">60+ dias</button>
-        <button type="button" class="quick-chip" data-quick="15_DIAS">15+ dias</button>
-        <button type="button" class="quick-chip" data-quick="30_DIAS">30+ dias</button>
+        <button type="button" class="quick-chip" data-quick="FORA_SLA">Em atenção</button>
+        <button type="button" class="quick-chip" data-quick="CRITICO">Muito parado</button>
+        <button type="button" class="quick-chip" data-quick="15_DIAS">Acompanhar</button>
+        <button type="button" class="quick-chip" data-quick="30_DIAS">Parado há mais tempo</button>
+        <button type="button" class="quick-chip" data-quick="SEM_LANCAMENTO">Sem lançamento</button>
+        <button type="button" class="quick-chip" data-quick="SEM_PEDIDO">Sem pedido</button>
         <button type="button" class="quick-chip" data-quick="SEM_NF">Sem NF</button>
       </div>
       <div id="activeFilters" class="active-filters active-filters-top"></div>
@@ -76,11 +78,11 @@
     <section class="kpi-grid essential-kpis executive-essential-kpis kpis-v33 kpi-no-scroll-v45" data-panel="visao">
       <article class="kpi-card metric-card kpi-pendente principal kpi-primary-v41">
         <div class="kpi-icon">R$</div>
-        <div class="kpi-copy"><span>Valor pendente</span><strong id="kValorPendente">R$ 0</strong><small id="kValorPendenteSub">Aguardando ação</small></div>
+        <div class="kpi-copy"><span>Valor em andamento</span><strong id="kValorPendente">R$ 0</strong><small id="kValorPendenteSub">Aguardando ação</small></div>
       </article>
       <article class="kpi-card metric-card kpi-pendencias kpi-primary-v41">
         <div class="kpi-icon">!</div>
-        <div class="kpi-copy"><span>Pendências</span><strong id="kPendencias">0</strong><small id="kPendenciasSub">RCs em aberto</small></div>
+        <div class="kpi-copy"><span>Em aberto</span><strong id="kPendencias">0</strong><small id="kPendenciasSub">RCs em aberto</small></div>
       </article>
       <article class="kpi-card metric-card kpi-concluido kpi-primary-v41">
         <div class="kpi-icon">%</div>
@@ -88,15 +90,15 @@
       </article>
       <article class="kpi-card metric-card tempo kpi-atraso kpi-secondary-v41">
         <div class="kpi-icon">D</div>
-        <div class="kpi-copy"><span>Maior atraso</span><strong id="kMaiorAtraso">0 dias</strong><small id="kMaiorAtrasoSub">Sem pendência</small></div>
+        <div class="kpi-copy"><span>Mais parado</span><strong id="kMaiorAtraso">0 dias</strong><small id="kMaiorAtrasoSub">Sem pendência</small></div>
       </article>
       <article class="kpi-card metric-card money kpi-sla kpi-secondary-v41">
         <div class="kpi-icon">⏱</div>
-        <div class="kpi-copy"><span>Valor em atenção</span><strong id="kValorForaSla">R$ 0</strong><small id="kValorForaSlaSub">0 RCs em atenção</small></div>
+        <div class="kpi-copy"><span>Meu foco</span><strong id="kValorForaSla">R$ 0</strong><small id="kValorForaSlaSub">0 RCs sem lançamento</small></div>
       </article>
       <article id="farolRegional" class="kpi-card metric-card farol-card-v33 farol-ok kpi-secondary-v41">
         <div class="farol-dot"></div>
-        <div class="kpi-copy"><span>Saúde do processo</span><strong id="kFarolStatus">OK</strong><small id="kFarolSub">Dentro do controle</small></div>
+        <div class="kpi-copy"><span>Status do processo</span><strong id="kFarolStatus">OK</strong><small id="kFarolSub">Rotina sob controle</small></div>
       </article>
     </section>
 
@@ -105,25 +107,26 @@
       <p id="executiveComment" aria-live="polite">Carregando leitura executiva...</p>
     </section>
 
+
     <section class="cockpit-grid-v33" data-panel="visao">
       <article class="chart-card cockpit-card funnel-card-v33">
-        <div class="chart-head"><h3>Fluxo de pendências</h3><span>Etapa, valor e atenção</span></div>
+        <div class="chart-head"><h3>Etapas do processo</h3><span>Concluído, lançamento, pedido e NF</span></div>
         <div id="processCards" class="process-grid process-grid-compact process-grid-executive process-cards-host process-v33"></div>
       </article>
       <article class="chart-card cockpit-card priority-card-v33">
-        <div class="chart-head"><h3>Fila inteligente de cobrança</h3><span>Valor + idade + etapa</span></div>
+        <div class="chart-head"><h3>Fila de tratativa PCM</h3><span>Prioriza o que falta lançar</span></div>
         <div id="topPrioridades" class="priority-list-v33"></div>
       </article>
     </section>
 
     <section class="action-now-v33" data-panel="visao">
       <div class="action-title-v33">
-        <strong>Ação agora</strong>
-        <span>O que fazer primeiro</span>
+        <strong>Top 3 fornecedores</strong>
+        <span>Maiores valores movimentados</span>
       </div>
-      <div id="actionNowList" class="action-list-v33"></div>
+      <div id="actionNowList" class="action-list-v33 ranking-suppliers-v87"></div>
       <div class="owners-mini-v33">
-        <strong>Donos da ação</strong>
+        <strong>Top 3 solicitantes</strong>
         <div id="ownersCriticos" class="owners-list-v33"></div>
       </div>
     </section>
@@ -132,12 +135,12 @@
       <div class="base-title-v36">
         <span>Base de Tratativa</span>
         <strong>Base detalhada</strong>
-        <small>Trate primeiro o que está parado há mais dias, com maior valor e responsável definido.</small>
+        <small>Foco principal: lançar/conferir o que está sem lançamento. Pedido e NF servem para acompanhamento.</small>
       </div>
       <div class="base-legend-v36">
-        <span><b></b> Muito atrasado</span>
-        <span><b></b> Atenção</span>
-        <span><b></b> Em dia</span>
+        <span><b></b> Muito parado</span>
+        <span><b></b> Acompanhar</span>
+        <span><b></b> Rotina</span>
       </div>
     </section>
 
@@ -148,7 +151,7 @@
         <div>
           <h3>Base detalhada</h3>
           <p id="tableCounter">0 registros</p>
-          <small class="leader-table-note">Tratativa operacional: comece pelo maior atraso, maior valor e dono da ação.</small>
+          <small class="leader-table-note">Tratativa operacional: comece pelos sem lançamento; depois acompanhe sem pedido e sem NF.</small>
         </div>
         <div class="table-tools no-print">
           <label class="table-search">
@@ -165,7 +168,7 @@
           </div>
           <div class="pager">
             <label>Exibir</label>
-            <select id="pageSize"><option>25</option><option selected>50</option><option>100</option><option>200</option></select>
+            <select id="pageSize"><option>50</option><option>100</option><option selected>200</option><option>300</option></select>
             <button id="prevPage" class="btn btn-small">Anterior</button>
             <span id="pageInfo">1/1</span>
             <button id="nextPage" class="btn btn-small">Próxima</button>
@@ -175,7 +178,7 @@
       <div class="table-wrap table-wrap-compact">
         <table id="dataTable"><thead></thead><tbody></tbody></table>
       </div>
-      <p class="table-hint no-print">Ordem da leitura: situação → prioridade → responsável → histórico → valor.</p>
+      <p class="table-hint no-print">Ordem da leitura: etapa → dias parado → lançamento → pedido/NF → valor.</p>
     </section>
 
     <footer class="footer-credit">
@@ -183,13 +186,13 @@
     </footer>
   </main>
 
-  <script src="/static/js/state.js?v=72"></script>
-  <script src="/static/js/utils.js?v=72"></script>
-  <script src="/static/js/api.js?v=72"></script>
-  <script src="/static/js/filters.js?v=72"></script>
-  <script src="/static/js/dashboard.js?v=72"></script>
-  <script src="/static/js/table.js?v=72"></script>
-  <script src="/static/js/core.js?v=72"></script>
-  <script src="/static/js/main.js?v=72"></script>
+  <script src="/static/js/state.js?v=87"></script>
+  <script src="/static/js/utils.js?v=87"></script>
+  <script src="/static/js/api.js?v=87"></script>
+  <script src="/static/js/filters.js?v=87"></script>
+  <script src="/static/js/dashboard.js?v=87"></script>
+  <script src="/static/js/table.js?v=87"></script>
+  <script src="/static/js/core.js?v=87"></script>
+  <script src="/static/js/main.js?v=87"></script>
 </body>
 </html>

@@ -59,9 +59,9 @@ function renderDashboardData(data){
   renderProcess(data.etapas || []);
   renderProcess(data.etapas || [], 'processCardsBase');
   renderInsights(data.alerts || {});
-  renderActionNow(data.alerts?.action_now || []);
+  renderTopSuppliers(data.charts?.top_fornecedores || []);
   renderTopPriorities(data.top5_prioridades || []);
-  renderOwners(data.alerts?.owners_criticos || data.charts?.owners_criticos || []);
+  renderTopRequesters(data.charts?.custo_solicitante || []);
   deferCharts(data);
   syncQuickChips();
 }
@@ -211,6 +211,64 @@ function shortOwnerLabel(label){
   if(n.includes('pcm')) return 'Depende do PCM';
   if(n.includes('responsavel')) return 'Depende da etapa';
   return raw.length > 22 ? `${raw.slice(0, 22)}…` : raw;
+}
+
+
+
+function validValueRanking(items){
+  return (items || []).filter(item => {
+    const label = String(item?.label || '').trim();
+    const normalized = label.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toUpperCase();
+    return label && normalized !== 'NAO INFORMADO' && Number(item?.value || 0) > 0;
+  });
+}
+
+function filterDimensionAndOpenBase(column, value){
+  const label = String(value || '').trim();
+  if(!label) return;
+  state.filters[column] = [label];
+  state.page = 1;
+  updateFilterUI();
+  switchTab('base');
+  loadRows();
+}
+
+function renderTopSuppliers(items){
+  const host = $('actionNowList');
+  if(!host) return;
+  const rows = validValueRanking(items).slice(0, 3);
+  if(!rows.length){
+    host.innerHTML = '<div class="empty-state">Sem fornecedores para o filtro atual</div>';
+    return;
+  }
+  host.innerHTML = rows.map((item, index) => `
+    <button type="button" class="action-card-v33 ranking-card-v87" data-ranking-value="${escapeAttr(item.label || '')}" title="Filtrar fornecedor: ${escapeAttr(item.label || '')} · ${escapeAttr(item.full || item.formatted || '')}">
+      <span>#${index + 1} fornecedor</span>
+      <strong>${escapeHtml(item.label || '')}</strong>
+      <em>${escapeHtml(item.formatted || compactCurrency(item.value))}</em>
+      <small>${Number(item.qtd || 0).toLocaleString('pt-BR')} RC${Number(item.qtd || 0) !== 1 ? 's' : ''}</small>
+    </button>`).join('');
+  host.querySelectorAll('.ranking-card-v87').forEach(button => {
+    button.onclick = () => filterDimensionAndOpenBase('FORNECEDOR', button.dataset.rankingValue || '');
+  });
+}
+
+function renderTopRequesters(items){
+  const host = $('ownersCriticos');
+  if(!host) return;
+  const rows = validValueRanking(items).slice(0, 3);
+  if(!rows.length){
+    host.innerHTML = '<span class="empty-mini">Sem solicitantes para o filtro atual</span>';
+    return;
+  }
+  host.innerHTML = rows.map((item, index) => `
+    <button type="button" class="owner-row-v33 ranking-owner-v87" data-ranking-value="${escapeAttr(item.label || '')}" title="Filtrar solicitante: ${escapeAttr(item.label || '')} · ${escapeAttr(item.full || item.formatted || '')}">
+      <span>#${index + 1} ${escapeHtml(item.label || '')}</span>
+      <strong>${escapeHtml(item.formatted || compactCurrency(item.value))}</strong>
+    </button>`).join('');
+  host.querySelectorAll('.ranking-owner-v87').forEach(button => {
+    button.onclick = () => filterDimensionAndOpenBase('SOLICITANTE', button.dataset.rankingValue || '');
+  });
 }
 
 function renderActionNow(actions){
