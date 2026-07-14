@@ -1,3 +1,34 @@
+function validateRuntimeConfiguration(){
+  const rules = window.BUSINESS_RULES;
+  const config = window.PCM_APP_CONFIG;
+
+  if(!rules || !rules.aging || !rules.targets || !rules.priorityWeights){
+    throw new Error("Configuração de regras de negócio indisponível. Recarregue a página.");
+  }
+  if(!config || String(config.assetVersion || "") !== "971"){
+    throw new Error("Os arquivos da aplicação estão em versões diferentes. Recarregue sem cache.");
+  }
+
+  const requiredFunctions = [
+    "api",
+    "buildSmartFilters",
+    "renderDashboardData",
+    "loadRows",
+    "updateFilterUI"
+  ];
+  const missing = requiredFunctions.filter((name) => typeof window[name] !== "function");
+  if(missing.length){
+    throw new Error(`Arquivos incompletos no carregamento: ${missing.join(", ")}.`);
+  }
+}
+
+function bindBootRecovery(){
+  const retry = $("btnRetryData");
+  if(!retry) return;
+  retry.dataset.bootRecoveryBound = "1";
+  retry.onclick = () => window.location.reload();
+}
+
 const scheduleDashboard = debounce(() => {
   savePreferences();
   refreshAll(false).catch(error => console.error('Atualização agendada falhou:', error));
@@ -37,9 +68,13 @@ function updateHeaderMetadata(metadata={}, generatedAt=''){
 
 async function init(){
   nowClock();
+  bindBootRecovery();
+  document.body.classList.add('app-booting');
+  document.body.classList.remove('app-ready', 'app-error');
 
   try{
     setLoading(true);
+    validateRuntimeConfiguration();
     const boot = await api('/api/bootstrap');
 
     state.mainFilters = [
@@ -84,7 +119,8 @@ async function init(){
     await refreshAll(false);
 
     clearDataError();
-    document.body.classList.add('v34-ready');
+    document.body.classList.remove('app-booting', 'app-error');
+    document.body.classList.add('app-ready', 'v34-ready');
 
     const seconds = Number(boot.auto_reload_seconds || 0);
     if(seconds >= 30){
@@ -117,6 +153,11 @@ async function init(){
     }, 300000);
   }catch(error){
     console.error('Falha na inicialização:', error);
+    document.body.classList.remove('app-booting');
+    document.body.classList.add('app-error');
+    if(typeof window.PCM_RENDER_RUNTIME_ERROR === 'function'){
+      window.PCM_RENDER_RUNTIME_ERROR(error);
+    }
     showDataStatus(
       'Dashboard indisponível',
       error.message || 'Não foi possível carregar a base publicada.',
@@ -195,7 +236,11 @@ function bindEvents(){
     closeExportMenu();
     exportFile('csv');
   });
-  $('btnRetryData')?.addEventListener('click', refreshData);
+    const retryDataButton = $('btnRetryData');
+  if(retryDataButton){
+    retryDataButton.dataset.bootRecoveryBound = '0';
+    retryDataButton.onclick = refreshData;
+  }
   bindExportMenu();
   bindAdvancedSearchPanel();
   if($('pageSize')){ $('pageSize').value = String(state.pageSize || 50); $('pageSize').onchange = (e) => { state.pageSize = Number(e.target.value); state.page = 1; savePreferences(); loadRowsSafely(); }; }
@@ -500,6 +545,8 @@ async function refreshData(){
     state.page = 1;
     await refreshAll(false);
     clearDataError();
+    document.body.classList.remove('app-booting', 'app-error');
+    document.body.classList.add('app-ready');
     showToast(`${result.message || 'Dados atualizados'}. ${Number(result.linhas || 0).toLocaleString('pt-BR')} registros carregados.`);
   }catch(error){
     console.error('Falha na atualização manual:', error);
@@ -578,3 +625,6 @@ function setLoading(on){
     if(element) element.disabled = Boolean(on);
   });
 }
+
+
+window.init = init;

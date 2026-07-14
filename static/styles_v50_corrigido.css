@@ -7486,3 +7486,152 @@ body.v97-reliability-navigation .table-error-row-v97 td{
     max-width:100%;
   }
 }
+
+/* ========================================================================
+   V97.1 — correção de carregamento, cache e recuperação visual
+   ======================================================================== */
+body.v971-runtime-fix.app-booting .topbar-row-filters-v40,
+body.v971-runtime-fix.app-error .topbar-row-filters-v40{
+  display:none!important;
+}
+
+body.v971-runtime-fix .top-actions{
+  flex-wrap:nowrap!important;
+  white-space:nowrap;
+}
+
+body.v971-runtime-fix .meta-inline-v95,
+body.v971-runtime-fix .data-freshness-v97{
+  flex:0 0 auto;
+}
+
+body.v971-runtime-fix .panel-loading-v971{
+  width:100%;
+  min-height:72px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:18px;
+  color:#667085;
+  font-size:11px;
+  font-weight:750;
+  letter-spacing:.01em;
+}
+
+body.v971-runtime-fix.app-booting .kpi-copy strong,
+body.v971-runtime-fix.app-booting .kpi-copy small,
+body.v971-runtime-fix.app-booting #executiveComment{
+  color:transparent!important;
+  border-radius:6px;
+  background:
+    linear-gradient(90deg,#EDF2F5 25%,#F8FAFB 42%,#EDF2F5 63%);
+  background-size:300% 100%;
+  animation:v971Skeleton 1.25s ease-in-out infinite;
+  user-select:none;
+}
+
+body.v971-runtime-fix.app-booting .kpi-copy strong{
+  width:min(120px,80%);
+  min-height:24px;
+}
+
+body.v971-runtime-fix.app-booting .kpi-copy small{
+  width:min(165px,92%);
+  min-height:10px;
+}
+
+body.v971-runtime-fix.app-booting #executiveComment{
+  display:block;
+  width:min(620px,86%);
+  min-height:12px;
+}
+
+body.v971-runtime-fix.app-booting .oldest-value-v96,
+body.v971-runtime-fix.app-booting .oldest-value-v96 *{
+  color:transparent!important;
+}
+
+body.v971-runtime-fix.app-booting .panel-loading-v971::before{
+  content:"";
+  width:14px;
+  height:14px;
+  margin-right:9px;
+  border:2px solid #D9E4EA;
+  border-top-color:#00629E;
+  border-radius:50%;
+  animation:v971Spinner .75s linear infinite;
+}
+
+body.v971-runtime-fix.app-booting .cockpit-card{
+  min-height:150px!important;
+}
+
+body.v971-runtime-fix.app-booting .action-now-v33,
+body.v971-runtime-fix.app-error .action-now-v33{
+  min-height:118px!important;
+}
+
+body.v971-runtime-fix.app-error .cockpit-card{
+  min-height:128px!important;
+}
+
+body.v971-runtime-fix.app-error .process-cards-host,
+body.v971-runtime-fix.app-error .priority-list-v33,
+body.v971-runtime-fix.app-error .ranking-list-v88{
+  min-height:48px!important;
+}
+
+body.v971-runtime-fix.app-error .panel-loading-v971{
+  display:none!important;
+}
+
+body.v971-runtime-fix.app-error .kpi-copy strong{
+  color:#98A2B3!important;
+}
+
+body.v971-runtime-fix.app-error .kpi-copy small{
+  color:#B42318!important;
+}
+
+body.v971-runtime-fix .data-status-banner-v97.tone-error{
+  border-color:#F3B8B8!important;
+  background:#FFF7F7!important;
+}
+
+@keyframes v971Skeleton{
+  0%{background-position:100% 0}
+  100%{background-position:0 0}
+}
+
+@keyframes v971Spinner{
+  to{transform:rotate(360deg)}
+}
+
+@media (prefers-reduced-motion:reduce){
+  body.v971-runtime-fix.app-booting .kpi-copy strong,
+  body.v971-runtime-fix.app-booting .kpi-copy small,
+  body.v971-runtime-fix.app-booting #executiveComment,
+  body.v971-runtime-fix.app-booting .panel-loading-v971::before{
+    animation:none!important;
+  }
+}
+
+@media (max-width:1280px){
+  body.v971-runtime-fix .top-actions{
+    gap:6px!important;
+  }
+  body.v971-runtime-fix .clock{
+    display:none!important;
+  }
+  body.v971-runtime-fix .meta-inline-v95{
+    max-width:210px;
+    overflow:hidden;
+    text-overflow:ellipsis;
+  }
+}
+
+@media (max-width:1040px){
+  body.v971-runtime-fix .data-freshness-v97{
+    display:none!important;
+  }
+}

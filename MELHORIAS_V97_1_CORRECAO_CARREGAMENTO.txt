@@ -1,0 +1,30 @@
+CONTROLE DE REQUISIÇÕES PCM — V97.1
+CORREÇÃO DE CARREGAMENTO E CACHE
+
+CORREÇÕES APLICADAS
+1. BUSINESS_RULES agora é definido antes de todos os demais scripts.
+2. Todos os arquivos CSS e JavaScript usam a mesma versão de cache: v=971.
+3. index.html, 404.html, version.json e dashboard-data.json não ficam presos em cache.
+4. O carregamento inicial usa placeholders, não números zero que parecem dados reais.
+5. Falhas de JavaScript exibem um estado de erro permanente e um botão para recarregar.
+6. A área de filtros fica oculta enquanto o bootstrap não terminou.
+7. Painéis vazios ficam compactos durante carregamento ou erro.
+8. O cabeçalho evita quebra das ações em larguras de notebook.
+9. Foi adicionada validação de configuração e módulos antes do acesso à base.
+10. Foi criado um validador automático para impedir mistura de versões.
+
+PUBLICAÇÃO
+1. Substitua o deploy inteiro pelo conteúdo desta pasta.
+2. Não misture arquivos de versões anteriores.
+3. Coloque a base oficial em static/data/dashboard-data.json.
+4. Coloque static/data/version.json junto da base.
+5. Faça um novo deploy completo.
+6. Após publicar, use Ctrl+F5 uma única vez para descartar o HTML antigo.
+
+ARQUIVOS PRINCIPAIS
+- index.html
+- static/js/app-config.js
+- static/js/core.js
+- static/js/main.js
+- static/styles_v50_corrigido.css
+- _headers
