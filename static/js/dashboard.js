@@ -41,7 +41,7 @@ function renderDashboardData(data){
   setText('kPctConcluido', k.pct_concluido || '0%');
   setText('kConcluidoSub', `${concluidas} concluídas`);
   setText('kMaiorAtraso', `${Number(k.maior_atraso_dias || 0).toLocaleString('pt-BR')} dias`);
-  setText('kMaiorAtrasoSub', k.maior_atraso_label || 'Sem pendência', k.maior_atraso_detail || '');
+  renderOldestPending(k);
   setText('kValorForaSla', k.valor_sem_lancamento_compacto || k.valor_fora_sla_compacto || k.valor_fora_sla || 'R$ 0', k.valor_sem_lancamento || k.valor_fora_sla || 'R$ 0');
   setText('kValorForaSlaSub', `${Number(k.rcs_sem_lancamento || k.rcs_fora_sla || 0).toLocaleString('pt-BR')} RCs sem lançamento`);
 
@@ -83,6 +83,33 @@ function setText(id, text, title=null){
   el.textContent = next;
   if(title) el.title = title;
   if(changed) v34MarkUpdated(el);
+}
+
+function stageDisplayName(etapa){
+  const n = String(etapa || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toUpperCase();
+  if(n.includes('SEM LANCAMENTO')) return 'Sem lançamento';
+  if(n.includes('SEM PEDIDO')) return 'Sem pedido';
+  if(n.includes('SEM NF')) return 'Sem NF';
+  if(n.includes('CONCLUIDO')) return 'Concluído';
+  return etapa ? 'Outra pendência' : '';
+}
+
+function renderOldestPending(k){
+  const host = $('kMaiorAtrasoSub');
+  if(!host) return;
+  const code = String(k.maior_atraso_label || '').trim();
+  const etapa = String(k.maior_atraso_etapa || '').trim();
+  const stageLabel = stageDisplayName(etapa);
+  const isEmpty = !Number(k.maior_atraso_dias || 0) || !code || code.toLowerCase().includes('sem pend');
+  if(isEmpty){
+    host.className = '';
+    host.textContent = 'Sem pendência';
+    host.title = k.maior_atraso_detail || 'Tudo concluído';
+    return;
+  }
+  host.className = 'oldest-stage-row-v88';
+  host.innerHTML = `<span class="oldest-stage-pill-v88 ${stageClass(etapa)}">${escapeHtml(stageLabel || 'Outra pendência')}</span><span class="oldest-code-v88">${escapeHtml(code)}</span>`;
+  host.title = [k.maior_atraso_fornecedor, stageLabel, k.maior_atraso_valor].filter(Boolean).join(' · ') || k.maior_atraso_detail || '';
 }
 
 function renderFarol(farol){
@@ -233,42 +260,43 @@ function filterDimensionAndOpenBase(column, value){
   loadRows();
 }
 
+function renderRankingRows(host, items, dimension){
+  const rows = validValueRanking(items).slice(0, 3);
+  if(!rows.length){
+    host.innerHTML = `<div class="empty-state">Sem ${dimension === 'FORNECEDOR' ? 'fornecedores' : 'solicitantes'} para o filtro atual</div>`;
+    return;
+  }
+  const maxValue = Math.max(...rows.map(item => Number(item.value || 0)), 1);
+  host.innerHTML = rows.map((item, index) => {
+    const value = Number(item.value || 0);
+    const width = Math.max(8, Math.min(100, value / maxValue * 100));
+    const qtd = Number(item.qtd || 0);
+    return `
+      <button type="button" class="ranking-row-v88" data-ranking-value="${escapeAttr(item.label || '')}" title="Filtrar ${dimension === 'FORNECEDOR' ? 'fornecedor' : 'solicitante'}: ${escapeAttr(item.label || '')} · ${escapeAttr(item.full || item.formatted || '')}">
+        <span class="ranking-position-v88">${index + 1}</span>
+        <span class="ranking-content-v88">
+          <strong>${escapeHtml(item.label || '')}</strong>
+          <small>${qtd.toLocaleString('pt-BR')} RC${qtd !== 1 ? 's' : ''}</small>
+          <span class="ranking-track-v88"><i style="--ranking-width:${width.toFixed(2)}%"></i></span>
+        </span>
+        <em>${escapeHtml(item.formatted || compactCurrency(value))}</em>
+      </button>`;
+  }).join('');
+  host.querySelectorAll('.ranking-row-v88').forEach(button => {
+    button.onclick = () => filterDimensionAndOpenBase(dimension, button.dataset.rankingValue || '');
+  });
+}
+
 function renderTopSuppliers(items){
   const host = $('actionNowList');
   if(!host) return;
-  const rows = validValueRanking(items).slice(0, 3);
-  if(!rows.length){
-    host.innerHTML = '<div class="empty-state">Sem fornecedores para o filtro atual</div>';
-    return;
-  }
-  host.innerHTML = rows.map((item, index) => `
-    <button type="button" class="action-card-v33 ranking-card-v87" data-ranking-value="${escapeAttr(item.label || '')}" title="Filtrar fornecedor: ${escapeAttr(item.label || '')} · ${escapeAttr(item.full || item.formatted || '')}">
-      <span>#${index + 1} fornecedor</span>
-      <strong>${escapeHtml(item.label || '')}</strong>
-      <em>${escapeHtml(item.formatted || compactCurrency(item.value))}</em>
-      <small>${Number(item.qtd || 0).toLocaleString('pt-BR')} RC${Number(item.qtd || 0) !== 1 ? 's' : ''}</small>
-    </button>`).join('');
-  host.querySelectorAll('.ranking-card-v87').forEach(button => {
-    button.onclick = () => filterDimensionAndOpenBase('FORNECEDOR', button.dataset.rankingValue || '');
-  });
+  renderRankingRows(host, items, 'FORNECEDOR');
 }
 
 function renderTopRequesters(items){
   const host = $('ownersCriticos');
   if(!host) return;
-  const rows = validValueRanking(items).slice(0, 3);
-  if(!rows.length){
-    host.innerHTML = '<span class="empty-mini">Sem solicitantes para o filtro atual</span>';
-    return;
-  }
-  host.innerHTML = rows.map((item, index) => `
-    <button type="button" class="owner-row-v33 ranking-owner-v87" data-ranking-value="${escapeAttr(item.label || '')}" title="Filtrar solicitante: ${escapeAttr(item.label || '')} · ${escapeAttr(item.full || item.formatted || '')}">
-      <span>#${index + 1} ${escapeHtml(item.label || '')}</span>
-      <strong>${escapeHtml(item.formatted || compactCurrency(item.value))}</strong>
-    </button>`).join('');
-  host.querySelectorAll('.ranking-owner-v87').forEach(button => {
-    button.onclick = () => filterDimensionAndOpenBase('SOLICITANTE', button.dataset.rankingValue || '');
-  });
+  renderRankingRows(host, items, 'SOLICITANTE');
 }
 
 function renderActionNow(actions){
