@@ -60,7 +60,7 @@ echo Validando estrutura e dados da V97...
 %PY_CMD% tools\validar_v97.py
 if %errorlevel% neq 0 (
     echo.
-    echo ERRO: A validacao da V97 encontrou um problema.
+    echo ERRO: A validacao da V98.4 encontrou um problema.
     echo Corrija o erro mostrado acima antes de publicar.
     echo.
     pause

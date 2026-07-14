@@ -69,25 +69,9 @@ function renderDashboardData(data){
   setText('kValorForaSla', k.valor_sem_lancamento_compacto || k.valor_fora_sla_compacto || k.valor_fora_sla || 'R$ 0', k.valor_sem_lancamento || k.valor_fora_sla || 'R$ 0');
   setText('kValorForaSlaSub', `${semLancQtd.toLocaleString('pt-BR')} RCs · ${semLanc.percentual_formatado || '0%'} da base`);
 
-  renderFarol(data.farol || {}, {pendentes: Number(k.pendentes || 0), semLancamento: semLancQtd});
   bindSmartKpiActions();
-  renderExecutiveComment(data.comentario_executivo || 'Resumo executivo indisponível para o filtro atual.');
-
-  // Compatibilidade com ids antigos caso alguma customização local ainda use.
-  setText('kTotalRCs', total);
-  setText('kValor', k.valor_total_compacto || k.valor_total, k.valor_total);
-  setText('kValorTotal', k.valor_total_compacto || k.valor_total, k.valor_total);
-  setText('kTicketTempo', k.ticket_tempo_dias || '0 dias', k.ticket_tempo_dias || '0 dias');
-  setText('kFornecedores', Number(k.fornecedores || 0).toLocaleString('pt-BR'));
-  setText('kTotalSub', `${total} RCs filtradas`);
-
-  renderProcess(data.etapas || []);
-  renderProcess(data.etapas || [], 'processCardsBase');
-  renderInsights(data.alerts || {});
-  renderTopSuppliers(data.charts?.top_fornecedores || []);
-  renderTopPriorities(data.top5_prioridades || []);
-  renderTopRequesters(data.charts?.custo_solicitante || []);
-  deferCharts(data);
+  renderExecutiveV984(data);
+  renderBaseV984(data);
   syncQuickChips();
 }
 
@@ -570,4 +554,266 @@ function compactCurrency(value){
   if(abs >= 1000000) return `R$ ${(val/1000000).toFixed(1).replace('.', ',')} mi`;
   if(abs >= 1000) return `R$ ${(val/1000).toFixed(0).replace('.', ',')} mil`;
   return val.toLocaleString('pt-BR', {style:'currency', currency:'BRL'});
+}
+
+/* ==========================================================================
+   V98.4 — renderização única e componentes consolidados
+   ========================================================================== */
+
+const toNumberV984 = (value) => Number(value || 0);
+const formatIntV984 = (value) => toNumberV984(value).toLocaleString("pt-BR");
+
+function openCriticalV984(){
+  clearKpiNavigationState();
+  state.filters["FAIXA ATRASO"] = ["30+ dias"];
+  updateFilterUI();
+  savePreferences();
+  switchTab("base");
+}
+
+function renderPrimaryV984(data){
+  const kpis = data?.kpis || {};
+  const total = toNumberV984(kpis.total_rcs);
+  const completed = toNumberV984(kpis.concluidas);
+  const completion = Math.max(
+    0,
+    Math.min(
+      100,
+      toNumberV984(
+        kpis.pct_concluido_valor ||
+        (total ? completed / total * 100 : 0)
+      )
+    )
+  );
+
+  const progress = $("completionProgressV984");
+  if(progress) progress.style.width = `${completion}%`;
+
+  const focus = (data?.top5_prioridades || [])[0];
+  const focusButton = $("firstFocusV984");
+
+  if(!focus){
+    setText("focusSupplierV984", "Nenhuma prioridade pendente");
+    setText("focusMetaV984", "O contexto atual não possui itens para tratar");
+    if(focusButton){
+      focusButton.disabled = true;
+      focusButton.onclick = null;
+    }
+  }else{
+    const quantity = toNumberV984(focus.qtd);
+    setText(
+      "focusSupplierV984",
+      focus.fornecedor || "Fornecedor não informado"
+    );
+    setText(
+      "focusMetaV984",
+      `${focus.action || "Tratar pendência"} · ${formatIntV984(quantity)} RC${quantity === 1 ? "" : "s"} · ${focus.valor_fmt || compactCurrency(focus.valor)} · ${formatIntV984(focus.dias)} dias`
+    );
+    if(focusButton){
+      focusButton.disabled = false;
+      focusButton.onclick = () => filterContextAndOpenBase({
+        etapa: focus.etapa || "",
+        fornecedor: focus.fornecedor_filter || focus.fornecedor || "",
+        owner: focus.owner_filter || ""
+      });
+    }
+  }
+
+  const critical = toNumberV984(
+    kpis.critical_pending || kpis.rcs_criticas
+  );
+  setText("kFarolStatus", formatIntV984(critical));
+  setText(
+    "kFarolSub",
+    kpis.critical_pending_value_compacto
+      ? `${kpis.critical_pending_value_compacto} em valor`
+      : "Acima de 30 dias"
+  );
+
+  const criticalCard = $("farolRegional");
+  if(criticalCard){
+    criticalCard.classList.toggle("has-critical-v984", critical > 0);
+    criticalCard.onclick = openCriticalV984;
+  }
+}
+
+function processStepMarkupV984(stage, compact=false){
+  const quantity = toNumberV984(stage.qtd);
+  const maxDays = toNumberV984(stage.max_dias);
+  const outside = toNumberV984(stage.fora_sla);
+  const completed = String(stage.etapa || "").toUpperCase() === "CONCLUÍDO";
+  const selected = (state.filters.ETAPA || []).includes(stage.etapa);
+
+  const timeLabel = completed
+    ? "Fluxo concluído"
+    : `${formatIntV984(maxDays)} dia${maxDays === 1 ? "" : "s"} máx.`;
+
+  const statusLabel = completed
+    ? "Concluído"
+    : outside
+      ? `${formatIntV984(outside)} fora do prazo`
+      : "Dentro do prazo";
+
+  return `
+    <button
+      type="button"
+      class="process-step-v984 ${stageClass(stage.etapa)} ${selected ? "is-active" : ""} ${compact ? "is-compact" : ""}"
+      style="--stage:${escapeAttr(stage.cor || "#00629E")}"
+      data-etapa="${escapeAttr(stage.etapa || "")}"
+      aria-pressed="${selected ? "true" : "false"}">
+      <span class="process-node-v984" aria-hidden="true"><i></i></span>
+      <span class="process-step-copy-v984">
+        <small>${escapeHtml(stage.etapa || "")}</small>
+        <strong>${formatIntV984(quantity)}</strong>
+        <em>${escapeHtml(stage.valor_formatado || compactCurrency(stage.valor))}</em>
+        <span>${timeLabel}</span>
+        ${compact ? "" : `<mark class="${outside && !completed ? "is-alert" : "is-clear"}">${statusLabel}</mark>`}
+      </span>
+    </button>`;
+}
+
+function renderProcessFlowV984(data){
+  const stages = data?.etapas || [];
+  const hosts = [
+    {id:"processCards", compact:false},
+    {id:"processCardsBase", compact:true}
+  ];
+
+  hosts.forEach(({id, compact}) => {
+    const host = $(id);
+    if(!host) return;
+
+    if(!stages.length){
+      host.innerHTML = '<div class="empty-state">Nenhuma etapa disponível</div>';
+      return;
+    }
+
+    host.innerHTML = stages
+      .map((stage) => processStepMarkupV984(stage, compact))
+      .join("");
+
+    host.querySelectorAll(".process-step-v984").forEach((button) => {
+      button.onclick = () => toggleProcessFilter(button.dataset.etapa || "");
+    });
+  });
+}
+
+function renderPrioritiesV984(data){
+  const host = $("topPrioridades");
+  if(!host) return;
+
+  const rows = (data?.top5_prioridades || []).slice(0, 3);
+  if(!rows.length){
+    host.innerHTML = '<div class="empty-state">Sem prioridades pendentes</div>';
+    return;
+  }
+
+  host.innerHTML = rows.map((item, index) => {
+    const quantity = toNumberV984(item.qtd);
+    return `
+      <button
+        type="button"
+        class="priority-line-v984"
+        data-etapa="${escapeAttr(item.etapa || "")}"
+        data-fornecedor="${escapeAttr(item.fornecedor_filter || item.fornecedor || "")}"
+        data-owner="${escapeAttr(item.owner_filter || "")}">
+        <span class="priority-number-v984">${index + 1}</span>
+        <span class="priority-main-v984">
+          <strong>${escapeHtml(item.fornecedor || "Fornecedor não informado")}</strong>
+          <small>${escapeHtml(item.action || "Tratar pendência")}</small>
+        </span>
+        <span class="priority-data-v984">
+          ${formatIntV984(quantity)} RC${quantity === 1 ? "" : "s"}
+          <b>·</b>
+          ${escapeHtml(item.valor_fmt || compactCurrency(item.valor))}
+          <b>·</b>
+          ${formatIntV984(item.dias)} dias
+        </span>
+        <span class="priority-go-v984" aria-hidden="true">→</span>
+      </button>`;
+  }).join("");
+
+  host.querySelectorAll(".priority-line-v984").forEach((button) => {
+    button.onclick = () => filterContextAndOpenBase({
+      etapa: button.dataset.etapa || "",
+      fornecedor: button.dataset.fornecedor || "",
+      owner: button.dataset.owner || ""
+    });
+  });
+}
+
+function renderRankingTableV984(hostId, rows, dimension){
+  const host = $(hostId);
+  if(!host) return;
+
+  const items = (rows || []).slice(0, 3);
+  if(!items.length){
+    host.innerHTML = '<div class="empty-state">Sem dados no contexto atual</div>';
+    return;
+  }
+
+  const maxValue = Math.max(
+    1,
+    ...items.map((item) => toNumberV984(item.value))
+  );
+
+  host.innerHTML = items.map((item, index) => {
+    const label = item.display_label || item.label || "Não informado";
+    const percent = Math.max(
+      3,
+      Math.min(100, toNumberV984(item.value) / maxValue * 100)
+    );
+
+    return `
+      <button
+        type="button"
+        class="ranking-line-v984"
+        data-value="${escapeAttr(item.label || label)}">
+        <span class="ranking-position-v984">${index + 1}</span>
+        <span class="ranking-name-v984">
+          <strong title="${escapeAttr(item.label || label)}">${escapeHtml(label)}</strong>
+          <i style="--width:${percent}%"></i>
+        </span>
+        <span class="ranking-quantity-v984">${formatIntV984(item.qtd)} RC${toNumberV984(item.qtd) === 1 ? "" : "s"}</span>
+        <span class="ranking-value-v984" title="${escapeAttr(item.full || "")}">${escapeHtml(item.formatted || compactCurrency(item.value))}</span>
+      </button>`;
+  }).join("");
+
+  host.querySelectorAll(".ranking-line-v984").forEach((button) => {
+    button.onclick = () => filterDimensionAndOpenBase(
+      dimension,
+      button.dataset.value || ""
+    );
+  });
+}
+
+function renderBaseHintV984(data){
+  const kpis = data?.kpis || {};
+  const hint = $("baseOverviewHintV984");
+  if(!hint) return;
+  hint.textContent = `${formatIntV984(kpis.pendentes)} pendentes · ${kpis.valor_pendente_compacto || kpis.valor_pendente || "R$ 0"} em andamento`;
+}
+
+function renderExecutiveV984(data){
+  renderPrimaryV984(data);
+  renderProcessFlowV984(data);
+  renderPrioritiesV984(data);
+  renderRankingTableV984(
+    "actionNowList",
+    data?.charts?.top_fornecedores_pendentes ||
+    data?.charts?.top_fornecedores ||
+    [],
+    "FORNECEDOR"
+  );
+  renderRankingTableV984(
+    "ownersCriticos",
+    data?.charts?.solicitantes_pendentes ||
+    data?.charts?.custo_solicitante ||
+    [],
+    "SOLICITANTE"
+  );
+}
+
+function renderBaseV984(data){
+  renderBaseHintV984(data);
 }

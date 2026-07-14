@@ -1,0 +1,27 @@
+DASHBOARD PCM — V98.4 CONSOLIDADA
+
+MELHORIAS
+- Mantém a arquitetura visual aprovada na V98.3.
+- Remove renderização duplicada das versões V98.2 e V98.3.
+- Cria uma única rota de renderização da Visão e da Base.
+- Move o estilo atual para static/styles_v984_clean.css.
+- Remove os patches V98.2/V98.3 do fim da folha compartilhada.
+- Reduz as classes históricas do body.
+- Corrige a linha do fluxo: agora pertence ao contêiner e se adapta à largura.
+- Compacta as etapas da Base de Tratativa.
+- Mantém cálculos, filtros, exportação e navegação da versão estável.
+- Inclui suíte automatizada de 10 testes.
+- Inclui matriz visual para 10 resoluções/níveis de zoom.
+- Continua funcionando sem Node.js.
+
+VALIDAÇÃO
+python tools\validar_v984.py
+python tools\testar_v984.py
+
+PUBLICAÇÃO
+1. Substitua o deploy inteiro.
+2. Coloque a planilha oficial na pasta data.
+3. Execute ATUALIZAR_DADOS.cmd.
+4. Confirme VALIDAÇÃO V98.4: OK.
+5. Execute python tools\testar_v984.py.
+6. Faça Commit e Push.
