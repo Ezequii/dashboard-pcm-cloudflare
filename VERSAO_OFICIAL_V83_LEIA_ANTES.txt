@@ -1,0 +1,6 @@
+V83 OFICIAL - leitura segura
+
+Esta versão foi criada para evitar divergência entre Excel e dashboard.
+A coluna STATUS da planilha é a verdade oficial das etapas.
+Se o Excel filtra 95 FALTA LANÇAMENTO, o dashboard deve mostrar 95 SEM LANÇAMENTO.
+Se não mostrar, o problema é cache/deploy ou dashboard-data.json antigo.

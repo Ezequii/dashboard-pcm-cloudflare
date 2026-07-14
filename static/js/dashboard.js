@@ -1,411 +1,535 @@
-'use strict';
+// v34 motion helpers: microinterações funcionais, respeitando preferência do usuário.
+const v34ReducedMotionQuery = window.matchMedia ? window.matchMedia('(prefers-reduced-motion: reduce)') : {matches:false};
+let v34PrefersReducedMotion = !!v34ReducedMotionQuery.matches;
+v34ReducedMotionQuery.addEventListener?.('change', (event) => { v34PrefersReducedMotion = !!event.matches; });
 
-async function loadDashboard(sequence=null){
-  const requestSequence=sequence||++state.dashboardSeq;
-  const query=dashboardQuery();
-  const cacheKey=JSON.stringify(query);
-  const cached=cacheGet(cacheKey,90000);
+function v34MarkUpdated(el){
+  if(!el || v34PrefersReducedMotion) return;
+  const target = el.closest('.kpi-card,.executive-comment-v33,.chart-card,.action-card-v33') || el;
+  target.classList.remove('text-updated');
+  void target.offsetWidth;
+  target.classList.add('text-updated');
+  window.clearTimeout(target._v34UpdateTimer);
+  target._v34UpdateTimer = window.setTimeout(() => target.classList.remove('text-updated'), 620);
+}
+
+async function loadDashboard(seq=null){
+  const requestSeq = seq || ++state.dashboardSeq;
+  const query = baseQuery();
+  const cacheKey = JSON.stringify(query);
+  const cached = cacheGet(cacheKey, 120000);
   if(cached){
-    state.currentDashboard=cached;
     renderDashboardData(cached);
     return;
   }
-  const data=await api('/api/dashboard',query);
-  if(requestSequence!==state.dashboardSeq) return;
-  cacheSet(cacheKey,data);
-  state.currentDashboard=data;
+  const data = await api('/api/dashboard', query);
+  if(requestSeq !== state.dashboardSeq) return;
+  cacheSet(cacheKey, data);
   renderDashboardData(data);
 }
 
 function renderDashboardData(data){
-  const k=data.kpis||{};
-  setText('kValorPendente',k.valor_pendente_compacto||'R$ 0',k.valor_pendente_fmt||'');
-  setText('kValorPendenteSub',`${formatNumber(k.pendentes||0)} RCs em andamento`);
-  setText('kPendencias',formatNumber(k.pendentes||0));
-  setText('kPendenciasSub',`${formatMoney(k.valor_pendente||0,true)} no processo`);
-  setText('kPctConcluido',k.pct_concluido||'0%');
-  setText('kConcluidoSub',`${formatNumber(k.concluidas||0)} de ${formatNumber(k.total_rcs||0)} RCs`);
-  setText('kValorForaSla',k.valor_sem_lancamento_compacto||'R$ 0',k.valor_sem_lancamento_fmt||'');
-  setText('kValorForaSlaSub',`${formatNumber(k.rcs_sem_lancamento||0)} RCs no PCM`);
-  setText('kCriticas',formatNumber(k.rcs_criticas||0));
-  setText('kCriticasSub',`${formatMoney(k.valor_critico||0,true)} · acima de ${BUSINESS_RULES.aging.critical} dias`);
+  const k = data.kpis || {};
+  const total = Number(k.total_rcs || 0).toLocaleString('pt-BR');
+  const pend = Number(k.pendentes || 0).toLocaleString('pt-BR');
+  const concluidas = Number(k.concluidas || 0).toLocaleString('pt-BR');
 
+  const stageMap = new Map((data.etapas || []).map(item => [String(item.etapa || '').toUpperCase(), item]));
+  const semLanc = stageMap.get('SEM LANÇAMENTO') || {};
+  const semPedido = stageMap.get('SEM PEDIDO') || {};
+  const semNf = stageMap.get('SEM NF') || {};
+  const semLancQtd = Number(semLanc.qtd || k.rcs_sem_lancamento || k.rcs_fora_sla || 0);
+  const semPedidoQtd = Number(semPedido.qtd || data.farol?.sem_pedido || 0);
+  const semNfQtd = Number(semNf.qtd || data.farol?.sem_nf || 0);
+  const acompanhamentoValor = Number(semPedido.valor || 0) + Number(semNf.valor || 0);
+
+  setText('kValorPendente', k.valor_pendente_compacto || k.valor_pendente || 'R$ 0', k.valor_pendente || 'R$ 0');
+  setText('kValorPendenteSub', `${compactCurrency(Number(semLanc.valor || 0))} PCM · ${compactCurrency(acompanhamentoValor)} acompanhamento`);
+  setText('kPendencias', pend);
+  setText('kPendenciasSub', `${semLancQtd.toLocaleString('pt-BR')} lançamento · ${semPedidoQtd.toLocaleString('pt-BR')} pedido · ${semNfQtd.toLocaleString('pt-BR')} NF`);
+  setText('kPctConcluido', k.pct_concluido || '0%');
+  setText('kConcluidoSub', `${concluidas} de ${total} RCs`);
   renderOldestPending(k);
-  renderKpiComparisons(data.comparison);
-  renderExecutiveSummary(data.executive_summary||{});
-  renderProcess(data.etapas||[],'processCards');
-  renderProcess(data.etapas||[],'processCardsBase');
-  renderTopPriorities(data.top_prioridades||[]);
-  renderRankings(data.rankings||{});
-  renderHistory(data.history||null,data.comparison||null);
-  renderQuality(data.quality||{});
-  bindKpiActions();
+  setText('kValorForaSla', k.valor_sem_lancamento_compacto || k.valor_fora_sla_compacto || k.valor_fora_sla || 'R$ 0', k.valor_sem_lancamento || k.valor_fora_sla || 'R$ 0');
+  setText('kValorForaSlaSub', `${semLancQtd.toLocaleString('pt-BR')} RCs · ${semLanc.percentual_formatado || '0%'} da base`);
+
+  renderFarol(data.farol || {}, {pendentes: Number(k.pendentes || 0), semLancamento: semLancQtd});
+  bindSmartKpiActions();
+  renderExecutiveComment(data.comentario_executivo || 'Resumo executivo indisponível para o filtro atual.');
+
+  // Compatibilidade com ids antigos caso alguma customização local ainda use.
+  setText('kTotalRCs', total);
+  setText('kValor', k.valor_total_compacto || k.valor_total, k.valor_total);
+  setText('kValorTotal', k.valor_total_compacto || k.valor_total, k.valor_total);
+  setText('kTicketTempo', k.ticket_tempo_dias || '0 dias', k.ticket_tempo_dias || '0 dias');
+  setText('kFornecedores', Number(k.fornecedores || 0).toLocaleString('pt-BR'));
+  setText('kTotalSub', `${total} RCs filtradas`);
+
+  renderProcess(data.etapas || []);
+  renderProcess(data.etapas || [], 'processCardsBase');
+  renderInsights(data.alerts || {});
+  renderTopSuppliers(data.charts?.top_fornecedores || []);
+  renderTopPriorities(data.top5_prioridades || []);
+  renderTopRequesters(data.charts?.custo_solicitante || []);
+  deferCharts(data);
+  syncQuickChips();
 }
 
-function renderKpiComparisons(comparison){
-  const configs=[
-    ['deltaPending',comparison?.pending,'pending'],
-    ['deltaCompletion',comparison?.completion_percent,'completion'],
-    ['deltaValue',comparison?.pending_value,'money'],
-    ['deltaPcm',comparison?.pcm_queue,'pending'],
-    ['deltaCritical',comparison?.critical,'pending'],
-  ];
-  configs.forEach(([id,value,type])=>{
-    const element=$(id);
-    if(!element) return;
-    if(!comparison||value===null||value===undefined||Number(value)===0){
-      element.hidden=true;
-      return;
-    }
-    const number=Number(value);
-    const positive=number>0;
-    let text='';
-    if(type==='money') text=`${positive?'↑':'↓'} ${formatMoney(Math.abs(number),true)}`;
-    else if(type==='completion') text=`${positive?'↑':'↓'} ${Math.abs(number).toFixed(1).replace('.',',')} p.p.`;
-    else text=`${positive?'↑':'↓'} ${formatNumber(Math.abs(number))}`;
-    const good=type==='completion'?positive:!positive;
-    element.textContent=text;
-    element.className=`kpi-delta ${good?'good':'bad'}`;
-    element.hidden=false;
-  });
-  const compared=$('comparisonLabel');
-  if(compared){
-    if(comparison?.compared_at){
-      const date=new Date(comparison.compared_at);
-      compared.textContent=`Comparado com ${Number.isNaN(date.getTime())?'a atualização anterior':date.toLocaleString('pt-BR',{dateStyle:'short',timeStyle:'short'})}`;
-      compared.hidden=false;
-    }else compared.hidden=true;
-  }
+function deferCharts(data){
+  if(state.activeTab !== 'visao') return;
+  const job = () => {
+    renderBars('chartFornecedoresPendentes', data.charts?.top_fornecedores_pendentes || data.charts?.top_fornecedores || [], 'green');
+  };
+  if('requestIdleCallback' in window) requestIdleCallback(job, {timeout: 500});
+  else requestAnimationFrame(job);
+}
+
+function setText(id, text, title=null){
+  const el = $(id);
+  if(!el) return;
+  const next = String(text ?? '');
+  const changed = el.textContent !== next;
+  el.textContent = next;
+  if(title) el.title = title;
+  if(changed) v34MarkUpdated(el);
+}
+
+function stageDisplayName(etapa){
+  const n = String(etapa || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toUpperCase();
+  if(n.includes('SEM LANCAMENTO')) return 'Sem lançamento';
+  if(n.includes('SEM PEDIDO')) return 'Sem pedido';
+  if(n.includes('SEM NF')) return 'Sem NF';
+  if(n.includes('CONCLUIDO')) return 'Concluído';
+  return etapa ? 'Outra pendência' : '';
 }
 
 function renderOldestPending(k){
-  const card=$('kpiMaisParadoCard');
-  const value=$('kMaiorAtraso');
-  const context=$('kMaiorAtrasoSub');
-  if(!card||!value||!context) return;
-  const days=Number(k.maior_atraso_dias||0);
-  card.dataset.days=String(days);
-  card.classList.remove('age-ok','age-attention','age-high','age-critical','age-severe');
-  card.classList.add(`age-${ageTone(days)}`);
-  value.innerHTML=`<span class="oldest-number">${formatNumber(days)}</span><span class="oldest-unit">dias</span>`;
-  if(!days){
-    context.innerHTML='<span class="oldest-empty">Sem pendência</span>';
-    card.dataset.stage='';
-    card.dataset.search='';
+  const valueHost = $('kMaiorAtraso');
+  const contextHost = $('kMaiorAtrasoSub');
+  const card = $('kpiMaisParadoCard');
+  if(!valueHost || !contextHost) return;
+
+  const dias = Number(k.maior_atraso_dias || 0);
+  const code = String(k.maior_atraso_label || '').trim();
+  const codeType = String(k.maior_atraso_label_tipo || 'Referência').trim();
+  const etapa = String(k.maior_atraso_etapa || '').trim();
+  const stageLabel = stageDisplayName(etapa);
+  const stageTone = stageClass(etapa);
+  const isEmpty = !dias || !code || code.toLowerCase().includes('sem pend');
+
+  if(card){
+    card.classList.remove(
+      'oldest-red-v93',
+      'oldest-amber-v93',
+      'oldest-blue-v93',
+      'oldest-gray-v93',
+      'oldest-clickable-v93'
+    );
+    card.removeAttribute('role');
+    card.removeAttribute('tabindex');
+    card.removeAttribute('aria-label');
+    card.onclick = null;
+    card.onkeydown = null;
+  }
+
+  valueHost.className = 'oldest-value-v96';
+  valueHost.innerHTML = `
+    <span class="oldest-days-number-v96">${Math.max(0, dias).toLocaleString('pt-BR')}</span>
+    <span class="oldest-days-unit-v96">dias</span>`;
+
+  if(isEmpty){
+    contextHost.className = 'oldest-context-v96';
+    contextHost.innerHTML = '<span class="oldest-empty-v96">Sem pendência</span>';
+    contextHost.title = k.maior_atraso_detail || 'Tudo concluído';
+    if(card) card.classList.add('oldest-gray-v93');
     return;
   }
-  const stage=String(k.maior_atraso_etapa||'');
-  const reference=[k.maior_atraso_label_tipo,k.maior_atraso_label].filter(Boolean).join(' ');
-  context.innerHTML=`
-    <span class="oldest-stage ${stageClass(stage)}"><i></i>${escapeHtml(displayStage(stage))}</span>
-    <span class="oldest-divider">·</span>
-    <span class="oldest-reference">${escapeHtml(reference)}</span>`;
-  card.dataset.stage=stage;
-  card.dataset.search=String(k.maior_atraso_label||'');
-  card.dataset.rowId=String(k.maior_atraso_row_id||'');
-  card.title=[
-    `${formatNumber(days)} dias`,
-    displayStage(stage),
-    reference,
+
+  const cardTone = dias > 60
+    ? 'oldest-red-v93'
+    : dias >= 31
+      ? 'oldest-amber-v93'
+      : 'oldest-blue-v93';
+
+  const referenceText = [codeType, code].filter(Boolean).join(' ');
+  contextHost.className = 'oldest-context-v96';
+  contextHost.innerHTML = `
+    <span class="oldest-stage-v96 ${stageTone}">
+      <i aria-hidden="true"></i>
+      <span>${escapeHtml(stageLabel || 'Outra pendência')}</span>
+    </span>
+    <span class="oldest-separator-v96" aria-hidden="true">·</span>
+    <span class="oldest-reference-v96">${escapeHtml(referenceText)}</span>`;
+
+  const fullValue = k.maior_atraso_valor_full || k.maior_atraso_valor || '';
+  const details = [
+    `${dias.toLocaleString('pt-BR')} dias`,
+    stageLabel,
+    referenceText,
     k.maior_atraso_fornecedor,
-    k.maior_atraso_valor_full,
+    fullValue
   ].filter(Boolean).join(' · ');
+  contextHost.title = details;
+
+  if(card){
+    card.classList.add(cardTone, 'oldest-clickable-v93');
+    card.setAttribute('role','button');
+    card.setAttribute('tabindex','0');
+    card.setAttribute('aria-label', `${details}. Clique para localizar na base.`);
+    const open = () => {
+      if(etapa){
+        state.filters.ETAPA = [etapa];
+        updateFilterUI();
+      }
+      state.search = code;
+      state.searchScope = 'ALL';
+      const search = $('globalSearch');
+      const scope = $('searchScope');
+      if(search) search.value = code;
+      if(scope) scope.value = 'ALL';
+      updateSearchUI?.();
+      state.page = 1;
+      switchTab('base');
+    };
+    card.onclick = open;
+    card.onkeydown = (ev) => {
+      if(ev.key === 'Enter' || ev.key === ' '){
+        ev.preventDefault();
+        open();
+      }
+    };
+  }
 }
 
-function displayStage(stage){
-  const normalized=normalizeText(stage);
-  if(normalized==='SEM LANCAMENTO') return 'Sem lançamento';
-  if(normalized==='SEM PEDIDO') return 'Sem pedido';
-  if(normalized==='SEM NF') return 'Sem NF';
-  if(normalized==='CONCLUIDO') return 'Concluído';
-  return cleanText(stage)||'Não informado';
+function renderFarol(farol, context={}){
+  const card = $('farolRegional');
+  if(!card) return;
+  const status = String(farol.status || 'BOM').toUpperCase();
+  card.classList.remove('farol-ok','farol-atencao','farol-critico','farol-revisar','farol-excelente');
+  const cls = status.includes('REV') ? 'farol-revisar' : (status.includes('AT') ? 'farol-atencao' : (status.includes('EXC') ? 'farol-excelente' : 'farol-ok'));
+  card.classList.add(cls);
+  setText('kFarolStatus', status);
+  const pendentes = Number(context.pendentes || 0).toLocaleString('pt-BR');
+  const semLanc = Number(context.semLancamento || 0).toLocaleString('pt-BR');
+  const subtitle = `${pendentes} em andamento · ${semLanc} no PCM`;
+  setText('kFarolSub', subtitle, `${farol.label || 'Operação saudável'} · ${farol.detail || ''}`);
 }
 
-function bindKpiActions(){
-  const actions={
-    kpiValorAndamentoCard:()=>openBaseWithContext({filters:{PENDING_ONLY:['1']}}),
-    kpiPendenciasCard:()=>openBaseWithContext({filters:{PENDING_ONLY:['1']}}),
-    kpiConcluidoCard:()=>openBaseWithContext({filters:{ETAPA:['CONCLUÍDO']}}),
-    kpiFocoPcmCard:()=>openBaseWithContext({filters:{ETAPA:['SEM LANÇAMENTO']}}),
-    kpiCriticasCard:()=>openBaseWithContext({filters:{CRITICAL_ONLY:['1']},ageMin:BUSINESS_RULES.aging.critical}),
-    kpiMaisParadoCard:()=>{
-      const card=$('kpiMaisParadoCard');
-      if(!card?.dataset.search) return;
-      openBaseWithContext({
-        filters:{ETAPA:card.dataset.stage?[card.dataset.stage]:[]},
-        search:card.dataset.search,
-        searchScope:'ALL',
-      });
-    },
-  };
-  Object.entries(actions).forEach(([id,handler])=>{
-    const element=$(id);
-    if(!element||element.dataset.bound==='1') return;
-    element.dataset.bound='1';
-    element.addEventListener('click',handler);
+function clearKpiNavigationState(){
+  state.search = '';
+  state.searchScope = 'ALL';
+  state.page = 1;
+  const search = $('globalSearch');
+  const scope = $('searchScope');
+  if(search) search.value = '';
+  if(scope) scope.value = 'ALL';
+  updateSearchUI?.();
+}
+
+function openBaseFromKpi(etapa=null){
+  clearKpiNavigationState();
+  state.filters.ETAPA = etapa ? [etapa] : [];
+  updateFilterUI();
+  switchTab('base');
+  loadRows();
+}
+
+function makeKpiActionable(id, label, handler){
+  const card = $(id);
+  if(!card || card.dataset.kpiActionBound === '1') return;
+  card.dataset.kpiActionBound = '1';
+  card.classList.add('kpi-actionable-v94');
+  card.setAttribute('role','button');
+  card.setAttribute('tabindex','0');
+  card.setAttribute('aria-label', label);
+  card.title = label;
+  card.addEventListener('click', handler);
+  card.addEventListener('keydown', event => {
+    if(event.key === 'Enter' || event.key === ' '){
+      event.preventDefault();
+      handler();
+    }
   });
 }
 
-function openBaseWithContext(context={}){
-  const additions=context.filters||{};
-  if(!Object.prototype.hasOwnProperty.call(additions,'PENDING_ONLY')) state.filters.PENDING_ONLY=[];
-  if(!Object.prototype.hasOwnProperty.call(additions,'CRITICAL_ONLY')) state.filters.CRITICAL_ONLY=[];
-  if(Object.prototype.hasOwnProperty.call(additions,'PENDING_ONLY') || Object.prototype.hasOwnProperty.call(additions,'CRITICAL_ONLY')){
-    state.filters.ETAPA=[];
-  }
-  Object.entries(additions).forEach(([key,values])=>{ state.filters[key]=Array.isArray(values)?values:[]; });
-  if(context.search!==undefined) state.search=String(context.search||'');
-  if(context.searchScope) state.searchScope=context.searchScope;
-  if(context.ageMin!==undefined) state.ageMin=context.ageMin;
-  if(context.ageMax!==undefined) state.ageMax=context.ageMax;
-  state.page=1;
-  state.selectedRowIds.clear();
-  hydrateControlsFromState();
+function bindSmartKpiActions(){
+  makeKpiActionable('kpiValorAndamentoCard', 'Abrir todas as RCs em andamento na Base de Tratativa', () => openBaseFromKpi());
+  makeKpiActionable('kpiPendenciasCard', 'Abrir todas as RCs em andamento na Base de Tratativa', () => openBaseFromKpi());
+  makeKpiActionable('kpiConcluidoCard', 'Abrir as RCs concluídas na Base de Tratativa', () => openBaseFromKpi('CONCLUÍDO'));
+  makeKpiActionable('kpiFocoPcmCard', 'Abrir as RCs sem lançamento, foco direto do PCM', () => openBaseFromKpi('SEM LANÇAMENTO'));
+}
+
+
+function renderExecutiveComment(text){
+  const el = $('executiveComment');
+  if(!el) return;
+  el.textContent = normalizeExecutiveComment(text);
+}
+
+function normalizeExecutiveComment(text){
+  const raw = String(text || '').replace(/^Resumo do dia:\s*/i, '').trim();
+  return raw
+    .replace(/maior concentração em /i, 'Maior gargalo: ')
+    .replace(/, com /i, ' — ')
+    .replace(/ parado\. Fornecedor crítico:/i, ' parado. Cobrar:')
+    .replace(/\. Prioridade:/i, '. Prioridade:')
+    .replace(/ · SEM LANÇAMENTO · /i, ' · ')
+    .replace(/ · SEM PEDIDO · /i, ' · ')
+    .replace(/ · SEM NF · /i, ' · ')
+    .replace(/ · dono /i, ' · Dono: ');
+}
+
+function stageReviewText(etapa, qtd){
+  const n = Number(qtd || 0).toLocaleString('pt-BR');
+  if(!Number(qtd || 0)) return 'na rotina';
+  if(etapa === 'SEM LANÇAMENTO') return `${n} para conferir lançamento`;
+  if(etapa === 'SEM PEDIDO') return `${n} em acompanhamento`;
+  if(etapa === 'SEM NF') return `${n} para conferir NF`;
+  return `${n} em tratativa`;
+}
+function stageTopBadgeText(etapa, qtd){
+  // V80: removido para evitar duas contagens diferentes no mesmo card.
+  // O número oficial da etapa fica no título e no rodapé do card.
+  return '';
+}
+
+function renderProcess(etapas, hostId=null){
+  const selected = new Set(state.filters.ETAPA || []);
+  const markup = etapas.map(e => {
+    const active = selected.has(e.etapa);
+    const cls = stageClass(e.etapa);
+    const stageQty = Number(e.qtd || 0);
+    const crit = Number(e.criticas || 0);
+    const prazoTexto = e.etapa === 'CONCLUÍDO' ? 'concluído' : stageReviewText(e.etapa, stageQty);
+    return `
+    <button type="button" class="process-card ${cls} ${active ? 'active' : ''}" style="--stage:${e.cor};--stage-soft:${hexToRgba(e.cor, .10)}" data-etapa="${escapeAttr(e.etapa)}" aria-pressed="${active ? 'true' : 'false'}" title="Clique para filtrar: ${escapeAttr(e.etapa)} | Valor: ${escapeAttr(e.valor_completo || e.valor_formatado || '')}">
+      <div class="process-top">
+        <span class="stage-dot" aria-hidden="true"></span>
+        <span class="stage">${escapeHtml(e.etapa)}</span>
+      </div>
+      <div class="process-main">
+        <strong class="num">${Number(e.qtd).toLocaleString('pt-BR')}</strong>
+        <span>${escapeHtml(e.valor_formatado || '')}</span>
+      </div>
+      <div class="process-foot">
+        <span>${escapeHtml(e.percentual_formatado)}</span>
+        <strong>${escapeHtml(prazoTexto)}</strong>
+      </div>
+      ${stageTopBadgeText(e.etapa, crit) ? `<div class="stage-critical-badge">${stageTopBadgeText(e.etapa, crit)}</div>` : ''}
+    </button>`;
+  }).join('');
+  const hosts = hostId ? [$(hostId)].filter(Boolean) : Array.from(document.querySelectorAll('.process-cards-host:not(#processCardsBase)'));
+  hosts.forEach(host => {
+    host.innerHTML = markup;
+    host.querySelectorAll('.process-card').forEach(card => {
+      card.onclick = () => toggleProcessFilter(card.dataset.etapa);
+    });
+  });
+}
+
+function toggleProcessFilter(etapa){
+  const current = state.filters.ETAPA || [];
+  state.filters.ETAPA = current.includes(etapa) ? [] : [etapa];
+  state.page = 1;
   updateFilterUI();
-  switchTab('base');
   refreshAll(false);
 }
 
-function renderExecutiveSummary(summary){
-  const host=$('executiveSummary');
-  if(!host) return;
-  const completion=Number(summary.completion_percent||0);
-  const focus=summary.focus||null;
-  const items=[
-    {label:'Concluído',value:formatPercent(completion),action:'completed'},
-    {label:'No PCM',value:formatNumber(summary.pcm_queue||0),action:'pcm'},
-    {label:'Sem pedido',value:formatNumber(summary.without_order||0),action:'order'},
-    {label:'Sem NF',value:formatNumber(summary.without_invoice||0),action:'invoice'},
-  ];
-  host.innerHTML=`
-    <div class="summary-metrics">
-      ${items.map(item=>`<button type="button" class="summary-metric" data-summary-action="${item.action}">
-        <strong>${escapeHtml(item.value)}</strong><span>${escapeHtml(item.label)}</span>
-      </button>`).join('')}
-    </div>
-    <button type="button" class="summary-focus${focus?'':' empty'}" id="summaryFocusButton" ${focus?'':'disabled'}>
-      <span>Primeiro foco</span>
-      <strong>${focus?escapeHtml(focus.fornecedor):'Nenhuma tratativa pendente'}</strong>
-      <small>${focus?`${escapeHtml(focus.qtd_fmt)} · ${escapeHtml(focus.valor_fmt)} · máx. ${formatNumber(focus.maxDias)} dias`:'A fila atual está concluída'}</small>
-      <i aria-hidden="true">Abrir →</i>
-    </button>`;
-  host.querySelectorAll('[data-summary-action]').forEach(button=>{
-    button.addEventListener('click',()=>{
-      const action=button.dataset.summaryAction;
-      if(action==='completed') openBaseWithContext({filters:{ETAPA:['CONCLUÍDO']}});
-      if(action==='pcm') openBaseWithContext({filters:{ETAPA:['SEM LANÇAMENTO']}});
-      if(action==='order') openBaseWithContext({filters:{ETAPA:['SEM PEDIDO']}});
-      if(action==='invoice') openBaseWithContext({filters:{ETAPA:['SEM NF']}});
-    });
-  });
-  $('summaryFocusButton')?.addEventListener('click',()=>{
-    if(!focus) return;
-    openBaseWithContext({filters:{
-      ETAPA:[focus.etapa],
-      FORNECEDOR:[focus.fornecedor],
-      EFFECTIVE_OWNER:[focus.owner],
-    }});
+function filterStageAndOpenBase(etapa){
+  if(etapa){
+    state.filters.ETAPA = [etapa];
+    state.page = 1;
+    updateFilterUI();
+  }
+  switchTab('base');
+  loadRows();
+}
+
+function toneColor(name){
+  const n = String(name || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+  if(n.includes('sem-lancamento') || n.includes('sem lancamento')) return '#D32F2F';
+  if(n.includes('sem-pedido') || n.includes('sem pedido')) return '#F2A900';
+  if(n.includes('sem-nf') || n.includes('sem nf')) return '#00629E';
+  return '#23A067';
+}
+
+
+function hasUsefulAction(x){
+  const kind = String(x?.kind || '');
+  const main = String(x?.main || '');
+  const value = String(x?.value || '');
+  const text = `${main} ${value}`.toLowerCase();
+  if(kind === 'old') return !text.includes('0 dias') && !main.toLowerCase().includes('sem pend');
+  if(text.includes('sem pendência')) return false;
+  if(text.includes('0 rc')) return false;
+  if(value.trim() === 'R$ 0,00') return false;
+  return true;
+}
+
+function shortOwnerLabel(label){
+  const raw = String(label || '').trim();
+  const n = raw.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+  if(n.includes('fornecedor')) return 'Depende do fornecedor';
+  if(n.includes('compras') || n.includes('coupa')) return 'Depende de compras';
+  if(n.includes('pcm')) return 'Depende do PCM';
+  if(n.includes('responsavel')) return 'Depende da etapa';
+  return raw.length > 22 ? `${raw.slice(0, 22)}…` : raw;
+}
+
+
+
+function validValueRanking(items){
+  return (items || []).filter(item => {
+    const label = String(item?.label || '').trim();
+    const normalized = label.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toUpperCase();
+    return label && normalized !== 'NAO INFORMADO' && Number(item?.value || 0) > 0;
   });
 }
 
-function renderProcess(stages,hostId){
-  const host=$(hostId);
-  if(!host) return;
-  if(!stages.length){
-    host.innerHTML='<div class="empty-state">Sem etapas para o contexto atual.</div>';
+function filterDimensionAndOpenBase(column, value){
+  const label = String(value || '').trim();
+  if(!label) return;
+  state.filters[column] = [label];
+  state.page = 1;
+  updateFilterUI();
+  switchTab('base');
+  loadRows();
+}
+
+function renderRankingRows(host, items, dimension){
+  const rows = validValueRanking(items).slice(0, 3);
+  if(!rows.length){
+    host.innerHTML = `<div class="empty-state">Sem ${dimension === 'FORNECEDOR' ? 'fornecedores' : 'solicitantes'} para o filtro atual</div>`;
     return;
   }
-  host.innerHTML=stages.map(stage=>{
-    const completed=stage.etapa==='CONCLUÍDO';
-    const detail=completed
-      ? `${formatNumber(stage.qtd)} concluídas`
-      : `média ${Number(stage.media_dias||0).toFixed(1).replace('.',',')} · máx. ${formatNumber(stage.max_dias||0)} dias`;
-    const critical=!completed&&Number(stage.criticas||0)>0
-      ? `<span class="stage-critical">${formatNumber(stage.criticas)} acima de ${BUSINESS_RULES.aging.critical}d</span>`
-      : '<span class="stage-critical muted">Dentro do limite</span>';
-    return `<button type="button" class="process-card ${stageClass(stage.etapa)}" data-stage="${escapeAttr(stage.etapa)}" style="--stage-color:${escapeAttr(stage.cor||'#60758A')}">
-      <div class="process-heading"><span><i></i>${escapeHtml(displayStage(stage.etapa))}</span><em>${escapeHtml(stage.percentual_formatado||'0%')}</em></div>
-      <div class="process-values"><strong>${formatNumber(stage.qtd)}</strong><b>${escapeHtml(stage.valor_formatado||'R$ 0')}</b></div>
-      <div class="process-detail"><span>${escapeHtml(detail)}</span>${critical}</div>
-    </button>`;
+  const maxValue = Math.max(...rows.map(item => Number(item.value || 0)), 1);
+  host.innerHTML = rows.map((item, index) => {
+    const value = Number(item.value || 0);
+    const width = Math.max(8, Math.min(100, value / maxValue * 100));
+    const qtd = Number(item.qtd || 0);
+    return `
+      <button type="button" class="ranking-row-v88" data-ranking-value="${escapeAttr(item.label || '')}" title="Filtrar ${dimension === 'FORNECEDOR' ? 'fornecedor' : 'solicitante'}: ${escapeAttr(item.label || '')} · ${escapeAttr(item.full || item.formatted || '')}">
+        <span class="ranking-position-v88">${index + 1}</span>
+        <span class="ranking-content-v88">
+          <strong>${escapeHtml(item.label || '')}</strong>
+          <small>${qtd.toLocaleString('pt-BR')} RC${qtd !== 1 ? 's' : ''}</small>
+          <span class="ranking-track-v88"><i style="--ranking-width:${width.toFixed(2)}%"></i></span>
+        </span>
+        <em>${escapeHtml(item.formatted || compactCurrency(value))}</em>
+      </button>`;
   }).join('');
-  host.querySelectorAll('.process-card').forEach(button=>{
-    button.addEventListener('click',()=>openBaseWithContext({filters:{ETAPA:[button.dataset.stage]}}));
+  host.querySelectorAll('.ranking-row-v88').forEach(button => {
+    button.onclick = () => filterDimensionAndOpenBase(dimension, button.dataset.rankingValue || '');
   });
 }
 
-function renderTopPriorities(items){
-  const host=$('topPrioridades');
+function renderTopSuppliers(items){
+  const host = $('actionNowList');
   if(!host) return;
-  if(!items.length){
-    host.innerHTML='<div class="empty-state">Sem prioridade pendente no contexto atual.</div>';
+  renderRankingRows(host, items, 'FORNECEDOR');
+}
+
+function renderTopRequesters(items){
+  const host = $('ownersCriticos');
+  if(!host) return;
+  renderRankingRows(host, items, 'SOLICITANTE');
+}
+
+function renderActionNow(actions){
+  const host = $('actionNowList');
+  if(!host) return;
+  const useful = (actions || []).filter(hasUsefulAction);
+  const rows = useful.length ? useful.slice(0, 4) : (actions || []).slice(0, 2);
+  if(!rows.length){
+    host.innerHTML = '<div class="empty-state">Sem ação pendente no filtro atual</div>';
     return;
   }
-  host.innerHTML=items.slice(0,5).map((item,index)=>`
-    <div class="priority-row ${stageClass(item.etapa)}">
-      <button type="button" class="priority-open" data-priority-index="${index}">
-        <span class="priority-rank">${index+1}</span>
-        <span class="priority-copy"><strong>${escapeHtml(item.action)}</strong><b>${escapeHtml(item.fornecedor)}</b><small>${escapeHtml(item.reason)} · média ${Number(item.avgDias||0).toFixed(1).replace('.',',')} dias</small></span>
-        <span class="priority-value"><strong>${escapeHtml(item.valor_fmt)}</strong><small>Depende de ${escapeHtml(item.owner)}</small></span>
-        <i class="priority-arrow" aria-hidden="true">→</i>
-      </button>
-      <button type="button" class="priority-copy-codes" data-copy-priority="${index}" title="Copiar RCs deste grupo">Copiar RCs</button>
+  host.innerHTML = rows.map(x => `
+    <button type="button" class="action-card-v33 ${escapeAttr(x.kind || '')}" data-etapa="${escapeAttr(x.etapa || '')}" title="Abrir base filtrada: ${escapeAttr(x.detail || x.title || '')}">
+      <span>${escapeHtml(x.title || '')}</span>
+      <strong>${escapeHtml(x.main || '')}</strong>
+      <em>${escapeHtml(x.value || '')}</em>
+      <small title="${escapeAttr(x.owner || x.detail || '')}">${escapeHtml(shortOwnerLabel(x.owner || x.detail || ''))}</small>
+    </button>`).join('');
+  host.querySelectorAll('.action-card-v33').forEach(btn => {
+    btn.onclick = () => filterStageAndOpenBase(btn.dataset.etapa || '');
+  });
+}
+
+function renderTopPriorities(rows){
+  const host = $('topPrioridades');
+  if(!host) return;
+  const items = (rows || []).slice(0, 4);
+  if(!items.length){ host.innerHTML = '<div class="empty-state">Sem prioridade pendente</div>'; return; }
+  host.innerHTML = items.map((x, idx) => `
+    <button type="button" class="priority-row-v33 ${stageClass(x.etapa)}" data-etapa="${escapeAttr(x.etapa || '')}" title="${escapeAttr(x.fornecedor || '')} · ${escapeAttr(x.valor_full || x.valor_fmt || '')}">
+      <div class="priority-rank">${idx + 1}</div>
+      <div class="priority-main"><strong>${escapeHtml(x.action || x.codigo || '')}</strong><span>${escapeHtml(x.fornecedor || '')}</span></div>
+      <div class="priority-meta"><b>${escapeHtml(x.valor_fmt || '')}</b><span>${escapeHtml(x.reason || `${Number(x.dias || 0).toLocaleString('pt-BR')} dias`)}</span></div>
+      <div class="priority-owner" title="${escapeAttr(x.owner_team || '')}">${escapeHtml(shortOwnerLabel(x.owner_team || ''))}</div>
+    </button>`).join('');
+  host.querySelectorAll('.priority-row-v33').forEach(btn => {
+    btn.onclick = () => filterStageAndOpenBase(btn.dataset.etapa || '');
+  });
+}
+
+function renderOwners(items){
+  const host = $('ownersCriticos');
+  if(!host) return;
+  const rows = (items || []).slice(0, 4);
+  if(!rows.length){ host.innerHTML = '<span class="empty-mini">Sem responsáveis críticos</span>'; return; }
+  host.innerHTML = rows.map(x => `
+    <div class="owner-row-v33" title="${escapeAttr(x.full || x.formatted || '')}">
+      <span>${escapeHtml(shortOwnerLabel(x.label || ''))}</span>
+      <strong>${escapeHtml(x.formatted || String(x.value || 0))}</strong>
     </div>`).join('');
-  host.querySelectorAll('[data-priority-index]').forEach(button=>{
-    button.addEventListener('click',()=>{
-      const item=items[Number(button.dataset.priorityIndex)];
-      if(!item) return;
-      openBaseWithContext({filters:{
-        ETAPA:[item.etapa],
-        FORNECEDOR:[item.fornecedor],
-        EFFECTIVE_OWNER:[item.owner],
-      }});
-    });
-  });
-  host.querySelectorAll('[data-copy-priority]').forEach(button=>{
-    button.addEventListener('click',async()=>{
-      const item=items[Number(button.dataset.copyPriority)];
-      if(!item) return;
-      await copyText((item.codes||[]).join('\n'));
-      showToast(`${formatNumber(item.codes?.length||0)} código${item.codes?.length===1?'':'s'} copiado${item.codes?.length===1?'':'s'}.`);
-    });
-  });
 }
 
-function renderRankings(rankings){
-  const mode=state.rankingMode==='total'?'total':'pending';
-  document.querySelectorAll('[data-ranking-mode]').forEach(button=>{
-    button.classList.toggle('active',button.dataset.rankingMode===mode);
-    button.setAttribute('aria-pressed',String(button.dataset.rankingMode===mode));
-  });
-  renderRankingList('supplierRanking',mode==='pending'?rankings.suppliers_pending:rankings.suppliers_total,'FORNECEDOR');
-  renderRankingList('requesterRanking',mode==='pending'?rankings.requesters_pending:rankings.requesters_total,'SOLICITANTE');
-  const subtitle=mode==='pending'?'Valores ainda em andamento':'Valores totais movimentados';
-  document.querySelectorAll('[data-ranking-subtitle]').forEach(el=>{el.textContent=subtitle;});
-}
-
-function renderRankingList(hostId,items,dimension){
-  const host=$(hostId);
-  if(!host) return;
-  const valid=(items||[]).filter(item=>normalizeText(item.label)!=='NAO INFORMADO'&&Number(item.value||0)>0).slice(0,5);
-  if(!valid.length){
-    host.innerHTML='<div class="empty-state">Sem dados para o contexto atual.</div>';
-    return;
+function renderInsights(alerts){
+  const attention = $('attentionList');
+  const aging = $('agingList');
+  if(attention){
+    const items = alerts?.atencao || [];
+    attention.innerHTML = items.length ? items.map(x => `
+      <div class="attention-item" style="--tone:${toneColor(x.tone || x.label)}" title="${escapeAttr(x.full || x.detail || '')}">
+        <span>${escapeHtml(x.label)}</span>
+        <strong>${escapeHtml(x.value || '0')}</strong>
+        <small>${escapeHtml(x.detail || '')}</small>
+      </div>`).join('') : '<div class="empty-state">Sem pendências no filtro atual</div>';
   }
-  const max=Math.max(...valid.map(item=>Number(item.value||0)),1);
-  host.innerHTML=valid.map((item,index)=>{
-    const width=Math.max(5,Number(item.value||0)/max*100);
-    return `<button type="button" class="ranking-row" data-ranking-value="${escapeAttr(item.label)}">
-      <span class="ranking-position">${index+1}</span>
-      <span class="ranking-main"><strong title="${escapeAttr(item.label)}">${escapeHtml(item.label)}</strong><small>${formatNumber(item.qtd||0)} RCs · máx. ${formatNumber(item.maxDias||0)} dias</small><i style="--ranking-width:${width.toFixed(2)}%"></i></span>
-      <span class="ranking-value">${escapeHtml(item.formatted||formatMoney(item.value,true))}</span>
-    </button>`;
+  if(aging){
+    const rows = alerts?.idade_pendencias || [];
+    aging.innerHTML = rows.length ? rows.map(x => `
+      <div class="aging-row" style="--tone:${toneColor(x.tone || x.label)}" title="Mais antiga: ${escapeAttr(x.maximo || '')}">
+        <div class="aging-stage">${escapeHtml(x.label)}</div>
+        <div class="aging-metric"><span>Média</span><strong>${escapeHtml(x.media || '0 dias')}</strong></div>
+        <div class="aging-metric"><span>Mais antiga</span><strong>${escapeHtml(x.maximo || '0 dias')}</strong></div>
+      </div>`).join('') : '<div class="empty-state">Sem idade de pendência</div>';
+  }
+}
+
+function renderBars(id, items, tone){
+  const el = $(id);
+  if(!el) return;
+  const rows = (items || []).slice(0, 6);
+  if(!rows.length){ el.innerHTML = '<div class="empty-state">Sem dados para o filtro atual</div>'; return; }
+  const max = Math.max(...rows.map(x => Number(x.value)||0), 1);
+  el.innerHTML = rows.map((x, idx) => {
+    const w = Math.max(3, (Number(x.value)||0) / max * 100);
+    const detail = x.meta || (x.qtd ? `${Number(x.qtd).toLocaleString('pt-BR')} RCs` : '');
+    return `<div class="bar-row ${tone}" title="${escapeAttr(`${x.label} - ${x.full || x.formatted || x.value}`)}">
+      <div class="bar-rank">${idx + 1}</div>
+      <div class="bar-label-group"><div class="bar-label" title="${escapeAttr(x.label)}">${escapeHtml(x.label)}</div>${detail ? `<small>${escapeHtml(detail)}</small>` : ''}</div>
+      <div class="bar-track"><div class="bar-fill" style="--bar-w:${(w/100).toFixed(4)}"></div></div>
+      <div class="bar-value">${escapeHtml(x.formatted || String(x.value))}</div>
+    </div>`;
   }).join('');
-  host.querySelectorAll('.ranking-row').forEach(button=>{
-    button.addEventListener('click',()=>openBaseWithContext({filters:{[dimension]:[button.dataset.rankingValue]}}));
-  });
 }
 
-
-function renderHistory(history,comparison){
-  const host=$('historyPanel');
-  const subtitle=$('historySubtitle');
-  if(!host) return;
-
-  if(!history){
-    if(subtitle) subtitle.textContent='Disponível na visão sem filtros';
-    host.innerHTML='<div class="history-empty"><strong>Histórico preservado</strong><span>Limpe os filtros para comparar as atualizações gerais da base.</span></div>';
-    return;
-  }
-
-  const recent=Array.isArray(history.recent)?history.recent:[];
-  const movements=history.movements||{};
-  const hasPrevious=Boolean(history.previous)||recent.length>1;
-  if(subtitle){
-    subtitle.textContent=hasPrevious
-      ? `${formatNumber(history.count||recent.length)} atualizações preservadas`
-      : 'O comparativo aparecerá após a próxima atualização';
-  }
-
-  const metrics=[
-    {
-      label:'Entraram na fila',
-      value:hasPrevious?formatNumber(movements.entered||0):'—',
-      hint:'novas pendências',
-      tone:Number(movements.entered||0)>0?'bad':'neutral',
-    },
-    {
-      label:'Resolvidas',
-      value:hasPrevious?formatNumber(movements.resolved||0):'—',
-      hint:'saíram da fila',
-      tone:Number(movements.resolved||0)>0?'good':'neutral',
-    },
-    {
-      label:'Saldo da fila',
-      value:hasPrevious?`${Number(movements.net||0)>0?'+':''}${formatNumber(movements.net||0)}`:'—',
-      hint:'entradas menos resolvidas',
-      tone:Number(movements.net||0)<0?'good':Number(movements.net||0)>0?'bad':'neutral',
-    },
-    {
-      label:'Variação financeira',
-      value:hasPrevious?`${Number(movements.pending_value_change||0)>0?'+':''}${formatMoney(movements.pending_value_change||0,true)}`:'—',
-      hint:'valor ainda pendente',
-      tone:Number(movements.pending_value_change||0)<0?'good':Number(movements.pending_value_change||0)>0?'bad':'neutral',
-    },
-  ];
-
-  const ordered=[...recent].reverse();
-  const maxPending=Math.max(1,...ordered.map(item=>Number(item.pending||0)));
-  const trend=ordered.length
-    ? `<div class="history-trend" aria-label="Evolução da quantidade de pendências">
-        <div class="history-trend-head"><strong>Pendências por atualização</strong><small>${ordered.length===1?'Primeiro registro histórico':'mais antigo → mais recente'}</small></div>
-        <div class="history-bars">${ordered.map((item,index)=>{
-          const width=Math.max(4,Number(item.pending||0)/maxPending*100);
-          const date=new Date(item.generated_at);
-          const dateText=Number.isNaN(date.getTime())?'Atualização':date.toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'});
-          const current=index===ordered.length-1;
-          return `<div class="history-bar-row ${current?'current':''}" title="${escapeAttr(`${dateText}: ${formatNumber(item.pending||0)} pendências · ${formatMoney(item.pending_value||0,true)}`)}">
-            <span>${escapeHtml(dateText)}</span>
-            <i><b style="--history-width:${width.toFixed(2)}%"></b></i>
-            <strong>${formatNumber(item.pending||0)}</strong>
-          </div>`;
-        }).join('')}</div>
-      </div>`
-    : '<div class="history-empty"><strong>Sem snapshots anteriores</strong><span>Execute a atualização novamente para iniciar a comparação.</span></div>';
-
-  host.innerHTML=`
-    <div class="history-metrics">${metrics.map(item=>`
-      <div class="history-metric ${item.tone}">
-        <span>${escapeHtml(item.label)}</span>
-        <strong>${escapeHtml(item.value)}</strong>
-        <small>${escapeHtml(item.hint)}</small>
-      </div>`).join('')}</div>
-    ${trend}`;
-}
-
-function renderQuality(quality){
-  const host=$('qualityPanel');
-  if(!host) return;
-  const score=Number(quality.score||0);
-  const tone=score>=98?'good':score>=95?'attention':'bad';
-  const issues=[
-    ['Sem fornecedor',quality.missing_supplier],
-    ['Sem data de recebimento',quality.missing_date],
-    ['Etapa não reconhecida',quality.unknown_stage],
-    ['Valor negativo',quality.negative_value],
-    ['RCs duplicadas',quality.duplicate_requests],
-  ];
-  host.innerHTML=`
-    <div class="quality-score ${tone}">
-      <span>Qualidade da base</span><strong>${escapeHtml(quality.score_fmt||'0%')}</strong>
-      <small>${formatNumber(quality.issues||0)} inconsistência${Number(quality.issues||0)===1?'':'s'} principal${Number(quality.issues||0)===1?'':'is'}</small>
-    </div>
-    <div class="quality-items">${issues.map(([label,value])=>`
-      <div class="quality-item"><span>${escapeHtml(label)}</span><strong>${formatNumber(value||0)}</strong></div>`).join('')}</div>`;
-}
-
-function setRankingMode(mode){
-  state.rankingMode=mode==='total'?'total':'pending';
-  savePreferences();
-  if(state.currentDashboard) renderRankings(state.currentDashboard.rankings||{});
+function compactCurrency(value){
+  const val = Number(value) || 0;
+  const abs = Math.abs(val);
+  if(abs >= 1000000) return `R$ ${(val/1000000).toFixed(1).replace('.', ',')} mi`;
+  if(abs >= 1000) return `R$ ${(val/1000).toFixed(0).replace('.', ',')} mil`;
+  return val.toLocaleString('pt-BR', {style:'currency', currency:'BRL'});
 }

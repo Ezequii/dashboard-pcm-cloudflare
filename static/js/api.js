@@ -1,175 +1,152 @@
-'use strict';
 
+// V83: Cache Busting definitivo - lê versão do arquivo de versão
+let __STATIC_DATA_VERSION = null;
 const STATIC_DATA_URL = '/static/data/dashboard-data.json';
 const VERSION_URL = '/static/data/version.json';
 let __STATIC_DATA = null;
-let __STATIC_DATA_VERSION = '';
-let __LAST_GOOD_DATA = null;
 
 async function getDataVersion(){
   try{
-    const response = await fetch(`${VERSION_URL}?t=${Date.now()}`, {
+    const res = await fetch(VERSION_URL, {
       cache: 'no-store',
-      headers: {'Cache-Control':'no-cache, no-store, must-revalidate'},
+      headers: { 'Cache-Control': 'no-cache, no-store, must-revalidate' }
     });
-    if(!response.ok) return '';
-    const payload = await response.json();
-    return String(payload.v || '');
-  }catch(error){
-    console.warn('Arquivo de versão indisponível:', error);
-    return '';
+    if(res.ok){
+      const data = await res.json();
+      return data.v || '';
+    }
+  }catch(err){
+    console.warn('Não consegui ler versão:', err);
   }
-}
-
-async function checkForDataUpdates(){
-  const version = await getDataVersion();
-  if(!version) return false;
-  if(!__STATIC_DATA_VERSION){
-    __STATIC_DATA_VERSION = version;
-    state.dataVersion = version;
-    return false;
-  }
-  return version !== __STATIC_DATA_VERSION;
+  return '';
 }
 
 async function loadStaticData(force=false){
   if(__STATIC_DATA && !force) return __STATIC_DATA;
-  const prior = __STATIC_DATA || __LAST_GOOD_DATA;
+  
   try{
+    // Obtém a versão atual do servidor
     const version = await getDataVersion();
-    const url = `${STATIC_DATA_URL}?v=${encodeURIComponent(version || Date.now())}`;
-    const response = await fetch(url, {
+    
+    // Se a versão mudou, força recarregamento
+    if(version && version !== __STATIC_DATA_VERSION){
+      __STATIC_DATA = null;
+      __STATIC_DATA_VERSION = version;
+      console.log(`📊 Nova versão detectada: ${version}`);
+    }
+    
+    // Monta URL com versão para quebra de cache
+    const url = version ? `${STATIC_DATA_URL}?v=${version}` : STATIC_DATA_URL;
+    
+    const res = await fetch(url, {
       cache: 'no-store',
       headers: {
-        'Cache-Control':'no-cache, no-store, must-revalidate',
-        'Pragma':'no-cache',
-      },
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
+        'Pragma': 'no-cache',
+        'Expires': '0'
+      }
     });
-    if(!response.ok) throw new Error(`Base indisponível (${response.status}).`);
-    const payload = await response.json();
-    if(!payload || !Array.isArray(payload.rows) || !payload.boot){
-      throw new Error('A base retornada não possui a estrutura esperada.');
+    
+    if(!res.ok) throw new Error('Não consegui carregar a base estática do dashboard.');
+    
+    __STATIC_DATA = await res.json();
+    __STATIC_DATA_VERSION = version;
+    
+    if(__STATIC_DATA.generated_at){
+      console.log(`✅ Dashboard atualizado em: ${new Date(__STATIC_DATA.generated_at).toLocaleString('pt-BR')}`);
     }
-    __STATIC_DATA = payload;
-    __LAST_GOOD_DATA = payload;
-    __STATIC_DATA_VERSION = version || String(payload.generated_at || '');
-    state.dataVersion = __STATIC_DATA_VERSION;
-    state.generatedAt = String(payload.generated_at || '');
-    return payload;
-  }catch(error){
-    console.error('Falha ao carregar a base:', error);
-    if(prior){
-      __STATIC_DATA = prior;
-      showPersistentError('A atualização falhou. O painel manteve a última base válida carregada.');
-      return prior;
-    }
-    throw new Error('Não foi possível carregar a base do dashboard. Verifique se static/data/dashboard-data.json foi publicado.');
+    
+    return __STATIC_DATA;
+  }catch(err){
+    console.error('Erro ao carregar dados estáticos:', err);
+    throw err;
   }
 }
 
-function resetStaticData(){
-  __STATIC_DATA = null;
-  cacheClear();
+async function api(path, body=null, asBlob=false){
+  const db = await loadStaticData(path === '/api/refresh');
+  if(path === '/api/bootstrap') return {...db.boot, generated_at: db.generated_at};
+  if(path === '/api/refresh') return {ok:true, message:'Dados atualizados', linhas:db.rows.length, arquivo:db.boot?.metadata?.arquivo || 'base estática'};
+  if(path === '/api/options') return staticOptions(db.rows, body || {});
+  if(path === '/api/dashboard') return staticDashboard(db.rows, body || {});
+  if(path === '/api/rows') return staticRows(db.rows, body || {});
+  if(path.startsWith('/api/export/')){
+    const kind = path.split('/').pop();
+    if(kind === 'pdf') throw new Error('PDF não disponível no modo estático. Use Exportar Excel/CSV.');
+    const data = staticRows(db.rows, {...(body || {}), page:1, page_size:100000});
+    const csv = toCsv(data.columns, data.rows);
+    return new Blob([csv], {type:'text/csv;charset=utf-8'});
+  }
+  if(path === '/api/upload-workbook') throw new Error('Troca de base não existe no Cloudflare Pages. Atualize a planilha no GitHub e faça novo deploy.');
+  throw new Error('Rota estática não suportada: ' + path);
 }
 
-async function api(path, body=null){
-  const force = path === '/api/refresh';
-  const db = await loadStaticData(force);
-  const query = body || {};
-  if(path === '/api/bootstrap') return {...db.boot, generated_at:db.generated_at, history:db.history || null, quality:db.quality || null};
-  if(path === '/api/refresh') return {ok:true, message:'Base recarregada', linhas:db.rows.length, version:state.dataVersion};
-  if(path === '/api/options') return staticOptions(db.rows, query);
-  if(path === '/api/dashboard') return staticDashboard(db.rows, query, db);
-  if(path === '/api/rows') return staticRows(db.rows, query, db);
-  if(path === '/api/row') return staticRowDetail(db.rows, query.row_id, db);
-  if(path === '/api/export') return staticRows(db.rows, {...query, page:1, page_size:100000}, db);
-  throw new Error(`Rota não suportada: ${path}`);
-}
+
 
 function baseQuery(){
   return {
-    filters: JSON.parse(JSON.stringify(state.filters || {})),
-    date_from: state.dateFrom || '',
-    date_to: state.dateTo || '',
-    value_min: state.valueMin !== '' ? Number(state.valueMin) : null,
-    value_max: state.valueMax !== '' ? Number(state.valueMax) : null,
-    age_min: state.ageMin !== '' ? Number(state.ageMin) : null,
-    age_max: state.ageMax !== '' ? Number(state.ageMax) : null,
-  };
-}
-
-function dashboardQuery(){
-  return baseQuery();
-}
-
-function tableQuery(){
-  return {
-    ...baseQuery(),
-    search: state.search || '',
-    search_scope: state.searchScope || 'AUTO',
+    filters: state.filters,
+    search: '',
+    search_scope: state.searchScope || 'ALL',
     page: state.page,
     page_size: state.pageSize,
     sort_col: state.sortCol,
     sort_dir: state.sortDir,
+    date_from: state.dateFrom || '',
+    date_to: state.dateTo || '',
+    value_min: state.valueMin !== '' ? Number(state.valueMin) : null,
+    value_max: state.valueMax !== '' ? Number(state.valueMax) : null,
   };
 }
 
-function n(value){
-  const number = Number(value);
-  return Number.isFinite(number) ? number : 0;
+function tableQuery(){ return {...baseQuery(), search: state.search}; }
+
+function hydrateAdvancedSearch(){
+  [['advDateFrom', state.dateFrom], ['advDateTo', state.dateTo], ['advValueMin', state.valueMin], ['advValueMax', state.valueMax]].forEach(([id,value])=>{ const el=$(id); if(el) el.value=value||''; });
 }
 
-function stageName(row){
-  return cleanText(row?.ETAPA || row?._ETAPA).toUpperCase();
+function exportPdf(){ showToast('PDF não disponível no modo Cloudflare Pages. Use Exportar Excel/CSV.', true); }
+
+async function exportFile(kind){
+  try{
+    if(kind === 'pdf'){ exportPdf(); return; }
+    setLoading(true);
+    const blob = await api('/api/export/excel', tableQuery(), true);
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'controle_rc_filtrado.csv';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+    showToast('CSV exportado. Abra no Excel.');
+  }catch(err){ showToast(err.message, true); }
+  finally{ setLoading(false); }
 }
 
-function effectiveOwner(row){
-  const stage=stageName(row);
-  return cleanText(row?.['DONO DA AÇÃO']) || (stage==='SEM LANÇAMENTO'?'PCM':stage==='SEM PEDIDO'?'Compras':stage==='SEM NF'?'Fornecedor':'Concluído');
+async function uploadWorkbook(){ throw new Error('Atualização da base no Cloudflare Pages é via GitHub.'); }
+
+const STAGE_ORDER_STATIC = ['SEM LANÇAMENTO','SEM PEDIDO','SEM NF','CONCLUÍDO'];
+const STAGE_COLORS_STATIC = {'SEM LANÇAMENTO':'#D32F2F','SEM PEDIDO':'#F2A900','SEM NF':'#00629E','CONCLUÍDO':'#23A067'};
+function normalizeText(v){ return String(v ?? '').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toUpperCase(); }
+function cleanStatic(v){ const s=String(v ?? '').trim(); return ['NAN','NAT','NONE','NULL','N/A'].includes(s.toUpperCase()) ? '' : s; }
+function n(v){ const x=Number(v); return Number.isFinite(x) ? x : 0; }
+function brInt(v){ return Math.round(n(v)).toLocaleString('pt-BR'); }
+function brPct(v){ return `${n(v).toFixed(1).replace('.', ',')}%`; }
+function brMoney(v){ return n(v).toLocaleString('pt-BR', {style:'currency', currency:'BRL'}); }
+function compactMoney(v){ const val=n(v), abs=Math.abs(val); if(abs>=1000000) return `R$ ${(val/1000000).toFixed(1).replace('.', ',')} mi`; if(abs>=1000) return `R$ ${(val/1000).toFixed(0).replace('.', ',')} mil`; return brMoney(val); }
+function average(arr){ const vals=arr.map(n).filter(x=>Number.isFinite(x)); return vals.length ? vals.reduce((a,b)=>a+b,0)/vals.length : 0; }
+function uniqueCount(rows, key){ return new Set(rows.map(r=>cleanStatic(r[key])).filter(Boolean)).size; }
+function pendingRows(rows){ return rows.filter(r => r.ETAPA !== 'CONCLUÍDO'); }
+function stageRows(rows, etapa){ return rows.filter(r => r.ETAPA === etapa); }
+function stageSummary(rows, etapa){
+  const ss = stageRows(rows, etapa);
+  const valor = ss.reduce((s,r)=>s+n(r._VALOR_TOTAL),0);
+  const maxDias = Math.max(0, ...ss.map(r=>n(r._DIAS_PARADO)));
+  return {qtd:ss.length, valor, maxDias, rows:ss};
 }
 
-function isPending(row){
-  return stageName(row) !== 'CONCLUÍDO';
-}
-
-function effectiveDays(row){
-  const etapa = stageName(row);
-  let iso = '';
-  if(etapa === 'SEM LANÇAMENTO') iso = row._DATA_RECEBIMENTO_ISO;
-  else if(etapa === 'SEM PEDIDO') iso = row._DATA_LANCAMENTO_ISO || row._DATA_RECEBIMENTO_ISO;
-  else if(etapa === 'SEM NF') iso = row._DATA_PEDIDO_ISO || row._DATA_LANCAMENTO_ISO || row._DATA_RECEBIMENTO_ISO;
-  else iso = row._DATA_NF_ISO || row._DATA_PEDIDO_ISO || row._DATA_LANCAMENTO_ISO || row._DATA_RECEBIMENTO_ISO;
-  const calculated = daysBetween(iso);
-  return calculated || Math.max(0, n(row._DIAS_PARADO ?? row['DIAS PARADO']));
-}
-
-function rowValue(row){
-  return n(row?._VALOR_TOTAL ?? parseMoney(row?.['VALOR TOTAL']));
-}
-
-function average(values){
-  const list = values.map(n).filter(Number.isFinite);
-  return list.length ? list.reduce((sum, value) => sum + value, 0) / list.length : 0;
-}
-
-function uniqueCount(rows, key){
-  return new Set(rows.map(row => cleanText(row[key])).filter(Boolean)).size;
-}
-
-function pendingRows(rows){
-  return rows.filter(isPending);
-}
-
-function stageRows(rows, etapa){
-  return rows.filter(row => stageName(row) === etapa);
-}
-
-function normalizeSearchValue(value){
-  return normalizeText(cleanText(value))
-    .replace(/[^A-Z0-9]+/g, ' ')
-    .replace(/\s+/g, ' ')
-    .trim();
-}
 
 const SEARCH_SCOPE_FIELDS = {
   ALL:['Nº REQUISIÇÃO','Nº PEDIDO DE COMPRA','FORNECEDOR','SOLICITANTE','EQUIPAMENTO','PREFIXO','Nº ORÇAMENTO FINAL','Nº ORDEM SERVIÇO','Nº NFS/DANFE','ETAPA'],
@@ -181,480 +158,535 @@ const SEARCH_SCOPE_FIELDS = {
   DOCUMENTO:['Nº ORÇAMENTO FINAL','Nº ORDEM SERVIÇO','Nº NFS/DANFE'],
 };
 const SEARCH_CODE_FIELDS = ['Nº REQUISIÇÃO','Nº PEDIDO DE COMPRA','Nº ORÇAMENTO FINAL','Nº ORDEM SERVIÇO','Nº NFS/DANFE','PREFIXO'];
-
-function detectSearchScope(raw){
-  const text = String(raw || '').trim();
-  if(!text) return 'ALL';
-  if(/[,\n;]/.test(text)) return 'ALL';
-  const compact = text.replace(/\s+/g, '');
-  if(/^\d{4,}$/.test(compact)) return 'ALL';
-  return 'ALL';
+function normalizeSearchValue(value){
+  return normalizeText(cleanStatic(value)).replace(/[^A-Z0-9]+/g,' ').replace(/\s+/g,' ').trim();
 }
-
-function splitSearchTerms(raw){
-  const text = String(raw || '').slice(0, 2000);
-  const groups = text
-    .split(/[\n,;]+/)
-    .map(normalizeSearchValue)
-    .filter(Boolean);
-  return groups.length ? groups.slice(0, 100) : [];
+function searchFieldText(row, fields){
+  return fields.map(field => normalizeSearchValue(row[field])).filter(Boolean).join(' ');
 }
-
-function rowMatchesTerm(row, term, fields){
+function exactCodeMatch(value, term){
+  const normalized = normalizeSearchValue(value);
+  if(!normalized) return false;
+  return normalized === term || normalized.split(' ').includes(term);
+}
+function smartSearchRows(rows, rawSearch, scope='ALL'){
+  const term = normalizeSearchValue(String(rawSearch || '').slice(0,200));
+  if(!term) return rows;
+  const fields = SEARCH_SCOPE_FIELDS[scope] || SEARCH_SCOPE_FIELDS.ALL;
   const tokens = term.split(' ').filter(Boolean);
-  const haystack = fields.map(field => normalizeSearchValue(row[field])).filter(Boolean).join(' ');
-  return tokens.every(token => haystack.includes(token));
+  const codeFields = scope === 'ALL' ? SEARCH_CODE_FIELDS : fields.filter(field => SEARCH_CODE_FIELDS.includes(field));
+  const singleCodeLike = tokens.length === 1 && /^[A-Z0-9\-/.]{3,}$/.test(term);
+  if(singleCodeLike && codeFields.length){
+    const exact = rows.filter(row => codeFields.some(field => exactCodeMatch(row[field], term)));
+    if(exact.length) return exact;
+  }
+  return rows.filter(row => {
+    const haystack = searchFieldText(row, fields);
+    return tokens.every(token => haystack.includes(token));
+  });
 }
 
-function smartSearchRows(rows, rawSearch, scope='AUTO'){
-  const terms = splitSearchTerms(rawSearch);
-  if(!terms.length) return rows;
-  const resolvedScope = scope === 'AUTO' ? detectSearchScope(rawSearch) : scope;
-  const fields = SEARCH_SCOPE_FIELDS[resolvedScope] || SEARCH_SCOPE_FIELDS.ALL;
-  const codeFields = resolvedScope === 'ALL' ? SEARCH_CODE_FIELDS : fields.filter(field => SEARCH_CODE_FIELDS.includes(field));
-  return rows.filter(row => terms.some(term => {
-    const singleCode = !term.includes(' ') && term.length >= 3;
-    if(singleCode && codeFields.length){
-      const exact = codeFields.some(field => {
-        const value = normalizeSearchValue(row[field]);
-        return value === term || value.split(' ').includes(term);
-      });
-      if(exact) return true;
-    }
-    return rowMatchesTerm(row, term, fields);
-  }));
-}
 
 function applyStaticQuery(rows, query={}){
-  let output = rows.slice();
-  const filters = query.filters || {};
-  for(const [key, rawValues] of Object.entries(filters)){
-    const values = Array.isArray(rawValues) ? rawValues.filter(value => String(value).trim()) : [];
-    if(!values.length) continue;
-    if(key === 'PENDING_ONLY'){
-      output = output.filter(isPending);
-      continue;
+  try{
+    let out = rows.slice();
+    const filters = query.filters || {};
+    for(const [key, values] of Object.entries(filters)){
+      const vals = (values || []).filter(v=>String(v).trim());
+      if(!vals.length) continue;
+      const set = new Set(vals.map(String));
+      out = out.filter(r => set.has(String(r[key] ?? '')));
     }
-    if(key === 'CRITICAL_ONLY'){
-      output = output.filter(row => isPending(row) && effectiveDays(row) >= BUSINESS_RULES.aging.critical);
-      continue;
+    if(query.search){
+      out = smartSearchRows(out, query.search, String(query.search_scope || 'ALL').toUpperCase());
     }
-    if(key === 'EFFECTIVE_OWNER'){
-      const selectedOwners = new Set(values.map(String));
-      output = output.filter(row => selectedOwners.has(effectiveOwner(row)));
-      continue;
+    if(query.date_from){
+      const dateFrom = String(query.date_from || '').substring(0, 10);
+      if(/^\d{4}-\d{2}-\d{2}$/.test(dateFrom)) out = out.filter(r => String(r._DATA_RECEBIMENTO_ISO || '') >= dateFrom);
     }
-    const selected = new Set(values.map(String));
-    output = output.filter(row => selected.has(String(row[key] ?? '')));
+    if(query.date_to){
+      const dateTo = String(query.date_to || '').substring(0, 10);
+      if(/^\d{4}-\d{2}-\d{2}$/.test(dateTo)) out = out.filter(r => String(r._DATA_RECEBIMENTO_ISO || '') <= dateTo);
+    }
+    if(query.value_min !== null && query.value_min !== undefined){
+      const min = n(query.value_min);
+      if(Number.isFinite(min)) out = out.filter(r => n(r._VALOR_TOTAL) >= min);
+    }
+    if(query.value_max !== null && query.value_max !== undefined){
+      const max = n(query.value_max);
+      if(Number.isFinite(max)) out = out.filter(r => n(r._VALOR_TOTAL) <= max);
+    }
+    return sortStaticRows(out, query.sort_col || 'DIAS PARADO', String(query.sort_dir || 'desc').toLowerCase());
+  }catch(err){
+    console.error('Erro em applyStaticQuery:', err);
+    return sortStaticRows(rows.slice(), 'DIAS PARADO', 'desc');
   }
-  if(query.search) output = smartSearchRows(output, query.search, String(query.search_scope || 'AUTO').toUpperCase());
-  if(query.date_from){
-    const from = parseDateIso(query.date_from);
-    if(from) output = output.filter(row => String(row._DATA_RECEBIMENTO_ISO || '') >= from);
-  }
-  if(query.date_to){
-    const to = parseDateIso(query.date_to);
-    if(to) output = output.filter(row => String(row._DATA_RECEBIMENTO_ISO || '') <= to);
-  }
-  if(query.value_min !== null && query.value_min !== undefined && query.value_min !== ''){
-    const min = n(query.value_min);
-    output = output.filter(row => rowValue(row) >= min);
-  }
-  if(query.value_max !== null && query.value_max !== undefined && query.value_max !== ''){
-    const max = n(query.value_max);
-    output = output.filter(row => rowValue(row) <= max);
-  }
-  if(query.age_min !== null && query.age_min !== undefined && query.age_min !== ''){
-    const minAge = n(query.age_min);
-    output = output.filter(row => effectiveDays(row) >= minAge);
-  }
-  if(query.age_max !== null && query.age_max !== undefined && query.age_max !== ''){
-    const maxAge = n(query.age_max);
-    output = output.filter(row => effectiveDays(row) <= maxAge);
-  }
-  return output;
 }
 
-function sortValue(row, column){
-  if(['VALOR TOTAL','VALOR PEÇAS','VALOR SERVIÇO'].includes(column)){
-    if(column === 'VALOR TOTAL') return rowValue(row);
-    if(column === 'VALOR PEÇAS') return n(row._VALOR_PECAS ?? parseMoney(row[column]));
-    return n(row._VALOR_SERVICO ?? parseMoney(row[column]));
-  }
-  if(column === 'DIAS PARADO') return effectiveDays(row);
-  if(column === 'DATA DE RECEBIMENTO') return row._DATA_RECEBIMENTO_ISO || '';
-  if(column === 'DATA LANÇAMENTO') return row._DATA_LANCAMENTO_ISO || '';
-  if(column === 'DATA DO PEDIDO') return row._DATA_PEDIDO_ISO || '';
-  if(column === 'DATA LANÇAMENTO NFS') return row._DATA_NF_ISO || '';
-  return String(row[column] ?? '');
+function sortValue(row, col){
+  if(['VALOR TOTAL','VALOR PEÇAS','VALOR SERVIÇO'].includes(col)) return n(col==='VALOR TOTAL'?row._VALOR_TOTAL:(col==='VALOR PEÇAS'?row._VALOR_PECAS:row._VALOR_SERVICO));
+  if(['DIAS PARADO','DIAS SEM MOVIMENTO'].includes(col)) return n(row._DIAS_PARADO);
+  if(col === 'DATA DE RECEBIMENTO') return row._DATA_RECEBIMENTO_ISO || '';
+  if(col === 'DATA LANÇAMENTO') return row._DATA_LANCAMENTO_ISO || '';
+  if(col === 'DATA DO PEDIDO') return row._DATA_PEDIDO_ISO || '';
+  if(col === 'DATA LANÇAMENTO NFS') return row._DATA_NF_ISO || '';
+  return String(row[col] ?? '');
 }
-
-function sortStaticRows(rows, column='DIAS PARADO', direction='desc'){
-  const desc = direction !== 'asc';
-  return rows.slice().sort((a, b) => {
-    const av = sortValue(a, column);
-    const bv = sortValue(b, column);
-    let comparison = 0;
-    if(typeof av === 'number' && typeof bv === 'number') comparison = av - bv;
-    else comparison = String(av).localeCompare(String(bv), 'pt-BR', {numeric:true, sensitivity:'base'});
-    if(comparison === 0 && column === 'DIAS PARADO'){
-      comparison = rowValue(a) - rowValue(b);
+function etapaRank(row){
+  const ordem = {'SEM LANÇAMENTO':0,'SEM PEDIDO':1,'SEM NF':2,'CONCLUÍDO':3};
+  return ordem[String(row.ETAPA || row._ETAPA || '').toUpperCase()] ?? 9;
+}
+function sortStaticRows(rows, col, dir){
+  const desc = dir === 'desc';
+  return rows.slice().sort((a,b)=>{
+    // A base abre na lógica operacional do PCM: primeiro o que falta lançar, depois acompanhar pedido/NF.
+    if(col === 'DIAS PARADO'){
+      const etapaCmp = etapaRank(a) - etapaRank(b);
+      if(etapaCmp) return etapaCmp;
     }
-    return desc ? -comparison : comparison;
+    const av=sortValue(a,col), bv=sortValue(b,col);
+    let cmp = 0;
+    if(typeof av === 'number' && typeof bv === 'number') cmp = av - bv;
+    else cmp = String(av).localeCompare(String(bv), 'pt-BR', {numeric:true, sensitivity:'base'});
+    return desc ? -cmp : cmp;
   });
 }
 
-function staticOptions(rows, query={}){
-  const key = String(query.filter_key || '').slice(0, 100);
-  if(!key) return {options:[], total:0};
-  const filterCopy = JSON.parse(JSON.stringify(query.filters || {}));
-  filterCopy[key] = [];
-  let output = applyStaticQuery(rows, {...query, filters:filterCopy, search:''});
-  let options = Array.from(new Set(output.map(row => cleanText(row[key])).filter(Boolean)))
-    .sort((a,b) => String(a).localeCompare(String(b), 'pt-BR', {numeric:true, sensitivity:'base'}));
-  const term = normalizeText(query.option_search || '');
-  if(term) options = options.filter(option => normalizeText(option).includes(term));
-  const selected = ((query.filters || {})[key] || []).filter(Boolean);
-  const limit = Math.max(20, Math.min(Number(query.limit || 300), 1000));
-  return {
-    options:Array.from(new Set([...selected, ...options.slice(0, limit)])),
-    total:options.length,
-  };
+function staticOptions(rows, query){
+  try{
+    const key = String(query.filter_key || '').substring(0, 100);
+    if(!key) throw new Error('filter_key invalida');
+    const filterCopy = JSON.parse(JSON.stringify(query.filters || {}));
+    filterCopy[key] = [];
+    let out = applyStaticQuery(rows, {...query, filters:filterCopy, search:''});
+    let opts = Array.from(new Set(out.map(r=>cleanStatic(r[key])).filter(Boolean))).sort((a,b)=>String(a).localeCompare(String(b),'pt-BR',{numeric:true,sensitivity:'base'}));
+    if(query.option_search){ 
+      const term = normalizeText(String(query.option_search || '').substring(0, 100)); 
+      opts = opts.filter(x=>normalizeText(x).includes(term)); 
+    }
+    const selected = ((query.filters || {})[key] || []).filter(Boolean);
+    const limit = Math.max(10, Math.min(Number(query.limit || 50), 300));
+    const ordered = Array.from(new Set([...selected, ...opts.slice(0, limit)]));
+    return {options:ordered, total:opts.length};
+  }catch(err){
+    console.error('Erro em staticOptions:', err);
+    return {options:[], total:0};
+  }
 }
 
-function displayValue(row, column){
-  if(column === 'DIAS PARADO') return `${formatNumber(effectiveDays(row))} dias`;
-  if(column === 'VALOR TOTAL') return formatMoney(rowValue(row));
-  if(column === 'VALOR PEÇAS') return formatMoney(n(row._VALOR_PECAS ?? parseMoney(row[column])));
-  if(column === 'VALOR SERVIÇO') return formatMoney(n(row._VALOR_SERVICO ?? parseMoney(row[column])));
-  return row[column] === null || row[column] === undefined ? '' : String(row[column]);
-}
-
-function staticRows(rows, query={}, db={}){
-  const filtered = applyStaticQuery(rows, query);
-  const ordered = sortStaticRows(filtered, query.sort_col || 'DIAS PARADO', query.sort_dir || 'desc');
-  const boot = db.boot || __STATIC_DATA?.boot || {};
-  const columns = (boot.table_columns || []).filter(Boolean);
-  const total = ordered.length;
-  const pageSize = Math.max(10, Math.min(Number(query.page_size || 100), 100000));
-  const pages = Math.max(1, Math.ceil(total / pageSize));
-  const page = Math.min(Math.max(1, Number(query.page || 1)), pages);
-  const start = (page - 1) * pageSize;
-  const end = Math.min(start + pageSize, total);
-  const resultRows = ordered.slice(start, end).map(row => {
-    const record = {};
-    columns.forEach(column => { record[column] = displayValue(row, column); });
-    record._ROW_ID = Number(row._ROW_ID || 0);
-    record._ETAPA = stageName(row);
-    record._VALOR_TOTAL = rowValue(row);
-    record._DIAS_PARADO = effectiveDays(row);
-    return record;
-  });
-  return {columns, rows:resultRows, total, page, page_size:pageSize, pages, from:total ? start+1 : 0, to:end};
-}
-
-function staticRowDetail(rows, rowId, db={}){
-  const id = Number(rowId || 0);
-  const row = rows.find(item => Number(item._ROW_ID || 0) === id);
-  if(!row) throw new Error('Registro não encontrado.');
-  const columns = (db.boot?.full_table_columns || db.boot?.table_columns || Object.keys(row))
-    .filter(column => !String(column).startsWith('_'));
-  const data = {};
-  columns.forEach(column => { data[column] = displayValue(row, column); });
-  return {
-    row_id:id,
-    data,
-    etapa:stageName(row),
-    dias:effectiveDays(row),
-    valor:rowValue(row),
-  };
-}
-
-function stageSummary(rows, etapa){
-  const subset = stageRows(rows, etapa);
-  const days = subset.map(effectiveDays);
-  const value = subset.reduce((sum,row) => sum + rowValue(row), 0);
-  const critical = subset.filter(row => effectiveDays(row) >= BUSINESS_RULES.aging.critical).length;
-  return {
-    etapa,
-    qtd:subset.length,
-    valor:value,
-    maxDias:Math.max(0, ...days),
-    avgDias:average(days),
-    critical,
-    rows:subset,
-  };
+function staticRows(rows, query){
+  try{
+    const out = applyStaticQuery(rows, query);
+    const columns = (__STATIC_DATA?.boot?.table_columns || []).filter(Boolean);
+    const total = out.length;
+    const pageSize = Math.max(10, Math.min(Number(query.page_size || 50), 100000));
+    const pages = Math.max(1, Math.ceil(total / pageSize));
+    const page = Math.min(Math.max(1, Number(query.page || 1)), pages);
+    const start = (page - 1) * pageSize;
+    const end = Math.min(start + pageSize, total);
+    const pageRows = out.slice(start, end).map(row => {
+      const rec = {};
+      columns.forEach(c => {
+        const val = row[c];
+        rec[c] = (val === null || val === undefined) ? '' : String(val);
+      });
+      rec._ETAPA = row._ETAPA || row.ETAPA || '';
+      rec._ROW_ID = row._ROW_ID || 0;
+      rec._VALOR_TOTAL = n(row._VALOR_TOTAL ?? row['VALOR TOTAL']);
+      return rec;
+    });
+    return {columns, rows:pageRows, total, page, page_size:pageSize, pages, from: total ? start+1 : 0, to:end};
+  }catch(err){
+    console.error('Erro em staticRows:', err);
+    return {columns:[], rows:[], total:0, page:1, page_size:50, pages:1, from:0, to:0};
+  }
 }
 
 function groupByStage(rows){
   const total = rows.length || 1;
-  return BUSINESS_RULES.stageOrder.map(etapa => {
-    const summary = stageSummary(rows, etapa);
-    return {
-      etapa,
-      qtd:summary.qtd,
-      valor:summary.valor,
-      valor_formatado:formatMoney(summary.valor, true),
-      valor_completo:formatMoney(summary.valor),
-      percentual:summary.qtd / total * 100,
-      percentual_formatado:formatPercent(summary.qtd / total * 100),
-      max_dias:summary.maxDias,
-      media_dias:summary.avgDias,
-      criticas:summary.critical,
-      cor:BUSINESS_RULES.stageColors[etapa],
-    };
-  });
-}
-
-function topSum(rows, groupColumn, count=8){
-  const groups = new Map();
-  rows.forEach(row => {
-    const label = cleanText(row[groupColumn]) || 'NÃO INFORMADO';
-    if(!groups.has(label)) groups.set(label, {label, value:0, qtd:0, maxDias:0, pending:0});
-    const item = groups.get(label);
-    item.value += rowValue(row);
+  const map = new Map();
+  rows.forEach(r=>{
+    const etapa = cleanStatic(r.ETAPA) || 'NÃO INFORMADO';
+    if(!map.has(etapa)) map.set(etapa, {etapa, qtd:0, valor:0, fora_sla:0, criticas:0});
+    const item = map.get(etapa);
     item.qtd += 1;
-    item.maxDias = Math.max(item.maxDias, effectiveDays(row));
-    if(isPending(row)) item.pending += 1;
+    item.valor += n(r._VALOR_TOTAL);
+    if(['ATENÇÃO','CRÍTICO'].includes(r['SLA STATUS'])) item.fora_sla += 1;
+    if(r['SLA STATUS'] === 'CRÍTICO') item.criticas += 1;
   });
-  return Array.from(groups.values())
-    .sort((a,b) => b.value-a.value || b.qtd-a.qtd)
-    .slice(0,count)
-    .map(item => ({
-      ...item,
-      formatted:formatMoney(item.value, true),
-      full:formatMoney(item.value),
-      meta:`${formatNumber(item.qtd)} RC${item.qtd === 1 ? '' : 's'}`,
-    }));
+  const rowsOut = Array.from(map.values()).sort((a,b)=>{
+    const ia=STAGE_ORDER_STATIC.indexOf(a.etapa), ib=STAGE_ORDER_STATIC.indexOf(b.etapa);
+    return (ia<0?99:ia)-(ib<0?99:ib);
+  });
+  return rowsOut.map(e=>({
+    ...e,
+    percentual: e.qtd / total * 100,
+    valor_formatado: compactMoney(e.valor),
+    valor_completo: brMoney(e.valor),
+    percentual_formatado: brPct(e.qtd / total * 100),
+    cor: STAGE_COLORS_STATIC[e.etapa] || '#4A4A4A',
+    valor_fora_sla: compactMoney(0),
+  }));
 }
-
+function topSum(rows, groupCol, count=8){
+  const map = new Map();
+  rows.forEach(r=>{
+    const label = cleanStatic(r[groupCol]) || 'NÃO INFORMADO';
+    if(!map.has(label)) map.set(label, {label, value:0, qtd:0});
+    const item=map.get(label); item.value += n(r._VALOR_TOTAL); item.qtd += 1;
+  });
+  return Array.from(map.values()).sort((a,b)=>b.value-a.value || b.qtd-a.qtd).slice(0,count).map(x=>({label:String(x.label).slice(0,80), value:x.value, formatted:compactMoney(x.value), full:brMoney(x.value), qtd:x.qtd, meta:`${x.qtd.toLocaleString('pt-BR')} RC${x.qtd!==1?'s':''}`}));
+}
+function topCount(rows, groupCol, count=8){
+  const map = new Map(); rows.forEach(r=>{ const label=cleanStatic(r[groupCol]) || 'NÃO INFORMADO'; map.set(label,(map.get(label)||0)+1); });
+  return Array.from(map.entries()).map(([label,value])=>({label:String(label).slice(0,80),value,formatted:brInt(value)})).sort((a,b)=>b.value-a.value).slice(0,count);
+}
 function oldestPending(rows){
-  const ordered = pendingRows(rows).sort((a,b) => effectiveDays(b)-effectiveDays(a) || rowValue(b)-rowValue(a));
-  if(!ordered.length) return {dias:0, label:'Sem pendência', label_type:'', detail:'Tudo concluído', etapa:''};
-  const row = ordered[0];
+  const pend = pendingRows(rows).sort((a,b)=> n(b._DIAS_PARADO)-n(a._DIAS_PARADO) || n(b._VALOR_TOTAL)-n(a._VALOR_TOTAL));
+  if(!pend.length) return {dias:0,label:'Sem pendência',label_type:'',detail:'Tudo concluído',etapa:''};
+  const r = pend[0];
   const references = [
     ['Nº ORÇAMENTO FINAL','Orçamento'],
-    ['Nº REQUISIÇÃO','RC'],
+    ['Nº REQUISIÇÃO','Requisição'],
     ['Nº PEDIDO DE COMPRA','Pedido'],
     ['Nº ORDEM SERVIÇO','OS'],
-    ['PREFIXO','Prefixo'],
+    ['PREFIXO','Prefixo']
   ];
-  let label = '';
-  let labelType = '';
-  for(const [field,type] of references){
-    const value = cleanText(row[field]);
-    if(value){ label=value; labelType=type; break; }
+  let label = 'Sem código';
+  let labelType = 'Referência';
+  for(const [field, type] of references){
+    const value = cleanStatic(r[field]);
+    if(value){ label = value; labelType = type; break; }
   }
+  const forn = cleanStatic(r.FORNECEDOR) || 'Fornecedor não informado';
   return {
-    dias:effectiveDays(row),
-    label:label || 'Sem código',
-    label_type:labelType || 'Referência',
-    detail:`${cleanText(row.FORNECEDOR) || 'Fornecedor não informado'} · ${stageName(row)}`,
-    etapa:stageName(row),
-    fornecedor:cleanText(row.FORNECEDOR) || 'Fornecedor não informado',
-    valor:formatMoney(rowValue(row), true),
-    valor_full:formatMoney(rowValue(row)),
-    row_id:Number(row._ROW_ID || 0),
+    dias:n(r._DIAS_PARADO),
+    label,
+    label_type:labelType,
+    detail:`${forn} · ${r.ETAPA || ''}`,
+    etapa:r.ETAPA || '',
+    fornecedor:forn,
+    valor:compactMoney(r._VALOR_TOTAL),
+    valor_full:brMoney(r._VALOR_TOTAL)
   };
 }
-
-function priorityRows(rows, count=6){
-  const groups = new Map();
-  pendingRows(rows).forEach(row => {
-    const etapa = stageName(row);
-    const fornecedor = cleanText(row.FORNECEDOR) || 'Fornecedor não informado';
-    const owner = effectiveOwner(row);
-    const key = `${etapa}||${fornecedor}||${owner}`;
-    if(!groups.has(key)){
-      groups.set(key, {etapa, fornecedor, owner, qtd:0, valor:0, maxDias:0, totalDias:0, rowIds:[], codes:[]});
-    }
-    const group = groups.get(key);
-    group.qtd += 1;
-    group.valor += rowValue(row);
-    group.maxDias = Math.max(group.maxDias, effectiveDays(row));
-    group.totalDias += effectiveDays(row);
-    group.rowIds.push(Number(row._ROW_ID || 0));
-    const code = cleanText(row['Nº REQUISIÇÃO']) || cleanText(row['Nº ORÇAMENTO FINAL']);
-    if(code && group.codes.length < 50) group.codes.push(code);
-  });
-  const list = Array.from(groups.values());
-  if(!list.length) return [];
-  const maxValue = Math.max(1, ...list.map(item => item.valor));
-  const maxDays = Math.max(1, ...list.map(item => item.maxDias));
-  const maxQuantity = Math.max(1, ...list.map(item => item.qtd));
-  const w = BUSINESS_RULES.priorityWeights;
-  return list.map(group => {
-    const score = 100 * (
-      w.stage * (BUSINESS_RULES.stageWeights[group.etapa] ?? 0.35) +
-      w.age * (group.maxDias / maxDays) +
-      w.value * (group.valor / maxValue) +
-      w.quantity * (group.qtd / maxQuantity)
-    );
-    const action = group.etapa === 'SEM LANÇAMENTO'
-      ? 'Conferir lançamento'
-      : group.etapa === 'SEM PEDIDO'
-        ? 'Acompanhar pedido'
-        : 'Conferir NF';
-    return {
-      ...group,
-      avgDias:group.qtd ? group.totalDias/group.qtd : 0,
-      score,
-      action,
-      valor_fmt:formatMoney(group.valor, true),
-      valor_full:formatMoney(group.valor),
-      qtd_fmt:`${formatNumber(group.qtd)} RC${group.qtd === 1 ? '' : 's'}`,
-      reason:`${formatNumber(group.qtd)} RC${group.qtd === 1 ? '' : 's'} · máx. ${formatNumber(group.maxDias)} dias`,
-      codes:Array.from(new Set(group.codes)),
-    };
-  }).sort((a,b) => b.score-a.score || b.maxDias-a.maxDias || b.valor-a.valor).slice(0,count);
-}
-
-function dataQuality(rows){
-  const knownStages = new Set(BUSINESS_RULES.stageOrder);
-  const missingSupplier = rows.filter(row => !cleanText(row.FORNECEDOR)).length;
-  const missingDate = rows.filter(row => !cleanText(row['DATA DE RECEBIMENTO']) && !row._DATA_RECEBIMENTO_ISO).length;
-  const unknownStage = rows.filter(row => !knownStages.has(stageName(row))).length;
-  const negativeValue = rows.filter(row => rowValue(row) < 0).length;
-  const requestCounts = new Map();
-  rows.forEach(row => {
-    const code = cleanText(row['Nº REQUISIÇÃO']);
-    if(code) requestCounts.set(code, (requestCounts.get(code) || 0) + 1);
-  });
-  const duplicateRequests = Array.from(requestCounts.values()).filter(count => count > 1).reduce((sum,count) => sum + count, 0);
-  const issues = missingSupplier + missingDate + unknownStage + negativeValue;
-  const fieldsChecked = Math.max(1, rows.length * 4);
-  const score = Math.max(0, 100 - issues / fieldsChecked * 100);
-  return {
-    score,
-    score_fmt:formatPercent(score),
-    issues,
-    missing_supplier:missingSupplier,
-    missing_date:missingDate,
-    unknown_stage:unknownStage,
-    negative_value:negativeValue,
-    duplicate_requests:duplicateRequests,
-  };
-}
-
-function summarySnapshot(rows){
+function farolRegional(rows){
   const total = rows.length;
-  const pending = pendingRows(rows);
-  const completed = total - pending.length;
+  const concluidas = rows.filter(r=>r.ETAPA === 'CONCLUÍDO').length;
+  const pend = pendingRows(rows);
+  const totalPend = pend.length;
+  const valorPend = pend.reduce((s,r)=>s+n(r._VALOR_TOTAL),0);
+  const pctConcluido = total ? concluidas/total*100 : 0;
+  const pctPendente = total ? totalPend/total*100 : 0;
   const semLanc = stageSummary(rows, 'SEM LANÇAMENTO');
+  const semPedido = stageSummary(rows, 'SEM PEDIDO');
+  const semNf = stageSummary(rows, 'SEM NF');
+  const valorAcompanhar = semLanc.valor;
+  const maxGeral = Math.max(0, ...pend.map(r=>n(r._DIAS_PARADO)));
+
+  if(!totalPend){
+    return {
+      status:'BOM',
+      label:'100% concluído · sem fila aberta',
+      detail:'Tudo lançado, pedido e NF concluídos no filtro atual',
+      pct_rcs_fora_sla:0,
+      pct_valor_fora_sla:0,
+      pct_pendente_total:0,
+      maior_atraso_dias:0,
+      valor_fora_sla:brMoney(0),
+      valor_fora_sla_compacto:compactMoney(0),
+      valor_pendente:brMoney(0),
+      valor_pendente_compacto:compactMoney(0),
+      rcs_fora_sla:0,
+      rcs_criticas:0,
+      rcs_atrasadas:0,
+      rcs_sem_lancamento:0,
+      valor_sem_lancamento:brMoney(0),
+      valor_sem_lancamento_compacto:compactMoney(0),
+      action_hint:'Sem ação pendente'
+    };
+  }
+
+  // Leitura para liderança: o principal é o % concluído.
+  // Dias só pesam forte quando a fila direta do PCM (SEM LANÇAMENTO) está alta ou muito velha.
+  const pctSemLanc = total ? semLanc.qtd/total*100 : 0;
+  const conclusaoExcelente = pctConcluido >= 92 && semLanc.qtd <= 50;
+  const conclusaoBoa = pctConcluido >= 80 && semLanc.qtd <= 130;
+  const precisaRevisar = pctConcluido < 70 || semLanc.qtd >= 220 || semLanc.maxDias >= 90;
+
+  let status = 'BOM';
+  if(conclusaoExcelente) status = 'EXCELENTE';
+  else if(conclusaoBoa) status = 'BOM';
+  else if(precisaRevisar) status = 'REVISAR';
+  else status = 'ATENÇÃO';
+
+  const label = status === 'EXCELENTE'
+    ? `${brPct(pctConcluido)} concluído · fila muito enxuta`
+    : status === 'BOM'
+      ? `${brPct(pctConcluido)} concluído · rotina sob controle`
+      : status === 'ATENÇÃO'
+        ? `${brPct(pctConcluido)} concluído · revisar fila PCM`
+        : `${brPct(pctConcluido)} concluído · reorganizar lançamentos`;
+
+  const detail = `${brInt(semLanc.qtd)} sem lançamento · ${brInt(semPedido.qtd)} sem pedido · ${brInt(semNf.qtd)} sem NF`;
+  const rcsAcompanhar = semLanc.qtd;
   return {
-    total,
-    pending:pending.length,
-    completed,
-    completion_percent:total ? completed/total*100 : 0,
-    pending_value:pending.reduce((sum,row) => sum + rowValue(row), 0),
-    pcm_queue:semLanc.qtd,
-    pcm_value:semLanc.valor,
-    critical:pending.filter(row => effectiveDays(row) >= BUSINESS_RULES.aging.critical).length,
+    status,
+    label,
+    detail,
+    pct_concluido:pctConcluido,
+    pct_rcs_fora_sla:pctSemLanc,
+    pct_valor_fora_sla: valorPend ? valorAcompanhar/valorPend*100 : 0,
+    pct_pendente_total:pctPendente,
+    pct_criticas: totalPend ? pend.filter(r=>n(r._DIAS_PARADO)>=60).length/totalPend*100 : 0,
+    pct_valor_critico:0,
+    maior_atraso_dias:maxGeral,
+    valor_fora_sla:brMoney(valorAcompanhar),
+    valor_fora_sla_compacto:compactMoney(valorAcompanhar),
+    valor_pendente:brMoney(valorPend),
+    valor_pendente_compacto:compactMoney(valorPend),
+    rcs_fora_sla:rcsAcompanhar,
+    rcs_criticas:semLanc.rows.filter(r=>n(r._DIAS_PARADO)>=45).length,
+    rcs_atrasadas:rcsAcompanhar,
+    rcs_sem_lancamento:semLanc.qtd,
+    valor_sem_lancamento:brMoney(semLanc.valor),
+    valor_sem_lancamento_compacto:compactMoney(semLanc.valor),
+    sem_pedido:semPedido.qtd,
+    sem_nf:semNf.qtd,
+    score:Math.round((100-pctConcluido) + pctSemLanc*3 + Math.min(semLanc.maxDias,90)/3),
+    action_hint: status === 'REVISAR' ? 'Reorganizar fila de lançamento' : status === 'ATENÇÃO' ? 'Revisar fila PCM' : 'Manter rotina e acompanhar exceções'
   };
 }
 
-function delta(current, previous){
-  if(!previous) return null;
-  return {
-    pending:current.pending - n(previous.pending),
-    completion_percent:current.completion_percent - n(previous.completion_percent),
-    pending_value:current.pending_value - n(previous.pending_value),
-    pcm_queue:current.pcm_queue - n(previous.pcm_queue),
-    critical:current.critical - n(previous.critical),
-    compared_at:previous.generated_at || previous.timestamp || '',
-  };
+function stageActionTitle(etapa){
+  if(etapa === 'SEM NF') return 'Conferir NF';
+  if(etapa === 'SEM PEDIDO') return 'Acompanhar pedido';
+  if(etapa === 'SEM LANÇAMENTO') return 'Conferir lançamento';
+  return 'Tratar pendência';
+}
+function stageActionKind(etapa){
+  if(etapa === 'SEM NF') return 'nf';
+  if(etapa === 'SEM PEDIDO') return 'pedido';
+  if(etapa === 'SEM LANÇAMENTO') return 'lancamento';
+  return 'acao';
+}
+function stageOwnerDefault(etapa){
+  if(etapa === 'SEM NF') return 'Fornecedor';
+  if(etapa === 'SEM PEDIDO') return 'Compras';
+  if(etapa === 'SEM LANÇAMENTO') return 'PCM';
+  return 'Responsável';
+}
+function urgencyLabel(days, value, etapa=''){
+  const d=n(days), v=n(value);
+  if(etapa === 'SEM LANÇAMENTO'){
+    if(d >= 30 || v >= 250000) return 'Conferir primeiro';
+    if(d >= 15 || v >= 100000) return 'Conferir na sequência';
+    return 'Rotina PCM';
+  }
+  if(etapa === 'SEM PEDIDO'){
+    if(d >= 30 || v >= 250000) return 'Acompanhar pedido';
+    if(d >= 15 || v >= 100000) return 'Acompanhar';
+    return 'Em acompanhamento';
+  }
+  if(etapa === 'SEM NF'){
+    if(d >= 30 || v >= 250000) return 'Conferir NF';
+    if(d >= 15 || v >= 100000) return 'Acompanhar NF';
+    return 'Aguardando NF';
+  }
+  if(d >= 60 || v >= 500000) return 'Entender causa';
+  if(d >= 30 || v >= 150000) return 'Acompanhar de perto';
+  return 'Monitorar';
 }
 
-function hasContext(query={}){
-  const filters = query.filters || {};
-  return Object.values(filters).some(value => Array.isArray(value) && value.length)
-    || Boolean(query.date_from || query.date_to)
-    || query.value_min !== null && query.value_min !== undefined
-    || query.value_max !== null && query.value_max !== undefined
-    || query.age_min !== null && query.age_min !== undefined
-    || query.age_max !== null && query.age_max !== undefined;
+function priorityRows(rows, count=5){
+  const pend = pendingRows(rows);
+  if(!pend.length) return [];
+  const groups = new Map();
+  pend.forEach(r=>{
+    const etapa = r.ETAPA || 'PENDÊNCIA';
+    const fornecedor = cleanStatic(r.FORNECEDOR) || 'Fornecedor não informado';
+    const owner = cleanStatic(r['DONO DA AÇÃO']) || stageOwnerDefault(etapa);
+    const key = `${etapa}||${fornecedor}||${owner}`;
+    if(!groups.has(key)) groups.set(key, {etapa, fornecedor, owner, qtd:0, valor:0, maxDias:0, codigos:[], rows:[]});
+    const g=groups.get(key);
+    g.qtd += 1;
+    g.valor += n(r._VALOR_TOTAL);
+    g.maxDias = Math.max(g.maxDias, n(r._DIAS_PARADO));
+    const codigo = cleanStatic(r['Nº ORÇAMENTO FINAL']) || cleanStatic(r['Nº REQUISIÇÃO']) || '';
+    if(codigo && g.codigos.length < 3) g.codigos.push(codigo);
+    g.rows.push(r);
+  });
+  const arr = Array.from(groups.values());
+  const maxVal = Math.max(1, ...arr.map(g=>g.valor));
+  const maxDays = Math.max(1, ...arr.map(g=>g.maxDias));
+  const maxQtd = Math.max(1, ...arr.map(g=>g.qtd));
+  // O ranking prioriza o que é trabalho direto do PCM: lançamento.
+  // Pedido e NF entram como acompanhamento/causa, sem roubar todo o painel.
+  const stageWeight={'SEM LANÇAMENTO':1.0,'SEM PEDIDO':0.45,'SEM NF':0.35,'CONCLUÍDO':0};
+  return arr.map(g=>{
+    const score = 60*(stageWeight[g.etapa] ?? .35) + 20*(g.maxDias/maxDays) + 15*(g.valor/maxVal) + 5*(g.qtd/maxQtd);
+    const action = stageActionTitle(g.etapa);
+    const urgency = urgencyLabel(g.maxDias, g.valor, g.etapa);
+    const codigo = g.codigos[0] || `${g.qtd} RC${g.qtd!==1?'s':''}`;
+    return {
+      codigo: action,
+      fornecedor: g.fornecedor.slice(0,70),
+      etapa:g.etapa,
+      dias:g.maxDias,
+      valor:g.valor,
+      valor_fmt:compactMoney(g.valor),
+      valor_full:brMoney(g.valor),
+      owner_team:g.owner,
+      owner_proxy:g.fornecedor,
+      sla_status:urgency,
+      score,
+      row_id:g.rows[0]?._ROW_ID,
+      qtd:g.qtd,
+      qtd_fmt:`${brInt(g.qtd)} RC${g.qtd!==1?'s':''}`,
+      action,
+      urgency,
+      reason:`${urgency} · ${brInt(g.qtd)} RC${g.qtd!==1?'s':''} · ${brInt(g.maxDias)} dias`,
+      codigos:g.codigos.join(', ') || codigo
+    };
+  }).sort((a,b)=>b.score-a.score || b.valor-a.valor || b.dias-a.dias).slice(0,count);
 }
+function topPendingByStage(rows, etapa){ const subset=rows.filter(r=>r.ETAPA===etapa); return topSum(subset,'FORNECEDOR',1)[0] || null; }
+function executiveActions(rows){
+  const actions=[];
+  const pend = pendingRows(rows);
+  if(!pend.length) return actions;
 
-function staticDashboard(rows, query={}, db={}){
-  const filtered = applyStaticQuery(rows, query);
-  const total = filtered.length;
-  const pending = pendingRows(filtered);
-  const completed = total - pending.length;
-  const valueTotal = filtered.reduce((sum,row) => sum + rowValue(row), 0);
-  const valuePending = pending.reduce((sum,row) => sum + rowValue(row), 0);
-  const stages = groupByStage(filtered);
-  const semLanc = stageSummary(filtered, 'SEM LANÇAMENTO');
-  const semPedido = stageSummary(filtered, 'SEM PEDIDO');
-  const semNf = stageSummary(filtered, 'SEM NF');
-  const oldest = oldestPending(filtered);
-  const critical = pending.filter(row => effectiveDays(row) >= BUSINESS_RULES.aging.critical);
-  const snapshot = summarySnapshot(filtered);
-  const previous = !hasContext(query) ? (db.history?.previous || null) : null;
-  const comparison = delta(snapshot, previous);
-  const quality = dataQuality(filtered);
-  const firstPriority = priorityRows(filtered, 1)[0] || null;
-  return {
-    kpis:{
-      total_rcs:total,
-      concluidas:completed,
-      pendentes:pending.length,
-      pct_concluido:formatPercent(total ? completed/total*100 : 0),
-      pct_concluido_value:total ? completed/total*100 : 0,
-      valor_total:valueTotal,
-      valor_total_fmt:formatMoney(valueTotal),
-      valor_total_compacto:formatMoney(valueTotal, true),
-      valor_pendente:valuePending,
-      valor_pendente_fmt:formatMoney(valuePending),
-      valor_pendente_compacto:formatMoney(valuePending, true),
-      rcs_sem_lancamento:semLanc.qtd,
-      valor_sem_lancamento:semLanc.valor,
-      valor_sem_lancamento_fmt:formatMoney(semLanc.valor),
-      valor_sem_lancamento_compacto:formatMoney(semLanc.valor, true),
-      rcs_criticas:critical.length,
-      valor_critico:critical.reduce((sum,row) => sum + rowValue(row), 0),
-      maior_atraso_dias:oldest.dias,
-      maior_atraso_label:oldest.label,
-      maior_atraso_label_tipo:oldest.label_type,
-      maior_atraso_detail:oldest.detail,
-      maior_atraso_etapa:oldest.etapa,
-      maior_atraso_fornecedor:oldest.fornecedor,
-      maior_atraso_valor:oldest.valor,
-      maior_atraso_valor_full:oldest.valor_full,
-      maior_atraso_row_id:oldest.row_id,
-      completion_target:BUSINESS_RULES.targets.completionPercent,
-      pcm_queue_target:BUSINESS_RULES.targets.maxPcmQueue,
-    },
-    etapas:stages,
-    top_prioridades:priorityRows(filtered, 6),
-    executive_summary:{
-      completion_percent:total ? completed/total*100 : 0,
-      pcm_queue:semLanc.qtd,
-      without_order:semPedido.qtd,
-      without_invoice:semNf.qtd,
-      focus:firstPriority,
-    },
-    rankings:{
-      suppliers_pending:topSum(pending, 'FORNECEDOR', 8),
-      suppliers_total:topSum(filtered, 'FORNECEDOR', 8),
-      requesters_pending:topSum(pending, 'SOLICITANTE', 8),
-      requesters_total:topSum(filtered, 'SOLICITANTE', 8),
-    },
-    quality,
-    comparison,
-    history:hasContext(query)?null:(db.history||null),
-    context_active:hasContext(query),
-  };
+  const lancamentos = priorityRows(rows.filter(r=>r.ETAPA === 'SEM LANÇAMENTO'), 1)[0];
+  if(lancamentos){
+    actions.push({
+      kind:'lancamento',
+      title:'Meu foco',
+      main:lancamentos.fornecedor,
+      value:lancamentos.action,
+      detail:lancamentos.reason,
+      etapa:'SEM LANÇAMENTO',
+      owner:'PCM'
+    });
+  }
+
+  const semLanc = stageSummary(rows, 'SEM LANÇAMENTO');
+  if(semLanc.qtd){
+    actions.push({
+      kind:'lancamento',
+      title:'Fila PCM',
+      main:'Sem lançamento',
+      value:`${brInt(semLanc.qtd)} RCs`,
+      detail:`${compactMoney(semLanc.valor)} para lançar/conferir`,
+      etapa:'SEM LANÇAMENTO',
+      owner:'PCM'
+    });
+  }
+
+  const semPedido = stageSummary(rows, 'SEM PEDIDO');
+  if(semPedido.qtd){
+    actions.push({
+      kind:'pedido',
+      title:'Acompanhar',
+      main:'Sem pedido',
+      value:`${brInt(semPedido.qtd)} RCs`,
+      detail:`${compactMoney(semPedido.valor)} aguardando pedido`,
+      etapa:'SEM PEDIDO',
+      owner:'Compras'
+    });
+  }
+
+  const semNf = stageSummary(rows, 'SEM NF');
+  if(semNf.qtd){
+    actions.push({
+      kind:'nf',
+      title:'Conferir NF',
+      main:'Sem NF',
+      value:`${brInt(semNf.qtd)} RCs`,
+      detail:`${compactMoney(semNf.valor)} aguardando NF`,
+      etapa:'SEM NF',
+      owner:'Fornecedor'
+    });
+  }
+
+  const seen = new Set();
+  return actions.filter(a=>{
+    const key=`${a.title}|${a.main}|${a.etapa}`;
+    if(seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  }).slice(0,4);
 }
-
-function sanitizeCsvCell(value){
-  const text = String(value ?? '');
-  const protectedText = /^[=+\-@]/.test(text) ? `'${text}` : text;
-  return `"${protectedText.replace(/"/g, '""')}"`;
+function topOwnersCriticos(rows){
+  const pend = pendingRows(rows);
+  return topSum(pend,'DONO DA AÇÃO',6);
 }
+function operationalAlerts(rows){
+  const etapas = groupByStage(rows).filter(e=>e.etapa!=='CONCLUÍDO').map(e=>({label:e.etapa.replace('NF','NF').toLowerCase().replace(/(^|\s)\S/g,m=>m.toUpperCase()).replace('Nf','NF'),value:brInt(e.qtd),detail:compactMoney(e.valor),full:brMoney(e.valor),tone:e.etapa.toLowerCase().replace(/ /g,'-')}));
+  const pend=pendingRows(rows);
+  const valorP = pend.reduce((s,r)=>s+n(r._VALOR_TOTAL),0);
+  return {atencao:etapas,idade_pendencias:['SEM LANÇAMENTO','SEM PEDIDO','SEM NF'].map(etapa=>{ const ss=rows.filter(r=>r.ETAPA===etapa); return {label:etapa.replace('NF','NF').toLowerCase().replace(/(^|\s)\S/g,m=>m.toUpperCase()).replace('Nf','NF'),media:`${average(ss.map(r=>r._DIAS_PARADO)).toFixed(1).replace('.',',')} dias`,maximo:`${Math.max(0,...ss.map(r=>n(r._DIAS_PARADO))).toFixed(1).replace('.',',')} dias`,qtd:ss.length,tone:etapa.toLowerCase().replace(/ /g,'-')}; }),maior_gargalo:{label:'',formatted:''},pendentes:pend.length,valor_pendente:brMoney(valorP),valor_pendente_compacto:compactMoney(valorP)};
+}
+function executiveComment(rows){
+  const pend=pendingRows(rows);
+  if(!rows.length) return 'Sem registros para o filtro atual.';
+  const total=rows.length;
+  const concl=rows.filter(r=>r.ETAPA==='CONCLUÍDO').length;
+  const pct=brPct(total?concl/total*100:0);
+  if(!pend.length) return '100% concluído no filtro atual. Nada para lançar, acompanhar pedido ou cobrar NF.';
+  const semLanc=stageSummary(rows,'SEM LANÇAMENTO');
+  const semPedido=stageSummary(rows,'SEM PEDIDO');
+  const semNf=stageSummary(rows,'SEM NF');
+  const first=priorityRows(rows.filter(r=>r.ETAPA==='SEM LANÇAMENTO'),1)[0];
+  const foco = semLanc.qtd
+    ? `Foco do PCM: conferir lançamento de ${brInt(semLanc.qtd)} RCs (${compactMoney(semLanc.valor)}).`
+    : 'Foco do PCM em dia; acompanhar pedido e NF.';
+  const start = first ? ` Primeiro foco: ${first.fornecedor} · ${first.reason}.` : '';
+  return `${pct} concluído. ${foco} Acompanhamento: ${brInt(semPedido.qtd)} sem pedido e ${brInt(semNf.qtd)} sem NF.${start}`;
+}
+function monthly(rows){
+  const map=new Map(); rows.forEach(r=>{ const iso=r._DATA_RECEBIMENTO_ISO || r._DATA_LANCAMENTO_ISO || r._DATA_PEDIDO_ISO || r._DATA_NF_ISO; if(!iso) return; const key=iso.slice(0,7); map.set(key,(map.get(key)||0)+n(r._VALOR_TOTAL)); });
+  const meses={"01":"jan","02":"fev","03":"mar","04":"abr","05":"mai","06":"jun","07":"jul","08":"ago","09":"set","10":"out","11":"nov","12":"dez"};
+  return Array.from(map.entries()).sort().map(([label,value])=>({label,label_short:`${meses[label.slice(5,7)]||label.slice(5,7)}/${label.slice(2,4)}`,value,formatted:compactMoney(value),full:brMoney(value)}));
+}
+function dashboardGlobalQuery(query={}){
+  const filters = JSON.parse(JSON.stringify(query.filters || {}));
+  // V81: estes filtros rápidos mudam a fila e a base, mas NÃO mudam os cards executivos.
+  // Isso evita leitura errada como “0% concluído” quando o usuário clica em “Em atenção”.
+  delete filters['ETAPA'];
+  delete filters['SLA STATUS'];
+  delete filters['FAIXA ATRASO'];
+  return {...query, filters, search:''};
+}
+function hasOperationalQuickFilter(query={}){
+  const f=query.filters || {};
+  return Boolean((f['ETAPA']||[]).length || (f['SLA STATUS']||[]).length || (f['FAIXA ATRASO']||[]).length);
+}
+function staticDashboard(rows, query){
+  try{
+    const globalQuery = dashboardGlobalQuery(query || {});
+    const geral = applyStaticQuery(rows, globalQuery);
+    const filtrado = applyStaticQuery(rows, query || {});
+    const visaoFila = hasOperationalQuickFilter(query || {}) ? filtrado : geral;
 
+    const total=geral.length, pend=pendingRows(geral), concl=geral.filter(r=>r.ETAPA==='CONCLUÍDO');
+    const valorTotal=geral.reduce((s,r)=>s+n(r._VALOR_TOTAL),0), serv=geral.reduce((s,r)=>s+n(r._VALOR_SERVICO),0), pecas=geral.reduce((s,r)=>s+n(r._VALOR_PECAS),0), valorPend=pend.reduce((s,r)=>s+n(r._VALOR_TOTAL),0);
+    const farol=farolRegional(geral), old=oldestPending(geral), etapas=groupByStage(geral), owners=topOwnersCriticos(geral), top5=priorityRows(visaoFila.length ? visaoFila : geral,5);
+    const kpis={total_rcs:total,valor_total:brMoney(valorTotal),valor_total_compacto:compactMoney(valorTotal),valor_servicos:brMoney(serv),valor_servicos_compacto:compactMoney(serv),valor_pecas:brMoney(pecas),valor_pecas_compacto:compactMoney(pecas),ticket_medio:brMoney(total?valorTotal/total:0),ticket_medio_compacto:compactMoney(total?valorTotal/total:0),ticket_tempo_dias:`${average(geral.map(r=>r._DIAS_PARADO)).toFixed(1).replace('.',',')} dias`,ticket_tempo_dias_valor:average(geral.map(r=>r._DIAS_PARADO)),fornecedores:uniqueCount(geral,'FORNECEDOR'),equipamentos:uniqueCount(geral,'EQUIPAMENTO'),concluidas:concl.length,pendentes:pend.length,pct_concluido:brPct(total?concl.length/total*100:0),pct_pendente:brPct(total?pend.length/total*100:0),valor_pendente:brMoney(valorPend),valor_pendente_compacto:compactMoney(valorPend),valor_fora_sla:farol.valor_fora_sla,valor_fora_sla_compacto:farol.valor_fora_sla_compacto,valor_sem_lancamento:farol.valor_sem_lancamento,valor_sem_lancamento_compacto:farol.valor_sem_lancamento_compacto,rcs_fora_sla:farol.rcs_fora_sla,rcs_sem_lancamento:farol.rcs_sem_lancamento,rcs_criticas:farol.rcs_criticas,farol_status:farol.status,maior_atraso_dias:n(old.dias),maior_atraso_label:old.label,maior_atraso_label_tipo:old.label_type || '',maior_atraso_detail:old.detail,maior_atraso_etapa:old.etapa || '',maior_atraso_fornecedor:old.fornecedor || '',maior_atraso_valor:old.valor || '',maior_atraso_valor_full:old.valor_full || ''};
+    return {
+      kpis,
+      etapas,
+      farol,
+      top5_prioridades:top5,
+      comentario_executivo:executiveComment(geral),
+      alerts:{...operationalAlerts(geral),action_now:executiveActions(visaoFila.length ? visaoFila : geral),owners_criticos:owners},
+      charts:{funil:etapas.map(e=>({label:e.etapa,value:e.qtd,formatted:brInt(e.qtd),color:e.cor})),top_fornecedores:topSum(geral,'FORNECEDOR'),top_fornecedores_pendentes:topSum(pend,'FORNECEDOR'),top_gargalos:[],solicitantes_pendentes:topSum(pend,'SOLICITANTE'),owners_criticos:owners,custo_solicitante:topSum(geral,'SOLICITANTE'),qtd_solicitante:topCount(geral,'SOLICITANTE'),qtd_fornecedor:topCount(geral,'FORNECEDOR'),mensal:monthly(geral),pecas_servicos:[{label:'Serviços',value:serv,formatted:compactMoney(serv),full:brMoney(serv)},{label:'Peças',value:pecas,formatted:compactMoney(pecas),full:brMoney(pecas)}],tempo_medio:[]}
+    };
+  }catch(err){
+    console.error('Erro em staticDashboard:', err);
+    return {kpis:{},etapas:[],farol:{status:'ERRO'},top5_prioridades:[],comentario_executivo:'Erro ao carregar dashboard',alerts:{},charts:{}};
+  }
+}
 function toCsv(columns, rows){
-  return '\ufeff' + [
-    columns.map(sanitizeCsvCell).join(';'),
-    ...rows.map(row => columns.map(column => sanitizeCsvCell(row[column])).join(';')),
-  ].join('\n');
+  const esc=v=>`"${String(v ?? '').replace(/"/g,'""')}"`;
+  return '\ufeff' + [columns.map(esc).join(';'), ...rows.map(r=>columns.map(c=>esc(r[c])).join(';'))].join('\n');
 }

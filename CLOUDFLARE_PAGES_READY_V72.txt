@@ -1,0 +1,1 @@
+Dashboard PCM v72 pronto para Cloudflare Pages. Use build command vazio e output directory /

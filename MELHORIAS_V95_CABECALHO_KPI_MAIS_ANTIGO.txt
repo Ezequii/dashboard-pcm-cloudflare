@@ -1,0 +1,9 @@
+V95 — acabamento executivo
+
+Alterações:
+- Card Pendência mais antiga redesenhado: dias, etapa e referência ficam claros e compactos.
+- Removida a aparência de barra/pílula esticada no subtítulo do card.
+- Atualização da base reduzida para: total de registros + data/hora.
+- Informação de atualização movida para ao lado do botão Recarregar.
+- Tipografia dos quatro filtros padronizada entre Visão Executiva e Base de Tratativa.
+- Nenhuma alteração em cálculos, filtros, STATUS, JSON ou Excel.

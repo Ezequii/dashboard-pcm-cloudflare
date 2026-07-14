@@ -1,0 +1,19 @@
+V80 - Confiabilidade de nomenclatura e lógica operacional
+
+Ajustes aplicados:
+- Corrigido o card Status do Processo para BOM ficar sempre verde/azul em qualquer aba.
+- Removida a contagem extra no topo dos cards de etapa para evitar divergência visual entre dois números.
+- Cards de etapa agora usam a quantidade oficial da etapa:
+  * Sem lançamento: para conferir lançamento.
+  * Sem pedido: em acompanhamento.
+  * Sem NF: para conferir NF.
+- Coluna Atenção da base detalhada agora usa lógica por etapa e dias parado:
+  * Sem lançamento: Conferir lançamento.
+  * Sem pedido: Acompanhar pedido.
+  * Sem NF: Conferir NF.
+  * 30+ dias: Muito parado.
+  * Concluído: Concluído.
+- Fila de tratativa usa nomenclatura mais precisa para pedido e NF.
+- Quick chip "Revisar" virou "Acompanhar" para não passar ideia errada sobre pedido.
+
+Objetivo: reduzir risco de leitura errada pela liderança e manter o painel coerente com a rotina real do PCM.

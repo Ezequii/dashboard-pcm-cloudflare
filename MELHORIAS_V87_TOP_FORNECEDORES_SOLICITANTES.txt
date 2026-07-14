@@ -1,0 +1,8 @@
+V87 — Rankings por valor
+
+Alterações:
+- Próxima ação PCM substituída por Top 3 fornecedores por valor total.
+- Onde está parado substituído por Top 3 solicitantes por valor total.
+- Rankings respeitam os filtros principais do dashboard.
+- Clique em um fornecedor ou solicitante para abrir a Base de Tratativa filtrada.
+- Nenhuma alteração na lógica dos KPIs, etapas, tabela ou atualização da planilha.

@@ -1,0 +1,15 @@
+V92 - ATUALIZACAO SEGURA SEM ALTERAR A BASE
+
+Este pacote NAO inclui:
+- data/CONTROLE_DE_REQUISICOES_2026.xlsx
+- static/data/dashboard-data.json
+
+Assim, ao copiar os arquivos para o repositorio, sua planilha e o JSON atual permanecem intactos.
+
+Passos:
+1. Copie os arquivos desta pasta para o repositorio e substitua quando pedir.
+2. Nao apague a pasta data nem static/data do seu repositorio.
+3. Faca Commit e Push.
+4. Pressione Ctrl + F5 no dashboard.
+
+Quando quiser atualizar a planilha, use o ATUALIZAR_DADOS.cmd normalmente.

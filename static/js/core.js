@@ -1,462 +1,407 @@
-'use strict';
+const scheduleDashboard = debounce(() => { savePreferences(); refreshAll(false); }, 160);
+const scheduleRows = debounce(() => { savePreferences(); loadRows(); }, 220);
 
 async function init(){
+  nowClock();
+  const boot = await api('/api/bootstrap');
+  // V89: somente quatro filtros principais, em ordem clara para a liderança.
+  state.mainFilters = [
+    {key:'SOLICITANTE', label:'Solicitante', type:'search-select'},
+    {key:'FORNECEDOR', label:'Fornecedor', type:'search-select'},
+    {key:'ETAPA', label:'Etapas', type:'search-select'},
+    {key:'MES_RECEBIMENTO', label:'Mês', type:'search-select'},
+  ];
+  state.columns = boot.table_columns || [];
+  state.stageColors = boot.stage_colors || {};
   loadPreferences();
-  applyUrlState();
-  const boot=await api('/api/bootstrap');
-  state.boot=boot;
-  state.mainFilters=Array.isArray(boot.main_filters)&&boot.main_filters.length
-    ?boot.main_filters
-    :[
-      {key:'SOLICITANTE',label:'Solicitante'},
-      {key:'FORNECEDOR',label:'Fornecedor'},
-      {key:'ETAPA',label:'Etapas'},
-      {key:'MES_RECEBIMENTO',label:'Mês'},
-    ];
-  state.columns=Array.isArray(boot.table_columns)?boot.table_columns:[];
-  state.fullColumns=Array.isArray(boot.full_table_columns)?boot.full_table_columns:state.columns.slice();
-  ensureFilterArrays();
+  // Remove filtros antigos que ficariam invisíveis depois da retirada dos chips rápidos.
+  const allowedFilterKeys = new Set(state.mainFilters.map(x => x.key));
+  Object.keys(state.filters || {}).forEach(key => { if(!allowedFilterKeys.has(key)) delete state.filters[key]; });
+  state.mainFilters.forEach(def => { if(!Array.isArray(state.filters[def.key])) state.filters[def.key] = []; });
+  const meta = $('meta');
+  const gerado = boot.generated_at ? new Date(boot.generated_at).toLocaleString('pt-BR', {dateStyle:'short', timeStyle:'short'}).replace(',', '') : '';
+  if(meta){
+    const linhas = Number(boot.metadata.linhas || 0).toLocaleString('pt-BR');
+    meta.textContent = `${linhas} registros${gerado ? ' • ' + gerado : ''}`;
+    meta.title = `${linhas} registros carregados${boot.metadata.arquivo ? ' · ' + boot.metadata.arquivo : ''}${gerado ? ' · atualizado em ' + gerado : ''}`;
+  }
+  const uploadBtn = $('btnUploadWorkbook');
+  if(uploadBtn) uploadBtn.hidden = !boot.can_upload;
   buildSmartFilters();
   bindEvents();
-  hydrateControlsFromState();
-  renderSavedViews();
-  renderMetadata(boot);
-  switchTab(state.activeTab);
+  hydrateAdvancedSearch();
+  switchTab(state.activeTab || 'visao');
   await refreshAll(true);
-  document.body.classList.add('ready');
-
-  const autoReload=Number(boot.auto_reload_seconds||0);
-  if(autoReload>=30){
-    setInterval(()=>refreshData(false),autoReload*1000);
-  }
-  setInterval(async()=>{
-    try{
-      if(await checkForDataUpdates()){
-        showToast('Nova base detectada. Atualizando o painel...');
-        await refreshData(false);
-      }
-    }catch(error){
-      console.warn('Verificação automática falhou:',error);
+  document.body.classList.add('v34-ready');
+  const seconds = Number(boot.auto_reload_seconds || 0);
+  if(seconds >= 30) setInterval(() => refreshAll(false), seconds * 1000);
+  
+  // V83: Verificação de novos dados a cada 5 minutos (300 segundos)
+  // Isso resolve o problema de o usuário deixar o dash aberto e os dados mudarem no Cloudflare
+  setInterval(async () => {
+    const updated = await checkForDataUpdates();
+    if(updated) {
+      showToast('Novos dados detectados. Atualizando painel...');
+      await refreshAll(false);
     }
-  },300000);
+  }, 300000);
 }
 
 function bindEvents(){
-  document.querySelectorAll('[data-tab]').forEach(button=>{
-    button.addEventListener('click',()=>{
-      switchTab(button.dataset.tab);
-      refreshAll(false);
-    });
-  });
-
-  $('btnRefresh')?.addEventListener('click',()=>refreshData(true));
-  $('btnOpenFilters')?.addEventListener('click',openFilterDrawer);
-  $('btnCloseFilters')?.addEventListener('click',closeFilterDrawer);
-  $('btnOpenColumns')?.addEventListener('click',openColumnDrawer);
-  $('btnCloseColumns')?.addEventListener('click',closeColumnDrawer);
-  $('btnApplyColumns')?.addEventListener('click',applyColumnChooser);
-  $('btnResetColumns')?.addEventListener('click',resetColumns);
-  $('btnCloseDetails')?.addEventListener('click',closeRowDetails);
-  $('drawerBackdrop')?.addEventListener('click',closeAllDrawers);
-
-  $('btnExportMenu')?.addEventListener('click',toggleExportMenu);
-  $('btnExportXlsx')?.addEventListener('click',()=>{closeExportMenu();exportXlsx('current');});
-  $('btnExportSelected')?.addEventListener('click',()=>{closeExportMenu();exportXlsx('selected');});
-  $('btnExportCsv')?.addEventListener('click',()=>{closeExportMenu();exportCsv();});
-
-  $('btnClear')?.addEventListener('click',clearAll);
-  $('btnSaveView')?.addEventListener('click',promptSaveView);
-  $('btnCopyLink')?.addEventListener('click',copyCurrentViewLink);
-  document.querySelectorAll('[data-preset]').forEach(button=>{
-    button.addEventListener('click',()=>applyPreset(button.dataset.preset));
-  });
-
-  const search=$('globalSearch');
-  search?.addEventListener('input',debounce(event=>{
-    state.search=String(event.target.value||'').slice(0,2000);
-    state.page=1;
-    state.selectedRowIds.clear();
-    updateSearchUI();
-    savePreferences();
-    syncUrlState();
-    loadRows();
-    renderActiveFilters();
-  },240));
-  search?.addEventListener('keydown',event=>{
-    if(event.key==='Enter'&&!event.shiftKey){
-      event.preventDefault();
-      state.search=search.value;
-      state.page=1;
-      loadRows();
-    }
-  });
-  $('searchScope')?.addEventListener('change',event=>{
-    state.searchScope=event.target.value||'AUTO';
-    state.page=1;
-    savePreferences();
-    loadRows();
-  });
-  $('btnClearSearch')?.addEventListener('click',()=>{
-    state.search='';
-    if(search) search.value='';
-    state.page=1;
-    updateSearchUI();
-    savePreferences();
-    syncUrlState();
-    loadRows();
-    renderActiveFilters();
-    search?.focus();
-  });
-
-  $('btnToggleAdvancedSearch')?.addEventListener('click',()=>{
-    const panel=$('advancedSearchPanel');
-    const open=!panel.hidden;
-    panel.hidden=open;
-    $('btnToggleAdvancedSearch').setAttribute('aria-expanded',String(!open));
-  });
-  ['advDateFrom','advDateTo','advValueMin','advValueMax','advAgeMin','advAgeMax'].forEach(id=>{
-    $(id)?.addEventListener('input',debounce(()=>{
-      readAdvancedControls();
-      state.page=1;
-      state.selectedRowIds.clear();
+  const globalSearch = $('globalSearch');
+  const searchScope = $('searchScope');
+  const clearSearch = $('btnClearSearch');
+  if(searchScope){
+    searchScope.value = state.searchScope || 'ALL';
+    searchScope.addEventListener('change', () => {
+      state.searchScope = searchScope.value || 'ALL';
+      state.page = 1;
+      updateSearchUI();
       savePreferences();
-      syncUrlState();
-      updateFilterUI();
-      refreshAll(false);
-    },320));
-  });
-  $('btnClearAdvanced')?.addEventListener('click',()=>{
-    state.dateFrom=state.dateTo=state.valueMin=state.valueMax=state.ageMin=state.ageMax='';
-    hydrateAdvancedSearch();
-    onFiltersChanged();
-  });
-
-  $('pageSize')?.addEventListener('change',event=>{
-    state.pageSize=Number(event.target.value||100);
-    state.page=1;
-    savePreferences();
-    loadRows();
-  });
-  $('prevPage')?.addEventListener('click',()=>{
-    if(state.page>1){state.page-=1;loadRows();}
-  });
-  $('nextPage')?.addEventListener('click',()=>{
-    state.page+=1;
-    loadRows();
-  });
-
-  $('btnCopySelected')?.addEventListener('click',copySelectedSummaries);
-  $('btnExportSelectedToolbar')?.addEventListener('click',()=>exportXlsx('selected'));
-  $('btnClearSelection')?.addEventListener('click',clearSelection);
-
-  $('densitySelect')?.addEventListener('change',event=>{
-    state.density=event.target.value;
-    savePreferences();
-    if(state.currentRows.length){
-      renderDataTable({
-        columns:state.currentColumns,
-        rows:state.currentRows,
-        total:state.currentTotal,
-        page:state.page,
-        pages:Math.max(1,Math.ceil(state.currentTotal/state.pageSize)),
-        from:state.currentTotal?(state.page-1)*state.pageSize+1:0,
-        to:Math.min(state.page*state.pageSize,state.currentTotal),
-      });
-    }
-  });
-
-  document.querySelectorAll('[data-ranking-mode]').forEach(button=>{
-    button.addEventListener('click',()=>setRankingMode(button.dataset.rankingMode));
-  });
-
-  document.addEventListener('click',event=>{
-    if(!event.target.closest('.smart-select')) closeAllPopovers();
-    if(!event.target.closest('#exportMenu')) closeExportMenu();
-  });
-  document.addEventListener('keydown',event=>{
-    if(event.key==='Escape'){
-      closeAllPopovers();
-      closeExportMenu();
-      closeAllDrawers();
-    }
-  });
-}
-
-function hydrateControlsFromState(){
-  const search=$('globalSearch');
-  if(search) search.value=state.search||'';
-  const scope=$('searchScope');
-  if(scope) scope.value=state.searchScope||'AUTO';
-  const size=$('pageSize');
-  if(size) size.value=String(state.pageSize||100);
-  const density=$('densitySelect');
-  if(density) density.value=state.density;
-  hydrateAdvancedSearch();
+      loadRows();
+    });
+  }
+  if(globalSearch){
+    globalSearch.value = state.search || '';
+    globalSearch.addEventListener('input', debounce((e) => {
+      state.search = String(e.target.value || '').slice(0, 200);
+      state.page = 1;
+      updateSearchUI();
+      scheduleRows();
+    }, 220));
+  }
+  if(clearSearch){
+    clearSearch.addEventListener('click', () => {
+      state.search = '';
+      if(globalSearch) globalSearch.value = '';
+      state.page = 1;
+      updateSearchUI();
+      savePreferences();
+      loadRows();
+      globalSearch?.focus();
+    });
+  }
   updateSearchUI();
-  updateFilterUI();
-}
 
-function hydrateAdvancedSearch(){
-  const values={
-    advDateFrom:state.dateFrom,
-    advDateTo:state.dateTo,
-    advValueMin:state.valueMin,
-    advValueMax:state.valueMax,
-    advAgeMin:state.ageMin,
-    advAgeMax:state.ageMax,
-  };
-  Object.entries(values).forEach(([id,value])=>{
-    const element=$(id);
-    if(element) element.value=value??'';
+  ['advDateFrom','advDateTo','advValueMin','advValueMax'].forEach(id => {
+    const el = $(id);
+    if(!el) return;
+    el.addEventListener('input', debounce(() => {
+      state.dateFrom = $('advDateFrom')?.value || '';
+      state.dateTo = $('advDateTo')?.value || '';
+      state.valueMin = $('advValueMin')?.value || '';
+      state.valueMax = $('advValueMax')?.value || '';
+      state.page = 1;
+      scheduleDashboard();
+    }, 350));
+  });
+  $('btnClearAdvanced')?.addEventListener('click', () => {
+    state.dateFrom = state.dateTo = state.valueMin = state.valueMax = '';
+    hydrateAdvancedSearch();
+    bindAdvancedSearchPanel();
+    state.page = 1;
+    scheduleDashboard();
+  });
+
+  $('btnClear').onclick = clearAll;
+  bindFilterDrawer();
+  $('btnRefresh').onclick = refreshData;
+  bindWorkbookUpload();
+  $('btnExportExcel').onclick = () => { closeExportMenu(); exportFile('excel'); };
+  $('btnExportPdf').onclick = () => { closeExportMenu(); exportPdf(); };
+  bindExportMenu();
+  bindAdvancedSearchPanel();
+  if($('pageSize')){ $('pageSize').value = String(state.pageSize || 50); $('pageSize').onchange = (e) => { state.pageSize = Number(e.target.value); state.page = 1; savePreferences(); loadRows(); }; }
+  $('prevPage').onclick = () => { if(state.page > 1){ state.page--; loadRows(); } };
+  $('nextPage').onclick = () => { state.page++; loadRows(); };
+
+  document.addEventListener('click', (e) => {
+    if(!e.target.closest('.smart-select')) closeAllPopovers();
+    if(!e.target.closest('#exportMenu')) closeExportMenu();
+  });
+
+  document.addEventListener('keydown', (e) => {
+    if(e.key === 'Escape'){ closeAllPopovers(); closeFilterDrawer(); closeExportMenu(); closeAdvancedSearchPanel(); }
+    const cmd = e.ctrlKey || e.metaKey;
+    if(e.altKey && e.key === '1'){ e.preventDefault(); switchTab('visao'); }
+    if(e.altKey && e.key === '2'){ e.preventDefault(); switchTab('base'); }
+    if(cmd && e.key.toLowerCase() === 'k'){ e.preventDefault(); switchTab('base'); setTimeout(() => $('globalSearch')?.focus(), 80); }
+    if(cmd && e.key.toLowerCase() === 'e'){ e.preventDefault(); exportFile('excel'); }
+    if(cmd && e.shiftKey && e.key.toLowerCase() === 'p'){ e.preventDefault(); exportPdf(); }
+    if(cmd && e.key === 'Backspace'){ e.preventDefault(); clearAll(); }
+    if(e.key === '?' && !['INPUT','TEXTAREA','SELECT'].includes(document.activeElement?.tagName || '')){
+      showToast('Atalhos: Alt+1 visão, Alt+2 tabela, Ctrl+K busca, Ctrl+E Excel, Ctrl+Shift+P PDF.');
+    }
+  });
+
+  document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.addEventListener('click', () => switchTab(btn.dataset.tab));
   });
 }
 
-function readAdvancedControls(){
-  state.dateFrom=$('advDateFrom')?.value||'';
-  state.dateTo=$('advDateTo')?.value||'';
-  state.valueMin=$('advValueMin')?.value??'';
-  state.valueMax=$('advValueMax')?.value??'';
-  state.ageMin=$('advAgeMin')?.value??'';
-  state.ageMax=$('advAgeMax')?.value??'';
+
+function searchScopeLabel(scope){
+  const labels = {
+    ALL:'Geral — nomes e números', REQUISICAO:'RC / Requisição', PEDIDO:'Pedido', FORNECEDOR:'Fornecedor',
+    SOLICITANTE:'Solicitante', EQUIPAMENTO:'Equipamento / Prefixo', DOCUMENTO:'Orçamento / OS / NF'
+  };
+  return labels[scope] || labels.ALL;
 }
 
-function updateSearchUI(){
-  const search=$('globalSearch');
-  const clear=$('btnClearSearch');
-  const help=$('searchHelp');
-  if(clear) clear.hidden=!state.search;
-  if(help){
-    const multi=splitSearchTerms(state.search).length>1;
-    help.textContent=multi
-      ?`${formatNumber(splitSearchTerms(state.search).length)} códigos ou termos serão pesquisados em conjunto.`
-      :'Cole um ou vários códigos, separados por linha, vírgula ou ponto e vírgula.';
-  }
-  if(search){
-    search.placeholder=state.searchScope==='FORNECEDOR'
-      ?'Digite o fornecedor...'
-      :state.searchScope==='SOLICITANTE'
-        ?'Digite o solicitante...'
-        :'Cole RCs, pedidos, NF, orçamento, fornecedor...';
-  }
+function searchPlaceholder(scope){
+  const labels = {
+    ALL:'Digite RC, pedido, fornecedor, solicitante ou equipamento...',
+    REQUISICAO:'Digite o número da RC...',
+    PEDIDO:'Digite o número do pedido...',
+    FORNECEDOR:'Digite o nome do fornecedor...',
+    SOLICITANTE:'Digite o nome do solicitante...',
+    EQUIPAMENTO:'Digite equipamento ou prefixo...',
+    DOCUMENTO:'Digite orçamento, OS ou NF...'
+  };
+  return labels[scope] || labels.ALL;
 }
 
-function updateSearchStatus(total){
-  const status=$('searchResultStatus');
-  if(!status) return;
-  if(!state.search){
-    status.textContent='';
-    status.hidden=true;
+function updateSearchUI(total=null){
+  const input = $('globalSearch');
+  const clear = $('btnClearSearch');
+  const help = $('searchHelp');
+  const scope = state.searchScope || 'ALL';
+  const term = String(state.search || '').trim();
+  if(input) input.placeholder = searchPlaceholder(scope);
+  if(clear) clear.hidden = !term;
+  if(!help) return;
+  help.classList.remove('no-results','has-results');
+  if(!term){
+    help.textContent = 'Escolha o tipo e digite o dado. Para RC, pedido, OS ou NF, prefira o número completo.';
     return;
   }
-  status.hidden=false;
-  status.textContent=`${formatNumber(total||0)} resultado${Number(total||0)===1?'':'s'} para a busca atual`;
+  if(total === null){
+    help.textContent = `Procurando “${term}” em ${searchScopeLabel(scope)}...`;
+    return;
+  }
+  const count = Number(total || 0);
+  if(count === 0){
+    help.textContent = `Nenhum registro encontrado para “${term}”. Confira o tipo de busca ou clique em Limpar.`;
+    help.classList.add('no-results');
+    return;
+  }
+  help.textContent = `${count.toLocaleString('pt-BR')} registro${count === 1 ? '' : 's'} encontrado${count === 1 ? '' : 's'} — a tabela abaixo já está filtrada.`;
+  help.classList.add('has-results');
 }
 
-function switchTab(tab){
-  state.activeTab=tab==='base'?'base':'visao';
-  document.querySelectorAll('[data-panel]').forEach(panel=>{
-    panel.hidden=panel.dataset.panel!==state.activeTab;
+function bindWorkbookUpload(){
+  const btn = $('btnUploadWorkbook');
+  const input = $('workbookUpload');
+  if(!btn || !input || btn.dataset.boundUpload === '1') return;
+  btn.dataset.boundUpload = '1';
+  btn.addEventListener('click', () => input.click());
+  input.addEventListener('change', async () => {
+    const file = input.files && input.files[0];
+    if(!file) return;
+    const ok = confirm(`Atualizar a base Excel com o arquivo:
+
+${file.name}
+
+A base anterior será salva em backup.`);
+    if(!ok){ input.value = ''; return; }
+    try{
+      setLoading(true);
+      const data = await uploadWorkbook(file);
+      showToast(`${data.message}. ${Number(data.linhas || 0).toLocaleString('pt-BR')} registros carregados.`);
+      state.page = 1;
+      state.search = '';
+      await refreshAll(true);
+    }catch(err){ showToast(err.message, true); }
+    finally{ input.value = ''; setLoading(false); }
   });
-  document.querySelectorAll('[data-tab]').forEach(button=>{
-    const active=button.dataset.tab===state.activeTab;
-    button.classList.toggle('active',active);
-    button.setAttribute('aria-selected',String(active));
-    button.tabIndex=active?0:-1;
+}
+
+function bindExportMenu(){
+  const btn = $('btnExportMenu');
+  const menu = $('exportDropdown');
+  if(!btn || !menu) return;
+  btn.addEventListener('click', (ev) => {
+    ev.stopPropagation();
+    const open = menu.hidden;
+    menu.hidden = !open;
+    btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+    btn.classList.toggle('active', open);
   });
-  savePreferences();
-  syncUrlState();
-  if(state.activeTab==='base'){
-    requestAnimationFrame(()=>$('globalSearch')?.focus({preventScroll:true}));
-  }
-}
-
-async function refreshAll(initial=false){
-  const dashboardSequence=++state.dashboardSeq;
-  const rowsSequence=++state.rowsSeq;
-  setBusy(true);
-  clearPersistentError();
-  try{
-    const tasks=[loadDashboard(dashboardSequence)];
-    if(state.activeTab==='base') tasks.push(loadRows(rowsSequence));
-    await Promise.all(tasks);
-    renderActiveFilters();
-  }catch(error){
-    showPersistentError(error.message);
-    if(!initial) showToast(error.message,true);
-  }finally{
-    setBusy(false);
-  }
-}
-
-async function refreshData(showSuccess=true){
-  if(state.isRefreshing) return;
-  state.isRefreshing=true;
-  setBusy(true);
-  try{
-    resetStaticData();
-    const result=await api('/api/refresh');
-    cacheClear();
-    const boot=await api('/api/bootstrap');
-    state.boot=boot;
-    renderMetadata(boot);
-    await refreshAll(false);
-    if(showSuccess) showToast(`${result.message}: ${formatNumber(result.linhas)} registros.`);
-  }catch(error){
-    showPersistentError(error.message);
-    showToast(error.message,true);
-  }finally{
-    state.isRefreshing=false;
-    setBusy(false);
-  }
-}
-
-function renderMetadata(boot){
-  const metadata=boot.metadata||{};
-  const generated=boot.generated_at?new Date(boot.generated_at):null;
-  const meta=$('meta');
-  const count=formatNumber(metadata.linhas||0);
-  if(meta){
-    meta.textContent=generated&&!Number.isNaN(generated.getTime())
-      ?`${count} registros · ${generated.toLocaleString('pt-BR',{dateStyle:'short',timeStyle:'short'})}`
-      :`${count} registros`;
-    meta.title=metadata.arquivo?`Fonte: ${metadata.arquivo}`:'Base estática';
-  }
-  const status=$('dataFreshness');
-  if(status&&generated&&!Number.isNaN(generated.getTime())){
-    const hours=(Date.now()-generated.getTime())/3600000;
-    const stale=hours>BUSINESS_RULES.targets.staleAfterHours;
-    status.className=`data-freshness ${stale?'stale':'fresh'}`;
-    status.textContent=stale?`Base desatualizada · ${Math.floor(hours)}h`:'Base atualizada';
-    status.title=`Gerada em ${generated.toLocaleString('pt-BR')}`;
-  }
-}
-
-function clearAll(){
-  state.filters={};
-  ensureFilterArrays();
-  state.search='';
-  state.searchScope='AUTO';
-  state.dateFrom=state.dateTo=state.valueMin=state.valueMax=state.ageMin=state.ageMax='';
-  state.page=1;
-  state.selectedRowIds.clear();
-  hydrateControlsFromState();
-  closeFilterDrawer();
-  savePreferences();
-  syncUrlState();
-  refreshAll(false);
-}
-
-function showPersistentError(message){
-  const banner=$('errorBanner');
-  if(!banner) return;
-  banner.hidden=false;
-  const text=banner.querySelector('[data-error-message]');
-  if(text) text.textContent=String(message||'Ocorreu um erro ao carregar o dashboard.');
-}
-
-function clearPersistentError(){
-  const banner=$('errorBanner');
-  if(banner) banner.hidden=true;
-}
-
-function openFilterDrawer(){
-  openDrawer('filterDrawer');
-  renderSavedViews();
-}
-
-function closeFilterDrawer(){
-  closeDrawer('filterDrawer');
-}
-
-function openColumnDrawer(){
-  renderColumnChooser();
-  openDrawer('columnDrawer');
-}
-
-function closeColumnDrawer(){
-  closeDrawer('columnDrawer');
-}
-
-function openDrawer(id){
-  const drawer=$(id);
-  if(!drawer) return;
-  state.lastFocus=document.activeElement;
-  drawer.classList.add('open');
-  drawer.setAttribute('aria-hidden','false');
-  if($('drawerBackdrop')) $('drawerBackdrop').hidden=false;
-  drawer.querySelector('button,input,select')?.focus();
-}
-
-function closeDrawer(id){
-  const drawer=$(id);
-  if(!drawer) return;
-  drawer.classList.remove('open');
-  drawer.setAttribute('aria-hidden','true');
-  const anyOpen=['filterDrawer','columnDrawer','detailDrawer'].some(drawerId=>$(drawerId)?.classList.contains('open'));
-  if(!anyOpen&&$('drawerBackdrop')) $('drawerBackdrop').hidden=true;
-}
-
-function closeAllDrawers(){
-  closeFilterDrawer();
-  closeColumnDrawer();
-  closeRowDetails();
-}
-
-function toggleExportMenu(){
-  const dropdown=$('exportDropdown');
-  const button=$('btnExportMenu');
-  if(!dropdown||!button) return;
-  const open=dropdown.hidden;
-  dropdown.hidden=!open;
-  button.setAttribute('aria-expanded',String(open));
 }
 
 function closeExportMenu(){
-  const dropdown=$('exportDropdown');
-  if(dropdown) dropdown.hidden=true;
-  $('btnExportMenu')?.setAttribute('aria-expanded','false');
+  const btn = $('btnExportMenu');
+  const menu = $('exportDropdown');
+  if(menu) menu.hidden = true;
+  if(btn){ btn.setAttribute('aria-expanded','false'); btn.classList.remove('active'); }
 }
 
-function encodeViewState(value){
-  const bytes=new TextEncoder().encode(JSON.stringify(value));
-  let binary='';
-  bytes.forEach(byte=>{binary+=String.fromCharCode(byte);});
-  return btoa(binary).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
-}
-
-function decodeViewState(value){
-  const padded=String(value||'').replace(/-/g,'+').replace(/_/g,'/');
-  const binary=atob(padded+'='.repeat((4-padded.length%4)%4));
-  const bytes=Uint8Array.from(binary,char=>char.charCodeAt(0));
-  return JSON.parse(new TextDecoder().decode(bytes));
-}
-
-function syncUrlState(){
-  try{
-    const url=new URL(window.location.href);
-    const compact=serializeViewState();
-    const hasContext=collectActiveContexts().length||state.activeTab==='base';
-    if(hasContext) url.searchParams.set('view',encodeViewState(compact));
-    else url.searchParams.delete('view');
-    history.replaceState(null,'',url);
-  }catch(error){
-    console.warn('Não foi possível sincronizar a URL:',error);
+function bindAdvancedSearchPanel(){
+  const btn = $('btnToggleAdvancedSearch');
+  const panel = $('advancedSearchPanel');
+  if(!btn || !panel) return;
+  const hasValues = () => Boolean(state.dateFrom || state.dateTo || state.valueMin || state.valueMax);
+  const setOpen = (open) => {
+    panel.hidden = !open;
+    btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+    btn.classList.toggle('active', open || hasValues());
+    document.body.classList.toggle('advanced-search-open', open);
+  };
+  setOpen(hasValues());
+  if(btn.dataset.boundAdvanced !== '1'){
+    btn.dataset.boundAdvanced = '1';
+    btn.addEventListener('click', () => setOpen(panel.hidden));
   }
 }
 
-function applyUrlState(){
+function closeAdvancedSearchPanel(){
+  const panel = $('advancedSearchPanel');
+  const btn = $('btnToggleAdvancedSearch');
+  const hasValues = Boolean(state.dateFrom || state.dateTo || state.valueMin || state.valueMax);
+  if(!panel || !btn || hasValues) return;
+  panel.hidden = true;
+  btn.setAttribute('aria-expanded','false');
+  btn.classList.remove('active');
+  document.body.classList.remove('advanced-search-open');
+}
+
+function bindFilterDrawer(){
+  $('btnOpenFilters')?.addEventListener('click', openFilterDrawer);
+  $('btnCloseFilters')?.addEventListener('click', closeFilterDrawer);
+  $('drawerBackdrop')?.addEventListener('click', closeFilterDrawer);
+}
+
+function openFilterDrawer(){
+  state.lastFocus = document.activeElement;
+  const drawer = $('filterDrawer');
+  const backdrop = $('drawerBackdrop');
+  if(!drawer) return;
+  drawer.classList.add('open');
+  drawer.setAttribute('aria-hidden','false');
+  if(backdrop){ backdrop.hidden = false; requestAnimationFrame(()=>backdrop.classList.add('show')); }
+  setTimeout(() => $('btnCloseFilters')?.focus(), 60);
+}
+
+function closeFilterDrawer(){
+  const drawer = $('filterDrawer');
+  const backdrop = $('drawerBackdrop');
+  if(drawer){ drawer.classList.remove('open'); drawer.setAttribute('aria-hidden','true'); }
+  if(backdrop){ backdrop.classList.remove('show'); setTimeout(()=>{ backdrop.hidden = true; }, 180); }
+  if(state.lastFocus && typeof state.lastFocus.focus === 'function') setTimeout(() => state.lastFocus.focus(), 80);
+}
+
+function bindQuickChips(){
+  document.querySelectorAll('#quickChips .quick-chip').forEach(btn => {
+    btn.addEventListener('click', () => applyQuickFilter(btn.dataset.quick || 'TODAS'));
+  });
+}
+
+function applyQuickFilter(kind){
+  // Mantém filtros principais de solicitante/fornecedor/mês e só altera os filtros rápidos.
+  state.filters['SLA STATUS'] = [];
+  state.filters['FAIXA ATRASO'] = [];
+  if(!['SEM_NF','SEM_LANCAMENTO','SEM_PEDIDO'].includes(kind)) state.filters['ETAPA'] = [];
+  if(kind === 'FORA_SLA') state.filters['SLA STATUS'] = ['ATENÇÃO','CRÍTICO'];
+  if(kind === 'CRITICO') state.filters['SLA STATUS'] = ['CRÍTICO'];
+  if(kind === '15_DIAS') state.filters['FAIXA ATRASO'] = ['15+ dias','30+ dias'];
+  if(kind === '30_DIAS') state.filters['FAIXA ATRASO'] = ['30+ dias'];
+  if(kind === 'SEM_NF') state.filters['ETAPA'] = ['SEM NF'];
+  if(kind === 'SEM_LANCAMENTO') state.filters['ETAPA'] = ['SEM LANÇAMENTO'];
+  if(kind === 'SEM_PEDIDO') state.filters['ETAPA'] = ['SEM PEDIDO'];
+  if(kind === 'TODAS'){
+    state.filters['SLA STATUS'] = [];
+    state.filters['FAIXA ATRASO'] = [];
+    state.filters['ETAPA'] = [];
+  }
+  state.page = 1;
+  syncQuickChips(kind);
+  updateFilterUI();
+  scheduleDashboard();
+}
+
+function syncQuickChips(activeKind=null){
+  let kind = activeKind || 'TODAS';
+  const sla = state.filters['SLA STATUS'] || [];
+  const faixa = state.filters['FAIXA ATRASO'] || [];
+  const etapa = state.filters['ETAPA'] || [];
+  if(etapa.includes('SEM LANÇAMENTO')) kind = 'SEM_LANCAMENTO';
+  else if(etapa.includes('SEM PEDIDO')) kind = 'SEM_PEDIDO';
+  else if(etapa.includes('SEM NF')) kind = 'SEM_NF';
+  else if(sla.length === 1 && sla.includes('CRÍTICO')) kind = 'CRITICO';
+  else if(sla.includes('ATENÇÃO') && sla.includes('CRÍTICO')) kind = 'FORA_SLA';
+  else if(faixa.includes('30+ dias') && faixa.includes('15+ dias')) kind = '15_DIAS';
+  else if(faixa.length === 1 && faixa.includes('30+ dias')) kind = '30_DIAS';
+  document.querySelectorAll('#quickChips .quick-chip').forEach(btn => btn.classList.toggle('active', btn.dataset.quick === kind));
+}
+
+function switchTab(tab){
+  const selected = tab || 'visao';
+  state.activeTab = selected;
+  savePreferences();
+  document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.tab === selected);
+  });
+  document.querySelectorAll('[data-panel]').forEach(panel => {
+    panel.hidden = panel.dataset.panel !== selected;
+  });
+  document.body.classList.toggle('active-tab-visao', selected === 'visao');
+  document.body.classList.toggle('active-tab-base', selected === 'base');
+  closeAllPopovers();
+  closeFilterDrawer();
+  if(selected === 'base') loadRows();
+  window.scrollTo({top: 0, behavior: 'auto'});
+}
+
+function clearAll(){
+  Object.keys(state.filters).forEach(k => state.filters[k] = []);
+  state.search = '';
+  state.dateFrom = state.dateTo = state.valueMin = state.valueMax = '';
+  state.page = 1;
+  if($('globalSearch')) $('globalSearch').value = '';
+  updateSearchUI();
+  hydrateAdvancedSearch();
+  updateFilterUI();
+  syncQuickChips('TODAS');
+  closeAllPopovers();
+  closeFilterDrawer();
+  savePreferences();
+  refreshAll(true);
+}
+
+async function refreshData(){
   try{
-    const url=new URL(window.location.href);
-    const encoded=url.searchParams.get('view');
-    if(!encoded) return;
-    applyViewState(decodeViewState(encoded));
-  }catch(error){
-    console.warn('Link de visão inválido:',error);
+    setLoading(true);
+    cacheClear();
+    await api('/api/refresh', {});
+    showToast('Dados atualizados da base estática.');
+    await refreshAll(false);
+  }catch(err){ showToast(err.message, true); }
+  finally{ setLoading(false); }
+}
+
+async function refreshAll(withLoader=true){
+  const seq = ++state.dashboardSeq;
+  // Previne requisições concorrentes: se houver uma requisição em andamento, ignora esta
+  if(state.isRefreshing && seq !== state.dashboardSeq) return;
+  try{
+    if(withLoader) setLoading(true);
+    updateFilterUI();
+    await loadDashboard(seq);
+    if(state.activeTab === 'base') await loadRows(seq);
+  }catch(err){ 
+    console.error('Erro em refreshAll:', err);
+    showToast(err.message || 'Erro ao atualizar dashboard', true); 
+  }
+  finally{ 
+    if(seq === state.dashboardSeq) {
+      if(withLoader) setLoading(false);
+    }
   }
 }
 
-async function copyCurrentViewLink(){
-  syncUrlState();
-  await copyText(window.location.href);
-  showToast('Link da visão atual copiado.');
+function setLoading(on){
+  state.isRefreshing = on;
+  document.body.classList.toggle('loading', on);
+  document.body.setAttribute('aria-busy', on ? 'true' : 'false');
+  ['btnRefresh','btnUploadWorkbook','btnExportExcel','btnExportPdf','btnClear','btnExportMenu','btnToggleAdvancedSearch','btnClearSearch'].forEach(id => { const el=$(id); if(el) el.disabled=on; });
 }

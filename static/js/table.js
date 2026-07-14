@@ -1,350 +1,182 @@
-'use strict';
-
-const DEFAULT_COLUMN_ORDER = [
-  'ETAPA','DIAS PARADO','SLA STATUS','DONO DA AÇÃO',
-  'DATA DE RECEBIMENTO','DATA LANÇAMENTO','Nº ORÇAMENTO FINAL','VALOR TOTAL',
-  'FORNECEDOR','SOLICITANTE','PREFIXO','EQUIPAMENTO','Nº REQUISIÇÃO','Nº PEDIDO DE COMPRA',
-  'FAIXA ATRASO',
-];
-
-async function loadRows(sequence=null){
-  const requestSequence=sequence||++state.rowsSeq;
-  const data=await api('/api/rows',tableQuery());
-  if(requestSequence!==state.rowsSeq) return;
-  state.page=data.page;
-  state.currentRows=data.rows||[];
-  state.currentColumns=data.columns||[];
-  state.currentTotal=Number(data.total||0);
-  if(!state.visibleColumns.length){
-    state.visibleColumns=[
-      ...DEFAULT_COLUMN_ORDER.filter(column=>data.columns.includes(column)),
-      ...data.columns.filter(column=>!DEFAULT_COLUMN_ORDER.includes(column)),
-    ];
-  }else{
-    state.visibleColumns=state.visibleColumns.filter(column=>data.columns.includes(column));
-    if(!state.visibleColumns.length) state.visibleColumns=data.columns.slice();
-  }
-  renderDataTable(data);
-  renderSelectionToolbar();
-  renderColumnChooser();
+async function loadRows(seq=null){
+  const requestSeq = seq || ++state.rowsSeq;
+  const data = await api('/api/rows', tableQuery());
+  if(seq && seq !== state.dashboardSeq) return;
+  if(!seq && requestSeq !== state.rowsSeq) return;
+  state.page = data.page;
+  const table = $('dataTable');
+  const thead = table.querySelector('thead');
+  const tbody = table.querySelector('tbody');
+  // V90: mantém os dados intactos, mas coloca o valor total junto do orçamento,
+  // antes dos nomes, para a liderança enxergar dinheiro sem rolar horizontalmente.
+  const preferredOrder = [
+    'ETAPA','DIAS PARADO','SLA STATUS','DONO DA AÇÃO',
+    'DATA DE RECEBIMENTO','DATA LANÇAMENTO','Nº ORÇAMENTO FINAL','VALOR TOTAL',
+    'FORNECEDOR','SOLICITANTE','PREFIXO','EQUIPAMENTO','Nº REQUISIÇÃO','Nº PEDIDO DE COMPRA',
+    'FAIXA ATRASO'
+  ];
+  const sourceColumns = Array.isArray(data.columns) ? data.columns : [];
+  const columns = [
+    ...preferredOrder.filter(col => sourceColumns.includes(col)),
+    ...sourceColumns.filter(col => !preferredOrder.includes(col))
+  ];
+  thead.innerHTML = '<tr>' + columns.map(c => renderHeader(c)).join('') + '</tr>';
+  tbody.innerHTML = data.rows.map(row => `<tr class="${stageClass(row._ETAPA)}">` + columns.map(c => renderCell(c, row[c], row._ETAPA, row)).join('') + '</tr>').join('');
+  thead.querySelectorAll('th.sortable').forEach(th => th.onclick = () => sortBy(th.dataset.col));
+  $('tableCounter').textContent = `${Number(data.from).toLocaleString('pt-BR')}-${Number(data.to).toLocaleString('pt-BR')} de ${Number(data.total).toLocaleString('pt-BR')} registros`;
+  $('pageInfo').textContent = `${data.page}/${data.pages}`;
+  $('prevPage').disabled = data.page <= 1;
+  $('nextPage').disabled = data.page >= data.pages;
+  updateSearchUI(data.total);
 }
 
-function renderDataTable(data){
-  const table=$('dataTable');
-  if(!table) return;
-  table.className=`density-${state.density}`;
-  const columns=state.visibleColumns.filter(column=>data.columns.includes(column));
-  const thead=table.querySelector('thead');
-  const tbody=table.querySelector('tbody');
-  const allPageSelected=data.rows.length>0&&data.rows.every(row=>state.selectedRowIds.has(Number(row._ROW_ID)));
-  thead.innerHTML=`<tr>
-    <th class="select-column"><input id="selectPageRows" type="checkbox" aria-label="Selecionar todos os registros desta página" ${allPageSelected?'checked':''}/></th>
-    ${columns.map(renderHeader).join('')}
-    <th class="actions-column"><span class="sr-only">Ações</span></th>
-  </tr>`;
-  if(!data.rows.length){
-    tbody.innerHTML=`<tr><td colspan="${columns.length+2}" class="table-empty"><strong>Nenhum registro encontrado</strong><span>Revise os filtros ou a busca aplicada.</span></td></tr>`;
-  }else{
-    tbody.innerHTML=data.rows.map(row=>{
-      const id=Number(row._ROW_ID||0);
-      const selected=state.selectedRowIds.has(id);
-      return `<tr class="${stageClass(row._ETAPA)}${selected?' selected-row':''}" data-row-id="${id}">
-        <td class="select-column"><input type="checkbox" class="row-select" aria-label="Selecionar registro ${id}" data-row-select="${id}" ${selected?'checked':''}/></td>
-        ${columns.map(column=>renderCell(column,row[column],row)).join('')}
-        <td class="actions-column"><button type="button" class="row-detail-button" data-row-detail="${id}" aria-label="Abrir detalhes do registro ${id}">Detalhes</button></td>
-      </tr>`;
-    }).join('');
-  }
-  bindTableInteractions();
-  setText('tableCounter',`${formatNumber(data.from)}–${formatNumber(data.to)} de ${formatNumber(data.total)} registros`);
-  setText('pageInfo',`${data.page}/${data.pages}`);
-  $('prevPage').disabled=data.page<=1;
-  $('nextPage').disabled=data.page>=data.pages;
-  updateSearchStatus(data.total);
-}
-
-function headerInfo(column){
-  const map={
-    'ETAPA':['Etapa','situação'],
-    'DIAS PARADO':['Dias parado','prioridade'],
-    'SLA STATUS':['Atenção','tratativa'],
-    'DONO DA AÇÃO':['Depende de','responsável'],
-    'FAIXA ATRASO':['Faixa','tempo parado'],
-    'DATA DE RECEBIMENTO':['Recebido em','entrada'],
-    'DATA LANÇAMENTO':['Lançado em','sistema'],
-    'Nº ORÇAMENTO FINAL':['Orçamento','referência'],
-    'FORNECEDOR':['Fornecedor','empresa'],
-    'SOLICITANTE':['Solicitante','responsável'],
-    'PREFIXO':['Prefixo','ativo'],
-    'EQUIPAMENTO':['Equipamento','descrição'],
-    'VALOR TOTAL':['Valor total','R$'],
-    'Nº REQUISIÇÃO':['Requisição','RC'],
-    'Nº PEDIDO DE COMPRA':['Pedido','PC'],
+function headerInfo(col){
+  const map = {
+    'ETAPA': ['Etapa', 'situação'],
+    'DIAS PARADO': ['Dias parado', 'prioridade'],
+    'SLA STATUS': ['Atenção', 'tratativa'],
+    'DONO DA AÇÃO': ['Depende de', 'responsável'],
+    'FAIXA ATRASO': ['Tempo parado', 'faixa'],
+    'DATA DE RECEBIMENTO': ['Recebido em', 'entrada no PCM'],
+    'DATA LANÇAMENTO': ['Lançado em', 'lançamento no sistema'],
+    'Nº ORÇAMENTO FINAL': ['Orçamento', 'nº final'],
+    'PREFIXO': ['Prefixo', 'ativo/centro'],
+    'EQUIPAMENTO': ['Equipamento', 'descrição'],
+    'FORNECEDOR': ['Fornecedor', 'empresa'],
+    'VALOR TOTAL': ['Valor total', 'R$'],
+    'SOLICITANTE': ['Solicitante', 'responsável'],
+    'Nº REQUISIÇÃO': ['Requisição', 'RC'],
+    'Nº PEDIDO DE COMPRA': ['Pedido de compra', 'PC']
   };
-  return map[column]||[column,''];
+  return map[col] || [col, ''];
 }
 
-function renderHeader(column){
-  const [title,subtitle]=headerInfo(column);
-  const active=state.sortCol===column;
-  const ariaSort=active?(state.sortDir==='asc'?'ascending':'descending'):'none';
-  return `<th class="sortable ${columnClass(column)}${active?' active-sort':''}" data-sort-column="${escapeAttr(column)}" aria-sort="${ariaSort}">
-    <button type="button" class="sort-button" title="Ordenar por ${escapeAttr(title)}">
-      <span><strong>${escapeHtml(title)}</strong>${subtitle?`<small>${escapeHtml(subtitle)}</small>`:''}</span>
-      <i aria-hidden="true">${active?(state.sortDir==='asc'?'↑':'↓'):'↕'}</i>
-    </button>
+function renderHeader(col){
+  const active = state.sortCol === col;
+  const directionText = active ? (state.sortDir === 'asc' ? 'crescente' : 'decrescente') : 'sem ordenação';
+  const [main, sub] = headerInfo(col);
+  return `<th class="sortable ${colClass(col)}${active ? ' active-sort' : ''}" data-col="${escapeAttr(col)}" title="Clique para ordenar por ${escapeAttr(col)} (${directionText})">
+    <span class="th-label"><span class="th-main">${escapeHtml(main)}</span>${sub ? `<span class="th-sub">${escapeHtml(sub)}</span>` : ''}</span><span class="sort-icon">${sortMark(col)}</span>
   </th>`;
 }
 
-function renderCell(column,value,row){
-  const className=columnClass(column);
-  const text=cleanText(value);
-  if(column==='ETAPA'){
-    return `<td class="${className}"><span class="stage-tag ${stageClass(text||row._ETAPA)}">${escapeHtml(displayStage(text||row._ETAPA))}</span></td>`;
-  }
-  if(column==='DIAS PARADO'){
-    const days=Number(row._DIAS_PARADO||String(text).replace(/[^0-9]/g,'')||0);
-    return `<td class="${className}"><span class="age-badge ${ageTone(days)}">${formatNumber(days)} dias</span></td>`;
-  }
-  if(column==='VALOR TOTAL'||column==='VALOR PEÇAS'||column==='VALOR SERVIÇO'){
-    return `<td class="${className} money-cell" title="${escapeAttr(text)}">${escapeHtml(text||'R$ 0,00')}</td>`;
-  }
-  if(column==='SLA STATUS'){
-    const days=Number(row._DIAS_PARADO||0);
-    const label=days>=BUSINESS_RULES.aging.severe?'Muito crítico'
-      :days>=BUSINESS_RULES.aging.critical?'Crítico'
-      :days>=BUSINESS_RULES.aging.high?'Prioridade'
-      :days>=BUSINESS_RULES.aging.attention?'Acompanhar'
-      :'Rotina';
-    return `<td class="${className}"><span class="status-pill ${ageTone(days)}">${label}</span></td>`;
-  }
-  const isCode=['Nº REQUISIÇÃO','Nº PEDIDO DE COMPRA','Nº ORÇAMENTO FINAL','Nº ORDEM SERVIÇO','Nº NFS/DANFE','PREFIXO'].includes(column);
-  if(!text) return `<td class="${className}"><span class="empty-dash">—</span></td>`;
-  const highlighted=highlightSearch(text);
-  if(isCode){
-    return `<td class="${className} code-cell"><span title="${escapeAttr(text)}">${highlighted}</span><button type="button" class="cell-copy" data-copy-value="${escapeAttr(text)}" aria-label="Copiar ${escapeAttr(text)}">⧉</button></td>`;
-  }
-  return `<td class="${className}" title="${escapeAttr(text)}"><span class="cell-text">${highlighted}</span></td>`;
+function emptyDash(val){
+  return String(val || '').trim() ? escapeHtml(val) : '<span class="empty-dash">—</span>';
 }
 
-function highlightSearch(value){
-  const escaped=escapeHtml(value);
-  const terms=splitSearchTerms(state.search);
-  if(!terms.length) return escaped;
-  const rawTokens=terms.flatMap(term=>term.split(' ')).filter(token=>token.length>=2).slice(0,8);
-  if(!rawTokens.length) return escaped;
-  let output=escaped;
-  rawTokens.forEach(token=>{
-    const safe=token.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
-    output=output.replace(new RegExp(`(${safe})`,'ig'),'<mark>$1</mark>');
-  });
-  return output;
+function parseCurrencyValue(value){
+  if(typeof value === 'number') return Number.isFinite(value) ? value : 0;
+  const raw = String(value ?? '').trim();
+  if(!raw) return 0;
+  let clean = raw.replace(/R\$/gi,'').replace(/\s/g,'').replace(/[^0-9,.-]/g,'');
+  if(clean.includes(',')) clean = clean.replace(/\./g,'').replace(',','.');
+  const number = Number(clean);
+  return Number.isFinite(number) ? number : 0;
+}
+function formatCurrencyBR(value){
+  return parseCurrencyValue(value).toLocaleString('pt-BR',{style:'currency',currency:'BRL',minimumFractionDigits:2,maximumFractionDigits:2});
 }
 
-function columnClass(column){
-  return `col-${normalizeText(column).toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'')}`;
-}
-
-function bindTableInteractions(){
-  $('selectPageRows')?.addEventListener('change',event=>{
-    state.currentRows.forEach(row=>{
-      const id=Number(row._ROW_ID||0);
-      if(event.target.checked) state.selectedRowIds.add(id);
-      else state.selectedRowIds.delete(id);
-    });
-    renderDataTable({
-      columns:state.currentColumns,
-      rows:state.currentRows,
-      total:state.currentTotal,
-      page:state.page,
-      pages:Math.max(1,Math.ceil(state.currentTotal/state.pageSize)),
-      from:state.currentTotal?(state.page-1)*state.pageSize+1:0,
-      to:Math.min(state.page*state.pageSize,state.currentTotal),
-    });
-    renderSelectionToolbar();
-  });
-  document.querySelectorAll('[data-row-select]').forEach(input=>{
-    input.addEventListener('change',()=>{
-      const id=Number(input.dataset.rowSelect);
-      if(input.checked) state.selectedRowIds.add(id);
-      else state.selectedRowIds.delete(id);
-      input.closest('tr')?.classList.toggle('selected-row',input.checked);
-      renderSelectionToolbar();
-    });
-  });
-  document.querySelectorAll('[data-row-detail]').forEach(button=>{
-    button.addEventListener('click',()=>openRowDetails(Number(button.dataset.rowDetail)));
-  });
-  document.querySelectorAll('[data-sort-column]').forEach(header=>{
-    header.querySelector('button')?.addEventListener('click',()=>sortBy(header.dataset.sortColumn));
-  });
-  document.querySelectorAll('[data-copy-value]').forEach(button=>{
-    button.addEventListener('click',async event=>{
-      event.stopPropagation();
-      await copyText(button.dataset.copyValue);
-      showToast('Valor copiado.');
-    });
-  });
-}
-
-function sortBy(column){
-  if(state.sortCol===column) state.sortDir=state.sortDir==='asc'?'desc':'asc';
-  else{
-    state.sortCol=column;
-    state.sortDir=DESC_FIRST_COLUMNS.has(column)?'desc':'asc';
+function renderCell(col, value, etapa, row={}){
+  const val = value || '';
+  const cls = colClass(col);
+  const safeTitle = escapeAttr(val || '');
+  if(col === 'ETAPA'){
+    return `<td class="${cls}"><span class="tag-etapa ${stageClass(val || etapa)}">${escapeHtml(val || etapa || '')}</span></td>`;
   }
-  state.page=1;
+  if(col === 'DIAS PARADO'){
+    const dias = parseInt(String(val || '0').replace(/[^0-9]/g, ''), 10) || 0;
+    let level = 'ok';
+    if(dias > 30) level = 'very-critical';
+    else if(dias > 15) level = 'critical';
+    else if(dias > 7) level = 'attention';
+    return `<td class="${cls}" title="Dias parado: ${safeTitle}"><span class="delay-badge ${level}">${escapeHtml(val || '0 dias')}</span></td>`;
+  }
+  if(col === 'SLA STATUS'){
+    // V92: a linguagem exibida segue o tempo real parado e a etapa.
+    // O SLA do backend continua disponível para ordenação e consistência,
+    // mas não é apresentado com rótulos exagerados para poucos dias.
+    const slaValue = String(val || '').trim().toUpperCase();
+    const etapaNorm = String(etapa || row.ETAPA || '').toUpperCase();
+    const dias = parseInt(String(row['DIAS PARADO'] || row._DIAS_PARADO || '0').replace(/[^0-9]/g, ''), 10) || 0;
+
+    let level = 'ok';
+    let display = 'Rotina';
+
+    if(slaValue === 'CONCLUÍDO' || slaValue === 'CONCLUIDO' || etapaNorm === 'CONCLUÍDO' || etapaNorm === 'CONCLUIDO'){
+      level = 'done';
+      display = 'Concluído';
+    }else if(dias >= 30){
+      level = 'critical';
+      display = 'Muito parado';
+    }else if(dias >= 16){
+      level = 'critical';
+      display = 'Prioridade alta';
+    }else if(dias >= 8){
+      level = 'attention';
+      display = 'Acompanhar';
+    }else if(etapaNorm === 'SEM LANÇAMENTO' || etapaNorm === 'SEM LANCAMENTO'){
+      level = slaValue === 'CRÍTICO' ? 'attention' : 'ok';
+      display = 'Conferir lançamento';
+    }else if(etapaNorm === 'SEM PEDIDO'){
+      level = slaValue === 'CRÍTICO' ? 'attention' : 'ok';
+      display = 'Acompanhar pedido';
+    }else if(etapaNorm === 'SEM NF'){
+      level = slaValue === 'CRÍTICO' ? 'attention' : 'ok';
+      display = 'Conferir NF';
+    }
+
+    return `<td class="${cls}" title="Tratativa: ${escapeAttr(display)} · ${Number(dias).toLocaleString('pt-BR')} dias"><span class="sla-badge ${level}">${escapeHtml(display)}</span></td>`;
+  }
+  if(col === 'DONO DA AÇÃO'){
+    return `<td class="${cls}" title="Depende de: ${safeTitle}"><span class="owner-pill">${emptyDash(val)}</span></td>`;
+  }
+  if(col === 'FAIXA ATRASO'){
+    return `<td class="${cls}" title="Tempo parado: ${safeTitle}"><span class="delay-range">${emptyDash(val)}</span></td>`;
+  }
+  if(col === 'DATA DE RECEBIMENTO'){
+    const content = String(val || '').trim() ? `<span class="date-chip received">${escapeHtml(val)}</span>` : `<span class="date-chip missing">Sem data</span>`;
+    return `<td class="${cls}" title="Data de recebimento: ${safeTitle}">${content}</td>`;
+  }
+  if(col === 'DATA LANÇAMENTO'){
+    const content = String(val || '').trim() ? `<span class="date-chip launched">${escapeHtml(val)}</span>` : `<span class="date-chip pending">Sem lançamento</span>`;
+    return `<td class="${cls}" title="Data de lançamento: ${safeTitle}">${content}</td>`;
+  }
+  if(col === 'Nº ORÇAMENTO FINAL'){
+    return `<td class="${cls}" title="Orçamento: ${safeTitle}"><span class="orcamento-pill">${emptyDash(val)}</span></td>`;
+  }
+  if(col === 'FORNECEDOR'){
+    return `<td class="${cls}" title="Fornecedor: ${safeTitle}"><span class="supplier-text">${emptyDash(val)}</span></td>`;
+  }
+  if(col === 'SOLICITANTE'){
+    return `<td class="${cls}" title="Solicitante: ${safeTitle}"><span class="person-text">${emptyDash(val)}</span></td>`;
+  }
+  if(col === 'VALOR TOTAL'){
+    const formatted = formatCurrencyBR(row._VALOR_TOTAL ?? val);
+    return `<td class="${cls} money-td-v89" title="Valor total: ${escapeAttr(formatted)}"><span class="money-cell money-cell-v89">${escapeHtml(formatted)}</span></td>`;
+  }
+  if(col === 'Nº REQUISIÇÃO' || col === 'Nº PEDIDO DE COMPRA' || col === 'PREFIXO'){
+    return `<td class="${cls}" title="${safeTitle}"><span class="code-cell">${emptyDash(val)}</span></td>`;
+  }
+  return `<td class="${cls}" title="${safeTitle}">${emptyDash(val)}</td>`;
+}
+
+function colClass(col){
+  return 'col-' + String(col || '')
+    .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase().replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-|-$/g, '');
+}
+
+function sortMark(col){
+  if(state.sortCol !== col) return '↕';
+  return state.sortDir === 'asc' ? '↑' : '↓';
+}
+function defaultSortDir(col){ return DESC_FIRST_COLUMNS.has(col) ? 'desc' : 'asc'; }
+function sortBy(col){
+  if(state.sortCol === col) state.sortDir = state.sortDir === 'asc' ? 'desc' : 'asc';
+  else { state.sortCol = col; state.sortDir = defaultSortDir(col); }
+  state.page = 1;
   savePreferences();
   loadRows();
-}
-
-function renderSelectionToolbar(){
-  const toolbar=$('selectionToolbar');
-  if(!toolbar) return;
-  const count=state.selectedRowIds.size;
-  toolbar.hidden=count===0;
-  if(!count) return;
-  setText('selectedCount',`${formatNumber(count)} selecionado${count===1?'':'s'}`);
-}
-
-async function copySelectedSummaries(){
-  if(!state.selectedRowIds.size) return;
-  const db=await loadStaticData();
-  const rows=db.rows.filter(row=>state.selectedRowIds.has(Number(row._ROW_ID||0)));
-  const summaries=rows.map(row=>[
-    `RC ${cleanText(row['Nº REQUISIÇÃO'])||'não informada'}`,
-    `Fornecedor: ${cleanText(row.FORNECEDOR)||'não informado'}`,
-    `Etapa: ${displayStage(stageName(row))}`,
-    `Valor: ${formatMoney(rowValue(row))}`,
-    `Parada há ${formatNumber(effectiveDays(row))} dias`,
-  ].join('\n'));
-  await copyText(summaries.join('\n\n'));
-  showToast(`${formatNumber(rows.length)} resumo${rows.length===1?'':'s'} copiado${rows.length===1?'':'s'}.`);
-}
-
-function clearSelection(){
-  state.selectedRowIds.clear();
-  renderSelectionToolbar();
-  if(state.currentRows.length){
-    renderDataTable({
-      columns:state.currentColumns,
-      rows:state.currentRows,
-      total:state.currentTotal,
-      page:state.page,
-      pages:Math.max(1,Math.ceil(state.currentTotal/state.pageSize)),
-      from:state.currentTotal?(state.page-1)*state.pageSize+1:0,
-      to:Math.min(state.page*state.pageSize,state.currentTotal),
-    });
-  }
-}
-
-async function openRowDetails(rowId){
-  const drawer=$('detailDrawer');
-  const backdrop=$('drawerBackdrop');
-  const body=$('detailDrawerBody');
-  if(!drawer||!body) return;
-  state.lastFocus=document.activeElement;
-  drawer.classList.add('open');
-  drawer.setAttribute('aria-hidden','false');
-  if(backdrop) backdrop.hidden=false;
-  body.innerHTML='<div class="drawer-loading">Carregando detalhes...</div>';
-  try{
-    const detail=await api('/api/row',{row_id:rowId});
-    renderRowDetails(detail);
-  }catch(error){
-    body.innerHTML=`<div class="drawer-error">${escapeHtml(error.message)}</div>`;
-  }
-  $('btnCloseDetails')?.focus();
-}
-
-function closeRowDetails(){
-  const drawer=$('detailDrawer');
-  drawer?.classList.remove('open');
-  drawer?.setAttribute('aria-hidden','true');
-  const filterOpen=$('filterDrawer')?.classList.contains('open');
-  const columnOpen=$('columnDrawer')?.classList.contains('open');
-  if(!filterOpen&&!columnOpen&&$('drawerBackdrop')) $('drawerBackdrop').hidden=true;
-  state.lastFocus?.focus?.();
-}
-
-function renderRowDetails(detail){
-  const body=$('detailDrawerBody');
-  if(!body) return;
-  const data=detail.data||{};
-  const groups=[
-    ['Identificação',['Nº REQUISIÇÃO','Nº PEDIDO DE COMPRA','Nº ORÇAMENTO FINAL','Nº ORDEM SERVIÇO','Nº NFS/DANFE']],
-    ['Tratativa',['ETAPA','DIAS PARADO','SLA STATUS','DONO DA AÇÃO','FAIXA ATRASO','STATUS']],
-    ['Datas',['DATA DE RECEBIMENTO','DATA LANÇAMENTO','DATA DO PEDIDO','DATA LANÇAMENTO NFS']],
-    ['Contexto',['FORNECEDOR','SOLICITANTE','PREFIXO','EQUIPAMENTO']],
-    ['Valores',['VALOR TOTAL','VALOR PEÇAS','VALOR SERVIÇO']],
-    ['Observações',['OBS ADICIONAIS']],
-  ];
-  const used=new Set();
-  const groupMarkup=groups.map(([title,columns])=>{
-    const rows=columns.filter(column=>column in data).map(column=>{
-      used.add(column);
-      return `<div class="detail-field"><span>${escapeHtml(headerInfo(column)[0])}</span><strong>${escapeHtml(cleanText(data[column])||'—')}</strong></div>`;
-    }).join('');
-    return rows?`<section class="detail-group"><h3>${title}</h3>${rows}</section>`:'';
-  }).join('');
-  const extra=Object.entries(data).filter(([column])=>!used.has(column)&&cleanText(data[column])).map(([column,value])=>
-    `<div class="detail-field"><span>${escapeHtml(column)}</span><strong>${escapeHtml(value)}</strong></div>`
-  ).join('');
-  body.innerHTML=`
-    <div class="detail-hero ${stageClass(detail.etapa)}"><span>${escapeHtml(displayStage(detail.etapa))}</span><strong>${formatNumber(detail.dias)} dias</strong><small>${formatMoney(detail.valor)}</small></div>
-    ${groupMarkup}
-    ${extra?`<section class="detail-group"><h3>Outros campos</h3>${extra}</section>`:''}`;
-  const summary=[
-    `RC ${cleanText(data['Nº REQUISIÇÃO'])||'não informada'}`,
-    `Fornecedor: ${cleanText(data.FORNECEDOR)||'não informado'}`,
-    `Etapa: ${displayStage(detail.etapa)}`,
-    `Valor: ${formatMoney(detail.valor)}`,
-    `Parada há ${formatNumber(detail.dias)} dias`,
-  ].join('\n');
-  const copyButton=$('btnCopyDetailSummary');
-  if(copyButton){
-    copyButton.onclick=async()=>{
-      await copyText(summary);
-      showToast('Resumo do registro copiado.');
-    };
-  }
-}
-
-function renderColumnChooser(){
-  const host=$('columnOptions');
-  if(!host||!state.currentColumns.length) return;
-  const visible=new Set(state.visibleColumns);
-  host.innerHTML=state.currentColumns.map(column=>`
-    <label class="column-option">
-      <input type="checkbox" value="${escapeAttr(column)}" ${visible.has(column)?'checked':''}/>
-      <span>${escapeHtml(headerInfo(column)[0])}</span>
-    </label>`).join('');
-}
-
-function applyColumnChooser(){
-  const checked=Array.from(document.querySelectorAll('#columnOptions input:checked')).map(input=>input.value);
-  if(!checked.length){
-    showToast('Mantenha pelo menos uma coluna visível.',true);
-    return;
-  }
-  state.visibleColumns=checked;
-  savePreferences();
-  closeColumnDrawer();
-  renderDataTable({
-    columns:state.currentColumns,
-    rows:state.currentRows,
-    total:state.currentTotal,
-    page:state.page,
-    pages:Math.max(1,Math.ceil(state.currentTotal/state.pageSize)),
-    from:state.currentTotal?(state.page-1)*state.pageSize+1:0,
-    to:Math.min(state.page*state.pageSize,state.currentTotal),
-  });
-}
-
-function resetColumns(){
-  state.visibleColumns=[
-    ...DEFAULT_COLUMN_ORDER.filter(column=>state.currentColumns.includes(column)),
-    ...state.currentColumns.filter(column=>!DEFAULT_COLUMN_ORDER.includes(column)),
-  ];
-  renderColumnChooser();
 }

@@ -1,0 +1,13 @@
+V78 — visão de liderança + foco PCM
+
+Melhorias aplicadas:
+- Status do processo não fica mais com aparência vermelha quando está BOM.
+- Farol agora trabalha com EXCELENTE/BOM/ATENÇÃO/REVISAR, sem “CRÍTICO” alarmista para liderança.
+- Base detalhada abre priorizando SEM LANÇAMENTO primeiro, depois SEM PEDIDO e SEM NF.
+- Coluna “Prazo” virou “Atenção” e troca CRÍTICO por “Muito parado”.
+- “Onde está parado” usa linguagem clara: Depende do fornecedor, Depende de compras, Depende do PCM.
+- Adicionado “Resumo para liderança” com botão Copiar resumo para WhatsApp/Teams.
+- Meta superior mostra data/hora de atualização gerada pelo JSON.
+- Mantém Cloudflare Pages, atualizador por planilha e wrangler.toml correto.
+
+Após copiar a v78 para o repositório, rode ATUALIZAR_DADOS.cmd se quiser manter a base Excel mais recente, faça Commit e Push.
