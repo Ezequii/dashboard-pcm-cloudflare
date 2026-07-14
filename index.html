@@ -5,9 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Controle de Requisições PCM 2026</title>
   <link rel="icon" type="image/png" href="/static/favicon.png" />
-  <link rel="stylesheet" href="/static/styles_v50_corrigido.css?v=983" />
+  <link rel="stylesheet" href="/static/styles_v50_corrigido.css?v=971" />
 </head>
-<body class="v44-polish v48-balanced v50-real-fix v51-visual-clean v66-premium v76-inteligente v78-lideranca-pcm v79-sem-resumo v79-refino-pcm v80-confiavel v81-estavel v82-oficial v86-table-lines v87-ranking v88-ranking-clear v89-simple-filters-search-money v90-layout-safe v91-layout-final v92-smart-polish v93-oldest-clear v94-kpis-smart v95-header-kpi-polish v96-oldest-compact v97-reliability-navigation v971-runtime-fix v982-executive-clean v983-flow-executive app-booting">
+<body class="v44-polish v48-balanced v50-real-fix v51-visual-clean v66-premium v76-inteligente v78-lideranca-pcm v79-sem-resumo v79-refino-pcm v80-confiavel v81-estavel v82-oficial v86-table-lines v87-ranking v88-ranking-clear v89-simple-filters-search-money v90-layout-safe v91-layout-final v92-smart-polish v93-oldest-clear v94-kpis-smart v95-header-kpi-polish v96-oldest-compact v97-reliability-navigation v971-runtime-fix app-booting">
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
   <div id="drawerBackdrop" class="drawer-backdrop no-print" hidden></div>
 
@@ -17,7 +17,7 @@
         <div class="brand-logo-box"><img src="/static/logo_amaggi.png" alt="AMAGGI" /></div>
         <div class="brand-copy-wrap">
           <div>
-            <div class="brand-title-line"><h1>Controle de Requisições PCM</h1>        <span class="version-pill-v34" aria-label="Versão visual premium">V98.3</span></div>
+            <div class="brand-title-line"><h1>Controle de Requisições PCM</h1>        <span class="version-pill-v34" aria-label="Versão visual premium">Visual v97.1 • correção de carregamento</span></div>
             <p class="subtitle-top">Controle de lançamento e acompanhamento — 2026</p>
           </div>
           <nav class="dashboard-tabs no-print prominent-tabs inline-tabs" aria-label="Navegação do dashboard">
@@ -76,148 +76,88 @@
 
     <section id="activeFilters" class="active-filters-v97 no-print" aria-live="polite" hidden></section>
 
-        <section class="executive-primary-v983" data-panel="visao" aria-label="Indicadores executivos">
-      <div class="primary-metrics-v983">
-        <article id="kpiValorAndamentoCard" class="primary-metric-v983 is-money" aria-live="polite">
-          <span>Valor em andamento</span>
-          <strong id="kValorPendente">R$ —</strong>
-          <small id="kValorPendenteSub">Carregando dados…</small>
-        </article>
-
-        <article id="kpiPendenciasCard" class="primary-metric-v983 is-pending" aria-live="polite">
-          <span>RCs em andamento</span>
-          <strong id="kPendencias">—</strong>
-          <small id="kPendenciasSub">Carregando composição…</small>
-        </article>
-
-        <article id="kpiConcluidoCard" class="primary-metric-v983 is-complete" aria-live="polite">
-          <span>Processo concluído</span>
-          <strong id="kPctConcluido">—%</strong>
-          <small id="kConcluidoSub">Meta operacional: 95%</small>
-          <span class="primary-progress-v983" aria-hidden="true">
-            <i id="completionProgressV983"></i>
-          </span>
-        </article>
-
-        <button id="firstFocusV983" type="button" class="primary-focus-v983" disabled>
-          <span class="primary-focus-label-v983">Primeiro foco recomendado</span>
-          <strong id="focusSupplierV983">Carregando prioridade…</strong>
-          <small id="focusMetaV983">Aguardando dados</small>
-          <span class="primary-focus-action-v983">Abrir na base <b aria-hidden="true">→</b></span>
-        </button>
-      </div>
-
-      <div class="executive-context-v983" aria-label="Alertas e contexto operacional">
-        <button id="kpiFocoPcmCard" type="button" class="context-item-v983 is-pcm">
-          <span>Fila direta do PCM</span>
-          <strong id="kValorForaSla">R$ —</strong>
-          <small id="kValorForaSlaSub">Carregando dados…</small>
-        </button>
-
-        <button id="farolRegional" type="button" class="context-item-v983 is-critical">
-          <span>Críticas acima de 30 dias</span>
-          <strong id="kFarolStatus">—</strong>
-          <small id="kFarolSub">Carregando dados…</small>
-        </button>
-
-        <button id="kpiMaisParadoCard" type="button" class="context-item-v983 is-oldest">
-          <span>Pendência mais antiga</span>
-          <strong id="kMaiorAtraso" class="oldest-value-v96">
-            <span class="oldest-days-number-v96">—</span>
-            <span class="oldest-days-unit-v96">dias</span>
-          </strong>
-          <small id="kMaiorAtrasoSub" class="oldest-context-v96">
-            <span class="oldest-empty-v96">Carregando dados…</span>
-          </small>
-        </button>
-      </div>
-    </section>
-
-    <section class="operations-grid-v983" data-panel="visao">
-      <article class="operations-panel-v983 process-panel-v983">
-        <header class="section-head-v983">
-          <div>
-            <span>Fluxo do processo</span>
-            <h2>Da requisição à conclusão</h2>
-          </div>
-          <small>Selecione uma etapa para abrir os registros</small>
-        </header>
-        <div id="processCards" class="process-flow-v983">
-          <div class="panel-loading-v971" role="status">Carregando etapas…</div>
-        </div>
+    <section class="kpi-grid essential-kpis executive-essential-kpis kpis-v33 kpi-no-scroll-v45" data-panel="visao">
+      <article id="kpiValorAndamentoCard" class="kpi-card metric-card kpi-pendente principal kpi-primary-v41" aria-live="polite">
+        <div class="kpi-icon">R$</div>
+        <div class="kpi-copy"><span>Valor em andamento</span><strong id="kValorPendente" aria-label="Carregando valor em andamento">R$ —</strong><small id="kValorPendenteSub">Carregando dados…</small></div>
       </article>
-
-      <article class="operations-panel-v983 priority-panel-v983">
-        <header class="section-head-v983">
-          <div>
-            <span>Fila prioritária do PCM</span>
-            <h2>Próximas ações</h2>
-          </div>
-          <small>Ordenada por etapa, idade e valor</small>
-        </header>
-        <div id="topPrioridades" class="priority-lines-v983">
-          <div class="panel-loading-v971" role="status">Carregando fila…</div>
-        </div>
+      <article id="kpiPendenciasCard" class="kpi-card metric-card kpi-pendencias kpi-primary-v41" aria-live="polite">
+        <div class="kpi-icon">!</div>
+        <div class="kpi-copy"><span>RCs em andamento</span><strong id="kPendencias" aria-label="Carregando RCs em andamento">—</strong><small id="kPendenciasSub">Carregando composição...</small></div>
+      </article>
+      <article id="kpiConcluidoCard" class="kpi-card metric-card kpi-concluido kpi-primary-v41" aria-live="polite">
+        <div class="kpi-icon">%</div>
+        <div class="kpi-copy"><span>Processo concluído</span><strong id="kPctConcluido" aria-label="Carregando percentual concluído">—%</strong><small id="kConcluidoSub">Carregando dados…</small></div>
+      </article>
+      <article id="kpiMaisParadoCard" class="kpi-card metric-card tempo kpi-atraso kpi-secondary-v41" aria-live="polite">
+        <div class="kpi-icon">D</div>
+        <div class="kpi-copy"><span>Pendência mais antiga</span><strong id="kMaiorAtraso" class="oldest-value-v96"><span class="oldest-days-number-v96">—</span><span class="oldest-days-unit-v96">dias</span></strong><small id="kMaiorAtrasoSub" class="oldest-context-v96"><span class="oldest-empty-v96">Carregando dados…</span></small></div>
+      </article>
+      <article id="kpiFocoPcmCard" class="kpi-card metric-card money kpi-sla kpi-secondary-v41" aria-live="polite">
+        <div class="kpi-icon">⏱</div>
+        <div class="kpi-copy"><span>Foco do PCM</span><strong id="kValorForaSla" aria-label="Carregando foco do PCM">R$ —</strong><small id="kValorForaSlaSub">Carregando dados…</small></div>
+      </article>
+      <article id="farolRegional" class="kpi-card metric-card farol-card-v33 farol-ok kpi-secondary-v41">
+        <div class="farol-dot"></div>
+        <div class="kpi-copy"><span>Status do processo</span><strong id="kFarolStatus" aria-label="Carregando status do processo">—</strong><small id="kFarolSub">Carregando dados…</small></div>
       </article>
     </section>
 
-    <section class="ranking-grid-v983" data-panel="visao">
-      <article class="ranking-table-v983">
-        <header class="section-head-v983">
-          <div>
-            <span>Concentração financeira</span>
-            <h2>Fornecedores com maior valor pendente</h2>
-          </div>
-          <small>Clique para filtrar a base</small>
-        </header>
-        <div class="ranking-columns-v983" aria-hidden="true">
-          <span>Fornecedor</span><span>RCs</span><span>Valor</span>
-        </div>
-        <div id="actionNowList" class="ranking-rows-v983">
-          <div class="panel-loading-v971" role="status">Carregando fornecedores…</div>
-        </div>
-      </article>
+    <section class="executive-comment-v33" data-panel="visao">
+      <div class="comment-label">Leitura rápida</div>
+      <p id="executiveComment" aria-live="polite">Carregando leitura executiva...</p>
+    </section>
 
-      <article class="ranking-table-v983">
-        <header class="section-head-v983">
-          <div>
-            <span>Origem da demanda</span>
-            <h2>Solicitantes com maior valor pendente</h2>
-          </div>
-          <small>Clique para filtrar a base</small>
-        </header>
-        <div class="ranking-columns-v983" aria-hidden="true">
-          <span>Solicitante</span><span>RCs</span><span>Valor</span>
-        </div>
-        <div id="ownersCriticos" class="ranking-rows-v983">
-          <div class="panel-loading-v971" role="status">Carregando solicitantes…</div>
-        </div>
+
+    <section class="cockpit-grid-v33" data-panel="visao">
+      <article class="chart-card cockpit-card funnel-card-v33">
+        <div class="chart-head"><h3>Etapas do processo</h3><span>Concluído, lançamento, pedido e NF</span></div>
+        <div id="processCards" class="process-grid process-grid-compact process-grid-executive process-cards-host process-v33"><div class="panel-loading-v971" role="status">Carregando etapas…</div></div>
+      </article>
+      <article class="chart-card cockpit-card priority-card-v33">
+        <div class="chart-head"><h3>Fila de tratativa PCM</h3><span>Prioriza o que falta lançar</span></div>
+        <div id="topPrioridades" class="priority-list-v33"><div class="panel-loading-v971" role="status">Carregando fila de tratativa…</div></div>
       </article>
     </section>
 
-    <section class="base-overview-v983" data-panel="base" hidden>
-      <div class="base-overview-copy-v983">
+    <section class="action-now-v33 rankings-zone-v88" data-panel="visao">
+      <article class="ranking-panel-v88 ranking-panel-suppliers-v88">
+        <div class="ranking-panel-head-v88">
+          <div><strong>Top 3 fornecedores</strong><span>Maiores valores movimentados</span></div>
+          <small>Clique para filtrar</small>
+        </div>
+        <div id="actionNowList" class="ranking-list-v88"><div class="panel-loading-v971" role="status">Carregando fornecedores…</div></div>
+      </article>
+      <article class="ranking-panel-v88 ranking-panel-requesters-v88">
+        <div class="ranking-panel-head-v88">
+          <div><strong>Top 3 solicitantes</strong><span>Maiores valores solicitados</span></div>
+          <small>Clique para filtrar</small>
+        </div>
+        <div id="ownersCriticos" class="ranking-list-v88"></div>
+      </article>
+    </section>
+
+    <section class="base-commandbar-v36" data-panel="base" hidden>
+      <div class="base-title-v36">
         <span>Base de Tratativa</span>
-        <strong>Registros operacionais</strong>
-        <small id="baseOverviewHintV983">Priorize sem lançamento; acompanhe pedido e NF.</small>
+        <strong>Base detalhada</strong>
+        <small>Foco principal: lançar/conferir o que está sem lançamento. Pedido e NF servem para acompanhamento.</small>
       </div>
-      <div class="base-overview-legend-v983" aria-label="Legenda de prioridade">
-        <span class="is-critical"><i></i>Muito parado</span>
-        <span class="is-warning"><i></i>Prioridade</span>
-        <span class="is-routine"><i></i>Rotina</span>
+      <div class="base-legend-v36">
+        <span><b></b> Muito parado</span>
+        <span><b></b> Prioridade</span>
+        <span><b></b> Rotina</span>
       </div>
     </section>
 
-    <section id="processCardsBase" class="base-stage-strip-v983" data-panel="base" hidden>
-      <div class="panel-loading-v971" role="status">Carregando etapas…</div>
-    </section>
+    <section id="processCardsBase" class="process-grid process-grid-compact process-grid-executive process-cards-host base-stage-cards" data-panel="base" hidden></section>
 
-<section class="table-card table-card-compact" data-panel="base" hidden>
+    <section class="table-card table-card-compact" data-panel="base" hidden>
       <div class="table-head">
         <div>
-          <h3>Registros</h3>
+          <h3>Registros da tratativa</h3>
           <p id="tableCounter">0 registros</p>
-          <small class="leader-table-note">Use busca e filtros para encontrar a tratativa necessária.</small>
+          <small class="leader-table-note">Tratativa operacional: comece pelos sem lançamento; depois acompanhe sem pedido e sem NF.</small>
         </div>
         <div class="table-tools no-print">
           <div class="smart-search-v89" role="search" aria-label="Pesquisa da base">
@@ -250,7 +190,7 @@
           </div>
           <div class="pager">
             <label>Exibir</label>
-            <select id="pageSize"><option>50</option><option selected>100</option><option>200</option><option>300</option></select>
+            <select id="pageSize"><option>50</option><option>100</option><option selected>200</option><option>300</option></select>
             <button id="prevPage" class="btn btn-small">Anterior</button>
             <span id="pageInfo">1/1</span>
             <button id="nextPage" class="btn btn-small">Próxima</button>
@@ -268,14 +208,14 @@
     </footer>
   </main>
 
-  <script src="/static/js/app-config.js?v=983"></script>
-  <script src="/static/js/state.js?v=983"></script>
-  <script src="/static/js/utils.js?v=983"></script>
-  <script src="/static/js/api.js?v=983"></script>
-  <script src="/static/js/filters.js?v=983"></script>
-  <script src="/static/js/dashboard.js?v=983"></script>
-  <script src="/static/js/table.js?v=983"></script>
-  <script src="/static/js/core.js?v=983"></script>
-  <script src="/static/js/main.js?v=983"></script>
+  <script src="/static/js/app-config.js?v=971"></script>
+  <script src="/static/js/state.js?v=971"></script>
+  <script src="/static/js/utils.js?v=971"></script>
+  <script src="/static/js/api.js?v=971"></script>
+  <script src="/static/js/filters.js?v=971"></script>
+  <script src="/static/js/dashboard.js?v=971"></script>
+  <script src="/static/js/table.js?v=971"></script>
+  <script src="/static/js/core.js?v=971"></script>
+  <script src="/static/js/main.js?v=971"></script>
 </body>
 </html>
