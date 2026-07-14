@@ -138,7 +138,7 @@ function bindEvents(){
 
 function searchScopeLabel(scope){
   const labels = {
-    ALL:'Tudo', REQUISICAO:'RC / Requisição', PEDIDO:'Pedido', FORNECEDOR:'Fornecedor',
+    ALL:'Geral — nomes e números', REQUISICAO:'RC / Requisição', PEDIDO:'Pedido', FORNECEDOR:'Fornecedor',
     SOLICITANTE:'Solicitante', EQUIPAMENTO:'Equipamento / Prefixo', DOCUMENTO:'Orçamento / OS / NF'
   };
   return labels[scope] || labels.ALL;
@@ -146,7 +146,7 @@ function searchScopeLabel(scope){
 
 function searchPlaceholder(scope){
   const labels = {
-    ALL:'Digite um número, nome ou equipamento...',
+    ALL:'Digite RC, pedido, fornecedor, solicitante ou equipamento...',
     REQUISICAO:'Digite o número da RC...',
     PEDIDO:'Digite o número do pedido...',
     FORNECEDOR:'Digite o nome do fornecedor...',
@@ -166,14 +166,23 @@ function updateSearchUI(total=null){
   if(input) input.placeholder = searchPlaceholder(scope);
   if(clear) clear.hidden = !term;
   if(!help) return;
+  help.classList.remove('no-results','has-results');
   if(!term){
-    help.textContent = 'Escolha o tipo de busca para encontrar o registro com mais precisão.';
-    help.classList.remove('no-results');
+    help.textContent = 'Escolha o tipo e digite o dado. Para RC, pedido, OS ou NF, prefira o número completo.';
     return;
   }
-  const countText = total === null ? 'Buscando' : `${Number(total).toLocaleString('pt-BR')} resultado${Number(total) === 1 ? '' : 's'}`;
-  help.textContent = `${countText} para “${term}” em ${searchScopeLabel(scope)}.`;
-  help.classList.toggle('no-results', total === 0);
+  if(total === null){
+    help.textContent = `Procurando “${term}” em ${searchScopeLabel(scope)}...`;
+    return;
+  }
+  const count = Number(total || 0);
+  if(count === 0){
+    help.textContent = `Nenhum registro encontrado para “${term}”. Confira o tipo de busca ou clique em Limpar.`;
+    help.classList.add('no-results');
+    return;
+  }
+  help.textContent = `${count.toLocaleString('pt-BR')} registro${count === 1 ? '' : 's'} encontrado${count === 1 ? '' : 's'} — a tabela abaixo já está filtrada.`;
+  help.classList.add('has-results');
 }
 
 function bindWorkbookUpload(){

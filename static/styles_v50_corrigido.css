@@ -6229,3 +6229,299 @@ body.v89-simple-filters-search-money .money-cell-v89::first-letter{
     grid-template-columns:1fr !important;
   }
 }
+
+
+/* =========================================================
+   V90 — correção estrutural e estabilidade visual
+   - 4 filtros sempre organizados
+   - metadados sem sobrepor KPIs
+   - rankings 50/50, sem painel espremido
+   - pesquisa mais clara
+   - valor total visível e com aparência monetária
+   ========================================================= */
+body.v90-layout-safe .topbar-row-filters-v40{
+  display:grid !important;
+  grid-template-columns:minmax(0,1fr) !important;
+  gap:6px !important;
+  align-items:stretch !important;
+  margin-top:8px !important;
+  min-height:0 !important;
+}
+body.v90-layout-safe .top-inline-filters,
+body.v90-layout-safe .top-filters-v40{
+  display:grid !important;
+  grid-template-columns:repeat(4,minmax(0,1fr)) !important;
+  gap:8px !important;
+  width:100% !important;
+  max-width:none !important;
+  min-width:0 !important;
+}
+body.v90-layout-safe .top-meta-v40{
+  grid-column:1 / -1 !important;
+  display:flex !important;
+  justify-content:flex-end !important;
+  align-items:center !important;
+  width:100% !important;
+  min-width:0 !important;
+  min-height:16px !important;
+  margin:0 !important;
+}
+body.v90-layout-safe .meta-chip-v40{
+  display:block !important;
+  max-width:100% !important;
+  height:auto !important;
+  padding:0 2px !important;
+  border-radius:0 !important;
+  background:transparent !important;
+  overflow:hidden !important;
+  text-overflow:ellipsis !important;
+  white-space:nowrap !important;
+  text-align:right !important;
+  font-size:10px !important;
+  line-height:1.2 !important;
+}
+
+/* O grid legado action-now tinha 3 colunas e espremia o primeiro ranking. */
+body.v50-real-fix.v51-visual-clean.v90-layout-safe.active-tab-visao .action-now-v33.rankings-zone-v88,
+body.v90-layout-safe.active-tab-visao .rankings-zone-v88{
+  display:grid !important;
+  grid-template-columns:minmax(0,1fr) minmax(0,1fr) !important;
+  gap:12px !important;
+  width:100% !important;
+  height:auto !important;
+  min-height:0 !important;
+  padding:12px !important;
+  overflow:visible !important;
+}
+body.v90-layout-safe.active-tab-visao .rankings-zone-v88 > .ranking-panel-v88{
+  grid-column:auto !important;
+  width:100% !important;
+  min-width:0 !important;
+  max-width:none !important;
+  padding:12px 14px !important;
+  border-radius:14px !important;
+  overflow:hidden !important;
+}
+body.v90-layout-safe .ranking-panel-head-v88{
+  margin-bottom:9px !important;
+}
+body.v90-layout-safe .ranking-panel-head-v88 strong{
+  font-size:12.5px !important;
+}
+body.v90-layout-safe .ranking-row-v88{
+  grid-template-columns:28px minmax(0,1fr) minmax(78px,auto) !important;
+  min-height:38px !important;
+  padding:7px 10px !important;
+}
+body.v90-layout-safe .ranking-row-v88 em{
+  min-width:78px !important;
+  text-align:right !important;
+  font-size:11.5px !important;
+}
+body.v90-layout-safe .ranking-content-v88 strong{
+  font-size:10.5px !important;
+}
+body.v90-layout-safe .ranking-content-v88 small{
+  font-size:8.8px !important;
+}
+
+/* Mais parado: etapa e código na mesma linha, sem texto quebrado. */
+body.v90-layout-safe .oldest-stage-row-v88{
+  display:flex !important;
+  align-items:center !important;
+  gap:5px !important;
+  width:100% !important;
+  min-width:0 !important;
+  white-space:nowrap !important;
+}
+body.v90-layout-safe .oldest-stage-pill-v88{
+  height:17px !important;
+  padding:0 6px !important;
+  font-size:8px !important;
+}
+body.v90-layout-safe .oldest-code-v88{
+  flex:1 1 auto !important;
+  min-width:0 !important;
+  font-size:8.4px !important;
+}
+
+/* Pesquisa guiada: bloco compacto, resposta legível e sem ambiguidade. */
+body.v90-layout-safe .smart-search-v89{
+  min-width:0 !important;
+  width:100% !important;
+  grid-template-columns:minmax(190px,220px) minmax(330px,1fr) auto !important;
+  gap:8px !important;
+}
+body.v90-layout-safe .search-help-v89{
+  min-height:16px !important;
+  padding-left:2px !important;
+  color:#667085 !important;
+  font-size:10px !important;
+  line-height:1.25 !important;
+}
+body.v90-layout-safe .search-help-v89.has-results{
+  color:#067647 !important;
+}
+body.v90-layout-safe .search-help-v89.no-results{
+  color:#B42318 !important;
+}
+body.v90-layout-safe .search-clear-v89{
+  min-width:74px !important;
+}
+
+/* Valor total: aparece cedo na tabela e é lido imediatamente como dinheiro. */
+body.v90-layout-safe #dataTable th.col-valor-total,
+body.v90-layout-safe #dataTable td.col-valor-total{
+  min-width:138px !important;
+  width:138px !important;
+  text-align:right !important;
+}
+body.v90-layout-safe .money-cell-v89{
+  min-width:122px !important;
+  border:0 !important;
+  border-radius:8px !important;
+  background:#EDF7FC !important;
+  color:#005B91 !important;
+  box-shadow:inset 0 0 0 1px #CFE5F1 !important;
+  font-size:11px !important;
+  letter-spacing:0 !important;
+}
+
+@media(max-width:1180px){
+  body.v90-layout-safe .top-inline-filters,
+  body.v90-layout-safe .top-filters-v40{grid-template-columns:repeat(2,minmax(0,1fr)) !important;}
+  body.v90-layout-safe .smart-search-v89{grid-template-columns:180px minmax(260px,1fr) auto !important;}
+}
+@media(max-width:900px){
+  body.v50-real-fix.v51-visual-clean.v90-layout-safe.active-tab-visao .action-now-v33.rankings-zone-v88,
+  body.v90-layout-safe.active-tab-visao .rankings-zone-v88{grid-template-columns:1fr !important;}
+}
+@media(max-width:720px){
+  body.v90-layout-safe .top-inline-filters,
+  body.v90-layout-safe .top-filters-v40{grid-template-columns:1fr !important;}
+  body.v90-layout-safe .top-meta-v40{justify-content:flex-start !important;}
+  body.v90-layout-safe .meta-chip-v40{text-align:left !important;white-space:normal !important;}
+  body.v90-layout-safe .smart-search-v89{grid-template-columns:1fr !important;}
+}
+
+
+/* =========================================================
+   V91 — estabilidade final de layout
+   Correções exclusivamente visuais:
+   - 4 filtros em uma linha no desktop, 2x2 em telas médias
+   - metadados em linha própria, sem sobrepor KPIs
+   - cabeçalho opaco para impedir conteúdo aparecendo por baixo
+   - espaçamento seguro entre cabeçalho e conteúdo
+   - nenhuma alteração de cálculo, filtro ou regra de negócio
+   ========================================================= */
+body.v91-layout-final .topbar{
+  height:auto !important;
+  min-height:0 !important;
+  overflow:visible !important;
+  background:#FAFCFD !important;
+  backdrop-filter:none !important;
+  -webkit-backdrop-filter:none !important;
+  box-shadow:0 6px 18px rgba(16,32,50,.06) !important;
+  isolation:isolate !important;
+}
+body.v91-layout-final .topbar-row-filters-v40{
+  position:relative !important;
+  display:grid !important;
+  grid-template-columns:minmax(0,1fr) !important;
+  grid-auto-flow:row !important;
+  grid-auto-rows:auto !important;
+  gap:7px !important;
+  width:calc(100vw - 36px) !important;
+  max-width:none !important;
+  min-width:0 !important;
+  margin:8px auto 0 !important;
+  padding:0 0 4px !important;
+  overflow:visible !important;
+}
+body.v91-layout-final .top-inline-filters,
+body.v91-layout-final .top-filters-v40,
+body.v50-real-fix.v91-layout-final.active-tab-visao .top-filters-v40,
+body.v50-real-fix.v91-layout-final.active-tab-base .top-filters-v40{
+  display:grid !important;
+  grid-template-columns:repeat(4,minmax(0,1fr)) !important;
+  gap:9px !important;
+  width:100% !important;
+  max-width:none !important;
+  min-width:0 !important;
+}
+body.v91-layout-final .top-inline-filters > .smart-select{
+  min-width:0 !important;
+  width:100% !important;
+}
+body.v91-layout-final .top-meta-v40{
+  position:static !important;
+  inset:auto !important;
+  transform:none !important;
+  grid-column:1 / -1 !important;
+  display:flex !important;
+  align-items:center !important;
+  justify-content:flex-end !important;
+  width:100% !important;
+  min-width:0 !important;
+  min-height:18px !important;
+  margin:0 !important;
+  padding:0 2px !important;
+  overflow:hidden !important;
+}
+body.v91-layout-final .meta-chip-v40,
+body.v50-real-fix.v91-layout-final.active-tab-visao .meta-chip-v40{
+  position:static !important;
+  display:block !important;
+  width:auto !important;
+  max-width:100% !important;
+  height:auto !important;
+  min-height:0 !important;
+  padding:0 !important;
+  margin:0 !important;
+  border:0 !important;
+  border-radius:0 !important;
+  background:transparent !important;
+  color:#5E6D81 !important;
+  font-size:10px !important;
+  font-weight:760 !important;
+  line-height:1.25 !important;
+  text-align:right !important;
+  white-space:nowrap !important;
+  overflow:hidden !important;
+  text-overflow:ellipsis !important;
+}
+body.v91-layout-final .page,
+body.v50-real-fix.v91-layout-final.active-tab-visao .page,
+body.v50-real-fix.v91-layout-final.active-tab-base .page{
+  padding-top:14px !important;
+}
+body.v91-layout-final.active-tab-base .base-commandbar-v36{
+  scroll-margin-top:150px !important;
+}
+@media(min-width:1040px){
+  body.v91-layout-final .top-inline-filters,
+  body.v91-layout-final .top-filters-v40,
+  body.v50-real-fix.v91-layout-final.active-tab-visao .top-filters-v40,
+  body.v50-real-fix.v91-layout-final.active-tab-base .top-filters-v40{
+    grid-template-columns:repeat(4,minmax(145px,1fr)) !important;
+  }
+}
+@media(max-width:1039px){
+  body.v91-layout-final .top-inline-filters,
+  body.v91-layout-final .top-filters-v40,
+  body.v50-real-fix.v91-layout-final.active-tab-visao .top-filters-v40,
+  body.v50-real-fix.v91-layout-final.active-tab-base .top-filters-v40{
+    grid-template-columns:repeat(2,minmax(0,1fr)) !important;
+  }
+  body.v91-layout-final .top-meta-v40{justify-content:flex-start !important;}
+  body.v91-layout-final .meta-chip-v40{text-align:left !important;}
+}
+@media(max-width:620px){
+  body.v91-layout-final .top-inline-filters,
+  body.v91-layout-final .top-filters-v40,
+  body.v50-real-fix.v91-layout-final.active-tab-visao .top-filters-v40,
+  body.v50-real-fix.v91-layout-final.active-tab-base .top-filters-v40{
+    grid-template-columns:1fr !important;
+  }
+  body.v91-layout-final .meta-chip-v40{white-space:normal !important;}
+}
