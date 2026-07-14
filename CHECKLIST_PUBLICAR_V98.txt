@@ -1,0 +1,17 @@
+CHECKLIST DE PUBLICAÇÃO — V98
+
+[ ] Executar: python tools/validar_v98.py
+[ ] Gerar ou copiar static/data/dashboard-data.json
+[ ] Gerar ou copiar static/data/version.json
+[ ] Publicar a pasta inteira
+[ ] Confirmar que a leitura rápida carrega quatro números
+[ ] Confirmar que o primeiro foco abre etapa + fornecedor
+[ ] Confirmar que os seis KPIs carregam
+[ ] Confirmar que Pendências críticas abre 30+ dias
+[ ] Confirmar que a barra de conclusão representa a meta de 95%
+[ ] Confirmar quantidade, valor e idade máxima nos cards das etapas
+[ ] Testar as quatro ordenações da fila
+[ ] Testar Em andamento e Total nos dois rankings
+[ ] Confirmar filtros, busca, recarregar e exportar CSV
+[ ] Testar em notebook e celular
+[ ] Confirmar ausência de erros no console

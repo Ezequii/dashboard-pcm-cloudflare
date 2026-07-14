@@ -571,3 +571,426 @@ function compactCurrency(value){
   if(abs >= 1000) return `R$ ${(val/1000).toFixed(0).replace('.', ',')} mil`;
   return val.toLocaleString('pt-BR', {style:'currency', currency:'BRL'});
 }
+
+/* ==========================================================================
+   V98 — clareza executiva e operação orientada à ação
+   ========================================================================== */
+(() => {
+  "use strict";
+
+  const originalRenderDashboardDataV98 = window.renderDashboardData;
+  let currentDashboardV98 = null;
+  let prioritySortV98 = "priority";
+  const rankingModeV98 = { supplier: "pending", requester: "pending" };
+
+  const getStageV98 = (data, stage) =>
+    (data?.etapas || []).find((item) => String(item.etapa || "").toUpperCase() === stage) || {};
+
+  const numberV98 = (value) => Number(value || 0);
+  const intV98 = (value) => numberV98(value).toLocaleString("pt-BR");
+  const pctV98 = (value) => `${numberV98(value).toFixed(1).replace(".", ",")}%`;
+
+  function contextLabelV98(){
+    const labels = Object.entries(state.filters || {})
+      .filter(([, values]) => Array.isArray(values) && values.length)
+      .map(([key, values]) => {
+        const definition = (state.mainFilters || []).find((item) => item.key === key);
+        const label = definition?.label || key;
+        return `${label}: ${values.length === 1 ? values[0] : `${values.length} selecionados`}`;
+      });
+
+    return labels.length ? `Visão filtrada · ${labels.slice(0, 2).join(" · ")}${labels.length > 2 ? " · +" + (labels.length - 2) : ""}` : "Visão geral";
+  }
+
+  function summarySnapshotV98(data){
+    const k = data?.kpis || {};
+    const semLanc = getStageV98(data, "SEM LANÇAMENTO");
+    const pendValue = (data?.etapas || [])
+      .filter((item) => String(item.etapa || "").toUpperCase() !== "CONCLUÍDO")
+      .reduce((sum, item) => sum + numberV98(item.valor), 0);
+    const total = numberV98(k.total_rcs);
+    const completed = numberV98(k.concluidas);
+
+    return {
+      version: String(state.dataVersion || state.generatedAt || "sem-versao"),
+      context: JSON.stringify(
+        Object.fromEntries(
+          Object.entries(state.filters || {})
+            .filter(([key]) => !["ETAPA", "SLA STATUS", "FAIXA ATRASO"].includes(key))
+            .sort(([a], [b]) => a.localeCompare(b))
+        )
+      ),
+      pendingValue: pendValue,
+      pending: numberV98(k.pendentes),
+      completion: total ? completed / total * 100 : 0,
+      pcm: numberV98(semLanc.qtd || k.rcs_sem_lancamento),
+      critical: numberV98(k.critical_pending),
+      oldest: numberV98(k.maior_atraso_dias)
+    };
+  }
+
+  function getPreviousSnapshotV98(snapshot){
+    const storageKey = "pcm_v98_dashboard_snapshots";
+    let store = {};
+
+    try {
+      store = JSON.parse(localStorage.getItem(storageKey) || "{}");
+    } catch (_) {
+      store = {};
+    }
+
+    const contextKey = snapshot.context || "{}";
+    const record = store[contextKey] || {};
+    let previous = record.previous || null;
+
+    if (!record.current) {
+      store[contextKey] = { current: snapshot, previous: null };
+    } else if (record.current.version !== snapshot.version) {
+      previous = record.current;
+      store[contextKey] = { current: snapshot, previous: record.current };
+    } else {
+      store[contextKey] = { current: snapshot, previous: record.previous || null };
+      previous = record.previous || null;
+    }
+
+    const keys = Object.keys(store);
+    if (keys.length > 12) {
+      keys.slice(0, keys.length - 12).forEach((key) => delete store[key]);
+    }
+
+    try {
+      localStorage.setItem(storageKey, JSON.stringify(store));
+    } catch (_) {
+      // O dashboard continua funcionando quando o armazenamento está bloqueado.
+    }
+
+    return previous;
+  }
+
+  function updateTrendV98(id, current, previous, options = {}){
+    const element = $(id);
+    if (!element) return;
+
+    element.classList.remove("is-good", "is-bad", "is-neutral");
+    if (!previous || !Number.isFinite(numberV98(previous))) {
+      element.classList.add("is-neutral");
+      element.textContent = options.fallback || "Comparação após a próxima atualização";
+      return;
+    }
+
+    const delta = numberV98(current) - numberV98(previous);
+    const absolute = Math.abs(delta);
+    const threshold = numberV98(options.threshold || 0.001);
+
+    if (absolute < threshold) {
+      element.classList.add("is-neutral");
+      element.textContent = "Sem mudança desde a atualização anterior";
+      return;
+    }
+
+    const improvement = options.higherIsBetter ? delta > 0 : delta < 0;
+    element.classList.add(improvement ? "is-good" : "is-bad");
+
+    let formatted;
+    if (options.kind === "currency") formatted = compactCurrency(absolute);
+    else if (options.kind === "percent") formatted = `${absolute.toFixed(1).replace(".", ",")} p.p.`;
+    else formatted = intV98(absolute);
+
+    element.textContent = `${delta > 0 ? "↑" : "↓"} ${formatted} desde a atualização anterior`;
+  }
+
+  function renderTrendsV98(data){
+    const snapshot = summarySnapshotV98(data);
+    const previous = getPreviousSnapshotV98(snapshot);
+    updateTrendV98("trendValorPendente", snapshot.pendingValue, previous?.pendingValue, {kind:"currency"});
+    updateTrendV98("trendPendencias", snapshot.pending, previous?.pending);
+    updateTrendV98("trendConcluido", snapshot.completion, previous?.completion, {
+      kind:"percent",
+      higherIsBetter:true,
+      fallback:`Meta: ${numberV98(window.BUSINESS_RULES?.targets?.completionPercent || 95)}%`
+    });
+    updateTrendV98("trendPcmQueue", snapshot.pcm, previous?.pcm, {
+      fallback:`Limite operacional: ${numberV98(window.BUSINESS_RULES?.targets?.maxPcmQueue || 40)} RCs`
+    });
+    updateTrendV98("trendCritical", snapshot.critical, previous?.critical, {
+      fallback:`Critério: acima de ${numberV98(window.BUSINESS_RULES?.aging?.critical || 30)} dias`
+    });
+    updateTrendV98("trendOldest", snapshot.oldest, previous?.oldest, {
+      fallback:snapshot.oldest ? "Maior idade entre as pendências" : "Sem pendência aberta"
+    });
+  }
+
+  function renderCompletionProgressV98(data){
+    const k = data?.kpis || {};
+    const total = numberV98(k.total_rcs);
+    const completed = numberV98(k.concluidas);
+    const completion = total ? completed / total * 100 : 0;
+    const target = numberV98(window.BUSINESS_RULES?.targets?.completionPercent || 95);
+    const progress = $("completionProgressV98");
+    const marker = $("completionTargetV98");
+
+    if (progress) progress.style.width = `${Math.max(0, Math.min(100, completion))}%`;
+    if (marker) {
+      marker.style.left = `${Math.max(0, Math.min(100, target))}%`;
+      marker.title = `Meta de conclusão: ${target}%`;
+    }
+  }
+
+  function renderCriticalKpiV98(data){
+    const k = data?.kpis || {};
+    const threshold = numberV98(k.critical_threshold_days || window.BUSINESS_RULES?.aging?.critical || 30);
+    const critical = numberV98(k.critical_pending);
+    const value = numberV98(k.critical_pending_value);
+    const card = $("farolRegional");
+
+    setText("kFarolStatus", intV98(critical));
+    setText(
+      "kFarolSub",
+      `${critical === 1 ? "RC" : "RCs"} acima de ${threshold} dias · ${compactCurrency(value)}`,
+      `${critical.toLocaleString("pt-BR")} ${critical === 1 ? "RC" : "RCs"} acima de ${threshold} dias · ${brMoney(value)}`
+    );
+
+    if (!card) return;
+    card.classList.toggle("has-critical-v98", critical > 0);
+    card.classList.toggle("is-clear-v98", critical === 0);
+    card.setAttribute("role", "button");
+    card.setAttribute("tabindex", "0");
+    card.setAttribute("aria-label", `${critical} pendências acima de ${threshold} dias. Abrir na base.`);
+
+    const open = () => {
+      state.filters["FAIXA ATRASO"] = ["30+ dias"];
+      state.page = 1;
+      updateFilterUI();
+      switchTab("base");
+    };
+
+    card.onclick = open;
+    card.onkeydown = (event) => {
+      if (event.key === "Enter" || event.key === " ") {
+        event.preventDefault();
+        open();
+      }
+    };
+  }
+
+  function renderExecutiveSummaryV98(data){
+    const k = data?.kpis || {};
+    const semLanc = getStageV98(data, "SEM LANÇAMENTO");
+    const semPedido = getStageV98(data, "SEM PEDIDO");
+    const semNf = getStageV98(data, "SEM NF");
+    const total = numberV98(k.total_rcs);
+    const completed = numberV98(k.concluidas);
+    const completion = numberV98(k.pct_concluido_valor || (total ? completed / total * 100 : 0));
+
+    setText("quickCompletion", pctV98(completion));
+    setText("quickPcm", intV98(semLanc.qtd));
+    setText("quickOrder", intV98(semPedido.qtd));
+    setText("quickNf", intV98(semNf.qtd));
+    setText("summaryContextV98", contextLabelV98());
+
+    document.querySelectorAll("[data-summary-filter]").forEach((button) => {
+      button.onclick = () => filterContextAndOpenBase({ etapa: button.dataset.summaryFilter || "" });
+    });
+
+    const focus = (data?.top5_prioridades || [])[0];
+    const focusButton = $("firstFocusV98");
+    if (!focus) {
+      setText("focusSupplierV98", "Nenhuma pendência prioritária");
+      setText("focusMetaV98", "A fila do contexto atual está concluída");
+      setText("focusActionV98", "Sem ação");
+      if (focusButton) {
+        focusButton.disabled = true;
+        focusButton.onclick = null;
+      }
+      return;
+    }
+
+    setText("focusSupplierV98", focus.fornecedor || "Fornecedor não informado");
+    setText(
+      "focusMetaV98",
+      `${focus.action || "Tratar pendência"} · ${focus.qtd_fmt || `${intV98(focus.qtd)} RCs`} · ${focus.valor_fmt || compactCurrency(focus.valor)} · máximo ${intV98(focus.dias)} dias`
+    );
+    setText("focusActionV98", focus.action || "Abrir");
+
+    if (focusButton) {
+      focusButton.disabled = false;
+      focusButton.onclick = () => filterContextAndOpenBase({
+        etapa: focus.etapa || "",
+        fornecedor: focus.fornecedor_filter || focus.fornecedor || "",
+        owner: focus.owner_filter || ""
+      });
+    }
+  }
+
+  window.renderProcess = function renderProcessV98(etapas, hostId = null){
+    const selected = new Set(state.filters.ETAPA || []);
+    const markup = (etapas || []).map((stage) => {
+      const active = selected.has(stage.etapa);
+      const cls = stageClass(stage.etapa);
+      const quantity = numberV98(stage.qtd);
+      const outOfSla = numberV98(stage.fora_sla);
+      const maxDays = numberV98(stage.max_dias);
+      const isCompleted = String(stage.etapa || "").toUpperCase() === "CONCLUÍDO";
+      const footer = isCompleted
+        ? `${escapeHtml(stage.percentual_formatado || "0%")} da base · fluxo concluído`
+        : `${escapeHtml(stage.percentual_formatado || "0%")} da base · máximo ${intV98(maxDays)} dias`;
+      const slaLabel = !isCompleted && outOfSla > 0
+        ? `<span class="process-sla-v98">${intV98(outOfSla)} fora do prazo</span>`
+        : `<span class="process-sla-v98 is-clear">Dentro do acompanhamento</span>`;
+
+      return `
+        <button
+          type="button"
+          class="process-card process-card-v98 ${cls} ${active ? "active" : ""}"
+          style="--stage:${stage.cor};--stage-soft:${hexToRgba(stage.cor, .10)}"
+          data-etapa="${escapeAttr(stage.etapa)}"
+          aria-pressed="${active ? "true" : "false"}"
+          title="Abrir ${escapeAttr(stage.etapa)} · ${escapeAttr(stage.valor_completo || stage.valor_formatado || "")}">
+          <div class="process-top">
+            <span class="stage-dot" aria-hidden="true"></span>
+            <span class="stage">${escapeHtml(stage.etapa)}</span>
+          </div>
+          <div class="process-main process-main-v98">
+            <strong class="num">${intV98(quantity)}</strong>
+            <span title="${escapeAttr(stage.valor_completo || "")}">${escapeHtml(stage.valor_formatado || compactCurrency(stage.valor))}</span>
+          </div>
+          <div class="process-foot process-foot-v98"><span>${footer}</span></div>
+          ${slaLabel}
+        </button>`;
+    }).join("");
+
+    const hosts = hostId
+      ? [$(hostId)].filter(Boolean)
+      : Array.from(document.querySelectorAll(".process-cards-host:not(#processCardsBase)"));
+
+    hosts.forEach((host) => {
+      host.innerHTML = markup || '<div class="empty-state">Nenhuma etapa disponível</div>';
+      host.querySelectorAll(".process-card").forEach((card) => {
+        card.onclick = () => toggleProcessFilter(card.dataset.etapa);
+      });
+    });
+  };
+
+  function sortedPrioritiesV98(){
+    const rows = [...(currentDashboardV98?.top5_prioridades || [])];
+    const sorters = {
+      priority: (a, b) => numberV98(b.score) - numberV98(a.score),
+      age: (a, b) => numberV98(b.dias) - numberV98(a.dias),
+      value: (a, b) => numberV98(b.valor) - numberV98(a.valor),
+      quantity: (a, b) => numberV98(b.qtd) - numberV98(a.qtd)
+    };
+    return rows.sort(sorters[prioritySortV98] || sorters.priority).slice(0, 4);
+  }
+
+  function bindPrioritySortV98(){
+    document.querySelectorAll("[data-priority-sort]").forEach((button) => {
+      button.classList.toggle("is-active", button.dataset.prioritySort === prioritySortV98);
+      button.onclick = () => {
+        prioritySortV98 = button.dataset.prioritySort || "priority";
+        bindPrioritySortV98();
+        window.renderTopPriorities(currentDashboardV98?.top5_prioridades || []);
+      };
+    });
+  }
+
+  window.renderTopPriorities = function renderTopPrioritiesV98(rows){
+    const host = $("topPrioridades");
+    if (!host) return;
+    if (Array.isArray(rows) && currentDashboardV98) currentDashboardV98.top5_prioridades = rows;
+
+    const items = sortedPrioritiesV98();
+    bindPrioritySortV98();
+
+    if (!items.length) {
+      host.innerHTML = '<div class="empty-state">Sem prioridade pendente</div>';
+      return;
+    }
+
+    host.innerHTML = items.map((item, index) => `
+      <button
+        type="button"
+        class="priority-row-v33 priority-row-v98 ${stageClass(item.etapa)}"
+        data-etapa="${escapeAttr(item.etapa || "")}"
+        data-fornecedor="${escapeAttr(item.fornecedor_filter || item.fornecedor || "")}"
+        data-owner="${escapeAttr(item.owner_filter || "")}"
+        title="Abrir ${escapeAttr(item.etapa || "pendência")} de ${escapeAttr(item.fornecedor_filter || item.fornecedor || "")}">
+        <span class="priority-rank">${index + 1}</span>
+        <span class="priority-main priority-main-v98">
+          <small>${escapeHtml(item.action || item.codigo || "Tratar pendência")}</small>
+          <strong>${escapeHtml(item.fornecedor || "Fornecedor não informado")}</strong>
+          <span>${intV98(item.qtd)} RC${numberV98(item.qtd) !== 1 ? "s" : ""} · ${escapeHtml(item.valor_fmt || compactCurrency(item.valor))} · máximo ${intV98(item.dias)} dias</span>
+        </span>
+        <span class="priority-owner-v98">
+          <small>Depende de</small>
+          <strong>${escapeHtml(shortOwnerLabel(item.owner_team || "Responsável"))}</strong>
+        </span>
+        <span class="priority-open-v98">Abrir <i aria-hidden="true">→</i></span>
+      </button>`).join("");
+
+    host.querySelectorAll(".priority-row-v98").forEach((button) => {
+      button.onclick = () => filterContextAndOpenBase({
+        etapa: button.dataset.etapa || "",
+        fornecedor: button.dataset.fornecedor || "",
+        owner: button.dataset.owner || ""
+      });
+    });
+  };
+
+  function rankingItemsV98(kind){
+    const charts = currentDashboardV98?.charts || {};
+    const pending = rankingModeV98[kind] === "pending";
+
+    if (kind === "supplier") {
+      return pending ? (charts.top_fornecedores_pendentes || []) : (charts.top_fornecedores || []);
+    }
+    return pending ? (charts.solicitantes_pendentes || []) : (charts.custo_solicitante || []);
+  }
+
+  function renderRankingKindV98(kind){
+    const isSupplier = kind === "supplier";
+    const host = $(isSupplier ? "actionNowList" : "ownersCriticos");
+    if (!host) return;
+
+    renderRankingRows(host, rankingItemsV98(kind), isSupplier ? "FORNECEDOR" : "SOLICITANTE");
+    setText(
+      isSupplier ? "supplierRankingSubtitleV98" : "requesterRankingSubtitleV98",
+      rankingModeV98[kind] === "pending" ? "Maior valor pendente" : "Maior valor movimentado"
+    );
+  }
+
+  function bindRankingModesV98(){
+    document.querySelectorAll("[data-ranking-kind][data-ranking-mode]").forEach((button) => {
+      const kind = button.dataset.rankingKind;
+      const mode = button.dataset.rankingMode;
+      button.classList.toggle("is-active", rankingModeV98[kind] === mode);
+      button.onclick = () => {
+        rankingModeV98[kind] = mode;
+        bindRankingModesV98();
+        renderRankingKindV98(kind);
+      };
+    });
+  }
+
+  window.renderTopSuppliers = function renderTopSuppliersV98(){
+    renderRankingKindV98("supplier");
+  };
+
+  window.renderTopRequesters = function renderTopRequestersV98(){
+    renderRankingKindV98("requester");
+  };
+
+  window.renderFarol = function renderFarolV98(){
+    renderCriticalKpiV98(currentDashboardV98 || {});
+  };
+
+  window.renderDashboardData = function renderDashboardDataV98(data){
+    currentDashboardV98 = data || {};
+    originalRenderDashboardDataV98(data);
+    renderExecutiveSummaryV98(data);
+    renderCompletionProgressV98(data);
+    renderCriticalKpiV98(data);
+    renderTrendsV98(data);
+    bindPrioritySortV98();
+    bindRankingModesV98();
+  };
+})();
