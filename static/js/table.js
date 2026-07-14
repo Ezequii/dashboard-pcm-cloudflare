@@ -7,8 +7,20 @@ async function loadRows(seq=null){
   const table = $('dataTable');
   const thead = table.querySelector('thead');
   const tbody = table.querySelector('tbody');
-  thead.innerHTML = '<tr>' + data.columns.map(c => renderHeader(c)).join('') + '</tr>';
-  tbody.innerHTML = data.rows.map(row => `<tr class="${stageClass(row._ETAPA)}">` + data.columns.map(c => renderCell(c, row[c], row._ETAPA, row)).join('') + '</tr>').join('');
+  // V90: mantém os dados intactos, mas coloca o valor total junto do orçamento,
+  // antes dos nomes, para a liderança enxergar dinheiro sem rolar horizontalmente.
+  const preferredOrder = [
+    'ETAPA','DIAS PARADO','SLA STATUS','DONO DA AÇÃO','FAIXA ATRASO',
+    'DATA DE RECEBIMENTO','DATA LANÇAMENTO','Nº ORÇAMENTO FINAL','VALOR TOTAL',
+    'FORNECEDOR','SOLICITANTE','PREFIXO','EQUIPAMENTO','Nº REQUISIÇÃO','Nº PEDIDO DE COMPRA'
+  ];
+  const sourceColumns = Array.isArray(data.columns) ? data.columns : [];
+  const columns = [
+    ...preferredOrder.filter(col => sourceColumns.includes(col)),
+    ...sourceColumns.filter(col => !preferredOrder.includes(col))
+  ];
+  thead.innerHTML = '<tr>' + columns.map(c => renderHeader(c)).join('') + '</tr>';
+  tbody.innerHTML = data.rows.map(row => `<tr class="${stageClass(row._ETAPA)}">` + columns.map(c => renderCell(c, row[c], row._ETAPA, row)).join('') + '</tr>').join('');
   thead.querySelectorAll('th.sortable').forEach(th => th.onclick = () => sortBy(th.dataset.col));
   $('tableCounter').textContent = `${Number(data.from).toLocaleString('pt-BR')}-${Number(data.to).toLocaleString('pt-BR')} de ${Number(data.total).toLocaleString('pt-BR')} registros`;
   $('pageInfo').textContent = `${data.page}/${data.pages}`;
