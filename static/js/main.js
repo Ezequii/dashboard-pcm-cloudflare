@@ -1,1 +1,2 @@
-init().catch(err => showToast(err.message, true));
+'use strict';
+init().catch(error=>{showPersistentError(error.message);showToast(error.message,true,6000);});
