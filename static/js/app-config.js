@@ -42,8 +42,8 @@
 
   const appConfig = deepFreeze({
     appName: "Controle de Requisições PCM",
-    version: "98.4",
-    assetVersion: "984",
+    version: "97.1",
+    assetVersion: "971",
     dataVersionUrl: "/static/data/version.json",
     dataUrl: "/static/data/dashboard-data.json",
     updateCheckIntervalMs: 300000
