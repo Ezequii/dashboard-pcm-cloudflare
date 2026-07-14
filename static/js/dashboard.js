@@ -96,20 +96,73 @@ function stageDisplayName(etapa){
 
 function renderOldestPending(k){
   const host = $('kMaiorAtrasoSub');
+  const card = $('kpiMaisParadoCard');
   if(!host) return;
+
+  const dias = Number(k.maior_atraso_dias || 0);
   const code = String(k.maior_atraso_label || '').trim();
+  const codeType = String(k.maior_atraso_label_tipo || 'Referência').trim();
   const etapa = String(k.maior_atraso_etapa || '').trim();
   const stageLabel = stageDisplayName(etapa);
-  const isEmpty = !Number(k.maior_atraso_dias || 0) || !code || code.toLowerCase().includes('sem pend');
+  const tone = stageClass(etapa);
+  const isEmpty = !dias || !code || code.toLowerCase().includes('sem pend');
+
+  if(card){
+    card.classList.remove('oldest-red-v93','oldest-amber-v93','oldest-blue-v93','oldest-gray-v93','oldest-clickable-v93');
+    card.removeAttribute('role');
+    card.removeAttribute('tabindex');
+    card.onclick = null;
+    card.onkeydown = null;
+  }
+
   if(isEmpty){
     host.className = '';
     host.textContent = 'Sem pendência';
     host.title = k.maior_atraso_detail || 'Tudo concluído';
     return;
   }
-  host.className = 'oldest-stage-row-v88';
-  host.innerHTML = `<span class="oldest-stage-pill-v88 ${stageClass(etapa)}">${escapeHtml(stageLabel || 'Outra pendência')}</span><span class="oldest-code-v88">${escapeHtml(code)}</span>`;
-  host.title = [k.maior_atraso_fornecedor, stageLabel, k.maior_atraso_valor].filter(Boolean).join(' · ') || k.maior_atraso_detail || '';
+
+  const cardTone = tone === 'stage-red' ? 'oldest-red-v93' : tone === 'stage-amber' ? 'oldest-amber-v93' : tone === 'stage-blue' ? 'oldest-blue-v93' : 'oldest-gray-v93';
+  host.className = 'oldest-context-v93';
+  host.innerHTML = `
+    <span class="oldest-stage-v93 ${tone}"><i></i>${escapeHtml(stageLabel || 'Outra pendência')}</span>
+    <span class="oldest-ref-v93"><b>${escapeHtml(codeType)}</b> ${escapeHtml(code)}</span>`;
+
+  const fullValue = k.maior_atraso_valor_full || k.maior_atraso_valor || '';
+  const details = [
+    `${dias.toLocaleString('pt-BR')} dias`,
+    stageLabel,
+    `${codeType} ${code}`,
+    k.maior_atraso_fornecedor,
+    fullValue
+  ].filter(Boolean).join(' · ');
+  host.title = details;
+
+  if(card){
+    card.classList.add(cardTone, 'oldest-clickable-v93');
+    card.setAttribute('role','button');
+    card.setAttribute('tabindex','0');
+    card.setAttribute('aria-label', `${details}. Clique para localizar na base.`);
+    const open = () => {
+      if(etapa){
+        state.filters.ETAPA = [etapa];
+        updateFilterUI();
+      }
+      state.search = code;
+      state.searchScope = 'ALL';
+      const search = $('globalSearch');
+      const scope = $('searchScope');
+      if(search) search.value = code;
+      if(scope) scope.value = 'ALL';
+      updateSearchUI?.();
+      state.page = 1;
+      switchTab('base');
+    };
+    card.onclick = open;
+    card.onkeydown = (ev) => {
+      if(ev.key === 'Enter' || ev.key === ' '){ ev.preventDefault(); open(); }
+    };
+  }
 }
 
 function renderFarol(farol){

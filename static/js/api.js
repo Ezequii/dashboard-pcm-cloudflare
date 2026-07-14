@@ -343,11 +343,32 @@ function topCount(rows, groupCol, count=8){
 }
 function oldestPending(rows){
   const pend = pendingRows(rows).sort((a,b)=> n(b._DIAS_PARADO)-n(a._DIAS_PARADO) || n(b._VALOR_TOTAL)-n(a._VALOR_TOTAL));
-  if(!pend.length) return {dias:0,label:'Sem pendência',detail:'Tudo concluído',etapa:''};
+  if(!pend.length) return {dias:0,label:'Sem pendência',label_type:'',detail:'Tudo concluído',etapa:''};
   const r = pend[0];
-  const label = cleanStatic(r['Nº ORÇAMENTO FINAL']) || cleanStatic(r['Nº REQUISIÇÃO']) || 'Sem código';
+  const references = [
+    ['Nº ORÇAMENTO FINAL','Orçamento'],
+    ['Nº REQUISIÇÃO','Requisição'],
+    ['Nº PEDIDO DE COMPRA','Pedido'],
+    ['Nº ORDEM SERVIÇO','OS'],
+    ['PREFIXO','Prefixo']
+  ];
+  let label = 'Sem código';
+  let labelType = 'Referência';
+  for(const [field, type] of references){
+    const value = cleanStatic(r[field]);
+    if(value){ label = value; labelType = type; break; }
+  }
   const forn = cleanStatic(r.FORNECEDOR) || 'Fornecedor não informado';
-  return {dias:n(r._DIAS_PARADO), label, detail:`${forn} · ${r.ETAPA || ''}`, etapa:r.ETAPA || '', fornecedor:forn, valor:compactMoney(r._VALOR_TOTAL), valor_full:brMoney(r._VALOR_TOTAL)};
+  return {
+    dias:n(r._DIAS_PARADO),
+    label,
+    label_type:labelType,
+    detail:`${forn} · ${r.ETAPA || ''}`,
+    etapa:r.ETAPA || '',
+    fornecedor:forn,
+    valor:compactMoney(r._VALOR_TOTAL),
+    valor_full:brMoney(r._VALOR_TOTAL)
+  };
 }
 function farolRegional(rows){
   const total = rows.length;
@@ -650,7 +671,7 @@ function staticDashboard(rows, query){
     const total=geral.length, pend=pendingRows(geral), concl=geral.filter(r=>r.ETAPA==='CONCLUÍDO');
     const valorTotal=geral.reduce((s,r)=>s+n(r._VALOR_TOTAL),0), serv=geral.reduce((s,r)=>s+n(r._VALOR_SERVICO),0), pecas=geral.reduce((s,r)=>s+n(r._VALOR_PECAS),0), valorPend=pend.reduce((s,r)=>s+n(r._VALOR_TOTAL),0);
     const farol=farolRegional(geral), old=oldestPending(geral), etapas=groupByStage(geral), owners=topOwnersCriticos(geral), top5=priorityRows(visaoFila.length ? visaoFila : geral,5);
-    const kpis={total_rcs:total,valor_total:brMoney(valorTotal),valor_total_compacto:compactMoney(valorTotal),valor_servicos:brMoney(serv),valor_servicos_compacto:compactMoney(serv),valor_pecas:brMoney(pecas),valor_pecas_compacto:compactMoney(pecas),ticket_medio:brMoney(total?valorTotal/total:0),ticket_medio_compacto:compactMoney(total?valorTotal/total:0),ticket_tempo_dias:`${average(geral.map(r=>r._DIAS_PARADO)).toFixed(1).replace('.',',')} dias`,ticket_tempo_dias_valor:average(geral.map(r=>r._DIAS_PARADO)),fornecedores:uniqueCount(geral,'FORNECEDOR'),equipamentos:uniqueCount(geral,'EQUIPAMENTO'),concluidas:concl.length,pendentes:pend.length,pct_concluido:brPct(total?concl.length/total*100:0),pct_pendente:brPct(total?pend.length/total*100:0),valor_pendente:brMoney(valorPend),valor_pendente_compacto:compactMoney(valorPend),valor_fora_sla:farol.valor_fora_sla,valor_fora_sla_compacto:farol.valor_fora_sla_compacto,valor_sem_lancamento:farol.valor_sem_lancamento,valor_sem_lancamento_compacto:farol.valor_sem_lancamento_compacto,rcs_fora_sla:farol.rcs_fora_sla,rcs_sem_lancamento:farol.rcs_sem_lancamento,rcs_criticas:farol.rcs_criticas,farol_status:farol.status,maior_atraso_dias:n(old.dias),maior_atraso_label:old.label,maior_atraso_detail:old.detail,maior_atraso_etapa:old.etapa || '',maior_atraso_fornecedor:old.fornecedor || '',maior_atraso_valor:old.valor || ''};
+    const kpis={total_rcs:total,valor_total:brMoney(valorTotal),valor_total_compacto:compactMoney(valorTotal),valor_servicos:brMoney(serv),valor_servicos_compacto:compactMoney(serv),valor_pecas:brMoney(pecas),valor_pecas_compacto:compactMoney(pecas),ticket_medio:brMoney(total?valorTotal/total:0),ticket_medio_compacto:compactMoney(total?valorTotal/total:0),ticket_tempo_dias:`${average(geral.map(r=>r._DIAS_PARADO)).toFixed(1).replace('.',',')} dias`,ticket_tempo_dias_valor:average(geral.map(r=>r._DIAS_PARADO)),fornecedores:uniqueCount(geral,'FORNECEDOR'),equipamentos:uniqueCount(geral,'EQUIPAMENTO'),concluidas:concl.length,pendentes:pend.length,pct_concluido:brPct(total?concl.length/total*100:0),pct_pendente:brPct(total?pend.length/total*100:0),valor_pendente:brMoney(valorPend),valor_pendente_compacto:compactMoney(valorPend),valor_fora_sla:farol.valor_fora_sla,valor_fora_sla_compacto:farol.valor_fora_sla_compacto,valor_sem_lancamento:farol.valor_sem_lancamento,valor_sem_lancamento_compacto:farol.valor_sem_lancamento_compacto,rcs_fora_sla:farol.rcs_fora_sla,rcs_sem_lancamento:farol.rcs_sem_lancamento,rcs_criticas:farol.rcs_criticas,farol_status:farol.status,maior_atraso_dias:n(old.dias),maior_atraso_label:old.label,maior_atraso_label_tipo:old.label_type || '',maior_atraso_detail:old.detail,maior_atraso_etapa:old.etapa || '',maior_atraso_fornecedor:old.fornecedor || '',maior_atraso_valor:old.valor || '',maior_atraso_valor_full:old.valor_full || ''};
     return {
       kpis,
       etapas,
