@@ -5,9 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Controle de Requisições PCM 2026</title>
   <link rel="icon" type="image/png" href="/static/favicon.png" />
-  <link rel="stylesheet" href="/static/styles_v50_corrigido.css?v=95" />
+  <link rel="stylesheet" href="/static/styles_v50_corrigido.css?v=100" />
+  <link rel="stylesheet" href="/static/v100.css?v=100" />
 </head>
-<body class="v44-polish v48-balanced v50-real-fix v51-visual-clean v66-premium v76-inteligente v78-lideranca-pcm v79-sem-resumo v79-refino-pcm v80-confiavel v81-estavel v82-oficial v86-table-lines v87-ranking v88-ranking-clear v89-simple-filters-search-money v90-layout-safe v91-layout-final v92-smart-polish v93-oldest-clear v94-kpis-smart v95-header-kpi-polish">
+<body class="v44-polish v48-balanced v50-real-fix v51-visual-clean v66-premium v76-inteligente v78-lideranca-pcm v79-sem-resumo v79-refino-pcm v80-confiavel v81-estavel v82-oficial v86-table-lines v87-ranking v88-ranking-clear v89-simple-filters-search-money v90-layout-safe v91-layout-final v92-smart-polish v93-oldest-clear v94-kpis-smart v95-header-kpi-polish v96-oldest-compact v100-consolidado">
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
   <div id="drawerBackdrop" class="drawer-backdrop no-print" hidden></div>
 
@@ -17,7 +18,7 @@
         <div class="brand-logo-box"><img src="/static/logo_amaggi.png" alt="AMAGGI" /></div>
         <div class="brand-copy-wrap">
           <div>
-            <div class="brand-title-line"><h1>Controle de Requisições PCM</h1>        <span class="version-pill-v34" aria-label="Versão visual premium">Visual v95 • acabamento executivo</span></div>
+            <div class="brand-title-line"><h1>Controle de Requisições PCM</h1>        <span class="version-pill-v34" aria-label="Versão visual premium">V100 • edição consolidada</span></div>
             <p class="subtitle-top">Controle de lançamento e acompanhamento — 2026</p>
           </div>
           <nav class="dashboard-tabs no-print prominent-tabs inline-tabs" aria-label="Navegação do dashboard">
@@ -35,7 +36,7 @@
           <button id="btnExportMenu" class="btn btn-soft" type="button" aria-label="Abrir opções de exportação" aria-expanded="false">Exportar</button>
           <div id="exportDropdown" class="export-dropdown" hidden>
             <button id="btnExportExcel" class="export-item" type="button">Exportar Excel</button>
-            <button id="btnExportPdf" class="export-item" type="button">PDF indisponível</button>
+            <button id="btnExportPdf" class="export-item" type="button">Relatório executivo</button>
           </div>
         </div>
       </div>
@@ -58,6 +59,12 @@
       <button id="btnClear" class="btn btn-soft btn-compact" aria-label="Limpar todos os filtros">Limpar filtros</button>
     </div>
   </aside>
+
+  <div id="systemStatus" class="system-status-v100 no-print" hidden role="alert"></div>
+  <section id="activeFilterBar" class="active-filter-bar-v100 no-print" hidden aria-live="polite">
+    <div><strong>Contexto ativo</strong><span id="activeFilterSummary"></span></div>
+    <button id="btnClearContext" type="button">Limpar tudo</button>
+  </section>
 
   <main class="page executive-page page-v33 page-v34 page-v35 page-v38 page-v39 page-v40 page-v41">
 
@@ -188,18 +195,27 @@
       <p class="table-hint no-print">Ordem da leitura: etapa → dias parado → ação → valor. As primeiras colunas permanecem visíveis ao rolar.</p>
     </section>
 
+    <section class="quality-panel-v100" data-panel="visao">
+      <div class="quality-head-v100">
+        <div><span>Confiabilidade da base</span><strong id="qualityScore">Calculando...</strong></div>
+        <small id="qualityUpdated">Validação local dos dados carregados</small>
+      </div>
+      <div id="qualityIssues" class="quality-issues-v100"></div>
+    </section>
+
     <footer class="footer-credit">
       Desenvolvido por <strong>Ezequiel Caetano</strong>
     </footer>
   </main>
 
-  <script src="/static/js/state.js?v=95"></script>
-  <script src="/static/js/utils.js?v=95"></script>
-  <script src="/static/js/api.js?v=95"></script>
-  <script src="/static/js/filters.js?v=95"></script>
-  <script src="/static/js/dashboard.js?v=95"></script>
-  <script src="/static/js/table.js?v=95"></script>
-  <script src="/static/js/core.js?v=95"></script>
-  <script src="/static/js/main.js?v=95"></script>
+  <script src="/static/js/state.js?v=100"></script>
+  <script src="/static/js/utils.js?v=100"></script>
+  <script src="/static/js/api.js?v=100"></script>
+  <script src="/static/js/filters.js?v=100"></script>
+  <script src="/static/js/dashboard.js?v=100"></script>
+  <script src="/static/js/table.js?v=100"></script>
+  <script src="/static/js/core.js?v=100"></script>
+  <script src="/static/js/v100.js?v=100"></script>
+  <script src="/static/js/main.js?v=100"></script>
 </body>
 </html>

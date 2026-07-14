@@ -105,48 +105,72 @@ function stageDisplayName(etapa){
 }
 
 function renderOldestPending(k){
-  const host = $('kMaiorAtrasoSub');
+  const valueHost = $('kMaiorAtraso');
+  const contextHost = $('kMaiorAtrasoSub');
   const card = $('kpiMaisParadoCard');
-  if(!host) return;
+  if(!valueHost || !contextHost) return;
 
   const dias = Number(k.maior_atraso_dias || 0);
   const code = String(k.maior_atraso_label || '').trim();
   const codeType = String(k.maior_atraso_label_tipo || 'Referência').trim();
   const etapa = String(k.maior_atraso_etapa || '').trim();
   const stageLabel = stageDisplayName(etapa);
-  const tone = stageClass(etapa);
+  const stageTone = stageClass(etapa);
   const isEmpty = !dias || !code || code.toLowerCase().includes('sem pend');
 
   if(card){
-    card.classList.remove('oldest-red-v93','oldest-amber-v93','oldest-blue-v93','oldest-gray-v93','oldest-clickable-v93');
+    card.classList.remove(
+      'oldest-red-v93',
+      'oldest-amber-v93',
+      'oldest-blue-v93',
+      'oldest-gray-v93',
+      'oldest-clickable-v93'
+    );
     card.removeAttribute('role');
     card.removeAttribute('tabindex');
+    card.removeAttribute('aria-label');
     card.onclick = null;
     card.onkeydown = null;
   }
 
+  valueHost.className = 'oldest-value-v96';
+  valueHost.innerHTML = `
+    <span class="oldest-days-number-v96">${Math.max(0, dias).toLocaleString('pt-BR')}</span>
+    <span class="oldest-days-unit-v96">dias</span>`;
+
   if(isEmpty){
-    host.className = '';
-    host.textContent = 'Sem pendência';
-    host.title = k.maior_atraso_detail || 'Tudo concluído';
+    contextHost.className = 'oldest-context-v96';
+    contextHost.innerHTML = '<span class="oldest-empty-v96">Sem pendência</span>';
+    contextHost.title = k.maior_atraso_detail || 'Tudo concluído';
+    if(card) card.classList.add('oldest-gray-v93');
     return;
   }
 
-  const cardTone = tone === 'stage-red' ? 'oldest-red-v93' : tone === 'stage-amber' ? 'oldest-amber-v93' : tone === 'stage-blue' ? 'oldest-blue-v93' : 'oldest-gray-v93';
-  host.className = 'oldest-context-v95';
-  host.innerHTML = `
-    <span class="oldest-stage-chip-v95 ${tone}"><i></i><span>${escapeHtml(stageLabel || 'Outra pendência')}</span></span>
-    <span class="oldest-ref-v95"><span>${escapeHtml(codeType)}</span><b>${escapeHtml(code)}</b></span>`;
+  const cardTone = dias > 60
+    ? 'oldest-red-v93'
+    : dias >= 31
+      ? 'oldest-amber-v93'
+      : 'oldest-blue-v93';
+
+  const referenceText = [codeType, code].filter(Boolean).join(' ');
+  contextHost.className = 'oldest-context-v96';
+  contextHost.innerHTML = `
+    <span class="oldest-stage-v96 ${stageTone}">
+      <i aria-hidden="true"></i>
+      <span>${escapeHtml(stageLabel || 'Outra pendência')}</span>
+    </span>
+    <span class="oldest-separator-v96" aria-hidden="true">·</span>
+    <span class="oldest-reference-v96">${escapeHtml(referenceText)}</span>`;
 
   const fullValue = k.maior_atraso_valor_full || k.maior_atraso_valor || '';
   const details = [
     `${dias.toLocaleString('pt-BR')} dias`,
     stageLabel,
-    `${codeType} ${code}`,
+    referenceText,
     k.maior_atraso_fornecedor,
     fullValue
   ].filter(Boolean).join(' · ');
-  host.title = details;
+  contextHost.title = details;
 
   if(card){
     card.classList.add(cardTone, 'oldest-clickable-v93');
@@ -170,7 +194,10 @@ function renderOldestPending(k){
     };
     card.onclick = open;
     card.onkeydown = (ev) => {
-      if(ev.key === 'Enter' || ev.key === ' '){ ev.preventDefault(); open(); }
+      if(ev.key === 'Enter' || ev.key === ' '){
+        ev.preventDefault();
+        open();
+      }
     };
   }
 }
