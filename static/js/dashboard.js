@@ -49,7 +49,6 @@ function renderDashboardData(data){
   setText('kPendenciasSub', `${semLancQtd.toLocaleString('pt-BR')} lançamento · ${semPedidoQtd.toLocaleString('pt-BR')} pedido · ${semNfQtd.toLocaleString('pt-BR')} NF`);
   setText('kPctConcluido', k.pct_concluido || '0%');
   setText('kConcluidoSub', `${concluidas} de ${total} RCs`);
-  setText('kMaiorAtraso', `${Number(k.maior_atraso_dias || 0).toLocaleString('pt-BR')} dias`);
   renderOldestPending(k);
   setText('kValorForaSla', k.valor_sem_lancamento_compacto || k.valor_fora_sla_compacto || k.valor_fora_sla || 'R$ 0', k.valor_sem_lancamento || k.valor_fora_sla || 'R$ 0');
   setText('kValorForaSlaSub', `${semLancQtd.toLocaleString('pt-BR')} RCs · ${semLanc.percentual_formatado || '0%'} da base`);
