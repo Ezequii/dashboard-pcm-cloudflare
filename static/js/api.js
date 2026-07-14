@@ -1,104 +1,114 @@
 
-// V83: Cache Busting definitivo - lê versão do arquivo de versão
+// V97: carregamento estático confiável com detecção de nova versão e idade dinâmica.
 let __STATIC_DATA_VERSION = null;
 const STATIC_DATA_URL = '/static/data/dashboard-data.json';
 const VERSION_URL = '/static/data/version.json';
 let __STATIC_DATA = null;
-let __STATIC_DATA_PROMISE = null;
 
 async function getDataVersion(){
   try{
-    const res = await fetch(VERSION_URL, {
+    const response = await fetch(`${VERSION_URL}?ts=${Date.now()}`, {
       cache: 'no-store',
-      headers: { 'Cache-Control': 'no-cache, no-store, must-revalidate' }
+      headers: {
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
+        'Pragma': 'no-cache'
+      }
     });
-    if(res.ok){
-      const data = await res.json();
-      return {
-        v: String(data.v || ''),
-        generated_at: String(data.generated_at || ''),
-        rows: Number(data.rows || 0),
-      };
-    }
-  }catch(err){
-    console.warn('Não consegui ler versão:', err);
+    if(!response.ok) return '';
+    const data = await response.json();
+    return String(data.v || '');
+  }catch(error){
+    console.warn('Não foi possível consultar a versão dos dados:', error);
+    return '';
   }
-  return {v:'', generated_at:'', rows:0};
 }
 
-async function checkForDataUpdates(){
-  const remote = await getDataVersion();
-  if(!remote.v) return false;
-  if(!__STATIC_DATA_VERSION){
-    __STATIC_DATA_VERSION = remote.v;
-    state.dataVersion = remote.v;
-    return false;
+function agingBaseIso(row){
+  const etapa = String(row.ETAPA || row._ETAPA || '').toUpperCase();
+  if(etapa === 'CONCLUÍDO' || etapa === 'CONCLUIDO') return '';
+  if(row._AGING_BASE_ISO) return String(row._AGING_BASE_ISO);
+  if(etapa === 'SEM NF'){
+    return String(row._DATA_PEDIDO_ISO || row._DATA_LANCAMENTO_ISO || row._DATA_RECEBIMENTO_ISO || '');
   }
-  if(remote.v === __STATIC_DATA_VERSION) return false;
-  __STATIC_DATA_VERSION = remote.v;
-  state.dataVersion = remote.v;
-  __STATIC_DATA = null;
-  __STATIC_DATA_PROMISE = null;
-  cacheClear();
-  return true;
+  if(etapa === 'SEM PEDIDO'){
+    return String(row._DATA_LANCAMENTO_ISO || row._DATA_RECEBIMENTO_ISO || '');
+  }
+  return String(row._DATA_RECEBIMENTO_ISO || '');
 }
 
-function daysBetweenIso(startIso, endDate=new Date()){
-  const iso = String(startIso || '').slice(0,10);
-  if(!/^\d{4}-\d{2}-\d{2}$/.test(iso)) return null;
-  const start = new Date(`${iso}T00:00:00`);
-  if(Number.isNaN(start.getTime())) return null;
-  const end = new Date(endDate.getFullYear(), endDate.getMonth(), endDate.getDate());
-  return Math.max(0, Math.floor((end.getTime() - start.getTime()) / 86400000));
-}
-
-function agingLabel(days){
-  const d = Number(days || 0);
-  const a = BUSINESS_RULES.aging;
-  if(d >= a.critical) return '30+ dias';
-  if(d >= a.high) return '16–29 dias';
-  if(d >= a.attention) return '8–15 dias';
+function agingBand(days){
+  const value = Math.max(0, Number(days || 0));
+  if(value > 30) return '30+ dias';
+  if(value > 15) return '15+ dias';
+  if(value > 7) return '8–15 dias';
   return '0–7 dias';
 }
 
-function recalculateDynamicAging(rows){
+function dynamicSlaStatus(etapa, days){
+  const stage = String(etapa || '').toUpperCase();
+  const value = Math.max(0, Number(days || 0));
+  if(stage === 'CONCLUÍDO' || stage === 'CONCLUIDO') return 'CONCLUÍDO';
+  if(value > 30) return 'CRÍTICO';
+  if(stage === 'SEM LANÇAMENTO'){
+    if(value >= 5) return 'CRÍTICO';
+    if(value >= 3) return 'ATENÇÃO';
+    return 'OK';
+  }
+  if(stage === 'SEM PEDIDO'){
+    if(value >= 8) return 'CRÍTICO';
+    if(value >= 5) return 'ATENÇÃO';
+    return 'OK';
+  }
+  if(stage === 'SEM NF'){
+    if(value >= 11) return 'CRÍTICO';
+    if(value >= 8) return 'ATENÇÃO';
+    return 'OK';
+  }
+  return 'OK';
+}
+
+function refreshDynamicAging(rows){
   const today = new Date();
-  (rows || []).forEach(row => {
-    const etapa = normalizeText(row.ETAPA || row._ETAPA);
-    if(etapa === 'CONCLUIDO') return;
-    let baseIso = row._DATA_RECEBIMENTO_ISO || '';
-    if(etapa === 'SEM PEDIDO') baseIso = row._DATA_LANCAMENTO_ISO || baseIso;
-    if(etapa === 'SEM NF') baseIso = row._DATA_PEDIDO_ISO || row._DATA_LANCAMENTO_ISO || baseIso;
-    const days = daysBetweenIso(baseIso, today);
-    if(days === null) return;
+  const todayUtc = Date.UTC(today.getFullYear(), today.getMonth(), today.getDate());
+  rows.forEach(row => {
+    const etapa = String(row.ETAPA || row._ETAPA || '').toUpperCase();
+    if(etapa === 'CONCLUÍDO' || etapa === 'CONCLUIDO'){
+      row._DIAS_PARADO = 0;
+      row['DIAS PARADO'] = 0;
+      row['FAIXA ATRASO'] = 'Concluído';
+      row['SLA STATUS'] = 'CONCLUÍDO';
+      row['SLA VENCIDO'] = false;
+      return;
+    }
+    const baseIso = agingBaseIso(row);
+    if(!/^\d{4}-\d{2}-\d{2}$/.test(baseIso)) return;
+    const [year, month, day] = baseIso.split('-').map(Number);
+    const baseUtc = Date.UTC(year, month - 1, day);
+    const days = Math.max(0, Math.min(3650, Math.floor((todayUtc - baseUtc) / 86400000)));
     row._DIAS_PARADO = days;
     row['DIAS PARADO'] = days;
-    row['FAIXA ATRASO'] = agingLabel(days);
+    row['DIAS SEM MOVIMENTO'] = days;
+    row['FAIXA ATRASO'] = agingBand(days);
+    row['SLA STATUS'] = dynamicSlaStatus(etapa, days);
+    row['SLA VENCIDO'] = ['ATENÇÃO','CRÍTICO'].includes(row['SLA STATUS']);
   });
-  return rows;
 }
 
 async function loadStaticData(force=false){
-  if(__STATIC_DATA && !force) return __STATIC_DATA;
-  if(__STATIC_DATA_PROMISE && !force) return __STATIC_DATA_PROMISE;
-  
-  __STATIC_DATA_PROMISE = (async () => {
+  if(__STATIC_DATA && !force){
+    refreshDynamicAging(__STATIC_DATA.rows || []);
+    return __STATIC_DATA;
+  }
+
+  const remoteVersion = await getDataVersion();
+
   try{
-    // Obtém a versão atual do servidor
-    const versionInfo = await getDataVersion();
-    const version = versionInfo.v;
-    
-    // Se a versão mudou, força recarregamento
-    if(version && version !== __STATIC_DATA_VERSION){
-      __STATIC_DATA = null;
-      __STATIC_DATA_VERSION = version;
-      console.log(`📊 Nova versão detectada: ${version}`);
-    }
-    
-    // Monta URL com versão para quebra de cache
-    const url = version ? `${STATIC_DATA_URL}?v=${version}` : STATIC_DATA_URL;
-    
-    const res = await fetch(url, {
+    const version = remoteVersion || __STATIC_DATA_VERSION || '';
+    const url = version
+      ? `${STATIC_DATA_URL}?v=${encodeURIComponent(version)}`
+      : `${STATIC_DATA_URL}?ts=${Date.now()}`;
+
+    const response = await fetch(url, {
       cache: 'no-store',
       headers: {
         'Cache-Control': 'no-cache, no-store, must-revalidate',
@@ -106,45 +116,89 @@ async function loadStaticData(force=false){
         'Expires': '0'
       }
     });
-    
-    if(!res.ok) throw new Error('Não consegui carregar a base estática do dashboard.');
-    
-    __STATIC_DATA = await res.json();
-    recalculateDynamicAging(__STATIC_DATA.rows || []);
+
+    if(!response.ok){
+      throw new Error(`Não consegui carregar a base do dashboard (${response.status}).`);
+    }
+
+    const payload = await response.json();
+    if(!payload || !Array.isArray(payload.rows) || !payload.boot){
+      throw new Error('A base publicada está incompleta ou inválida.');
+    }
+
+    refreshDynamicAging(payload.rows);
+    __STATIC_DATA = payload;
     __STATIC_DATA_VERSION = version;
     state.dataVersion = version;
-    state.dataGeneratedAt = __STATIC_DATA.generated_at || versionInfo.generated_at || '';
-    
-    if(__STATIC_DATA.generated_at){
-      console.log(`✅ Dashboard atualizado em: ${new Date(__STATIC_DATA.generated_at).toLocaleString('pt-BR')}`);
-    }
-    
+    state.generatedAt = payload.generated_at || '';
+    state.lastSuccessfulRefresh = Date.now();
+
     return __STATIC_DATA;
-  }catch(err){
-    console.error('Erro ao carregar dados estáticos:', err);
-    throw err;
-  }finally{
-    __STATIC_DATA_PROMISE = null;
+  }catch(error){
+    console.error('Erro ao carregar dados estáticos:', error);
+    throw error;
   }
-  })();
-  return __STATIC_DATA_PROMISE;
+}
+
+async function checkForDataUpdates(){
+  const remoteVersion = await getDataVersion();
+  if(!remoteVersion) return false;
+  if(!__STATIC_DATA_VERSION){
+    __STATIC_DATA_VERSION = remoteVersion;
+    state.dataVersion = remoteVersion;
+    return false;
+  }
+  if(remoteVersion === __STATIC_DATA_VERSION) return false;
+
+  __STATIC_DATA_VERSION = remoteVersion;
+  state.dataVersion = remoteVersion;
+  __STATIC_DATA = null;
+  cacheClear();
+  return true;
 }
 
 async function api(path, body=null, asBlob=false){
-  const db = await loadStaticData(path === '/api/refresh');
-  if(path === '/api/bootstrap') return {...db.boot, generated_at: db.generated_at};
-  if(path === '/api/refresh') return {ok:true, message:'Dados atualizados', linhas:db.rows.length, arquivo:db.boot?.metadata?.arquivo || 'base estática'};
+  const force = path === '/api/refresh';
+  const db = await loadStaticData(force);
+
+  if(path === '/api/bootstrap'){
+    return {
+      ...db.boot,
+      generated_at: db.generated_at,
+      data_version: __STATIC_DATA_VERSION || ''
+    };
+  }
+
+  if(path === '/api/refresh'){
+    return {
+      ok:true,
+      message:'Dados atualizados',
+      linhas:db.rows.length,
+      arquivo:db.boot?.metadata?.arquivo || 'base estática',
+      generated_at:db.generated_at || '',
+      data_version:__STATIC_DATA_VERSION || '',
+      metadata:db.boot?.metadata || {}
+    };
+  }
+
   if(path === '/api/options') return staticOptions(db.rows, body || {});
   if(path === '/api/dashboard') return staticDashboard(db.rows, body || {});
   if(path === '/api/rows') return staticRows(db.rows, body || {});
+
   if(path.startsWith('/api/export/')){
     const kind = path.split('/').pop();
-    if(kind === 'pdf') throw new Error('PDF não disponível no modo estático. Use Exportar Excel/CSV.');
+    if(!['csv','excel'].includes(kind)){
+      throw new Error('Formato de exportação não suportado.');
+    }
     const data = staticRows(db.rows, {...(body || {}), page:1, page_size:100000});
     const csv = toCsv(data.columns, data.rows);
     return new Blob([csv], {type:'text/csv;charset=utf-8'});
   }
-  if(path === '/api/upload-workbook') throw new Error('Troca de base não existe no Cloudflare Pages. Atualize a planilha no GitHub e faça novo deploy.');
+
+  if(path === '/api/upload-workbook'){
+    throw new Error('A troca da base no Cloudflare Pages é feita por nova publicação.');
+  }
+
   throw new Error('Rota estática não suportada: ' + path);
 }
 
@@ -166,54 +220,53 @@ function baseQuery(){
   };
 }
 
-function dashboardQuery(){
-  return {
-    filters: state.filters,
-    search: '',
-    search_scope: 'ALL',
-    date_from: state.dateFrom || '',
-    date_to: state.dateTo || '',
-    value_min: state.valueMin !== '' ? Number(state.valueMin) : null,
-    value_max: state.valueMax !== '' ? Number(state.valueMax) : null,
-  };
-}
-
 function tableQuery(){ return {...baseQuery(), search: state.search}; }
 
 function hydrateAdvancedSearch(){
   [['advDateFrom', state.dateFrom], ['advDateTo', state.dateTo], ['advValueMin', state.valueMin], ['advValueMax', state.valueMax]].forEach(([id,value])=>{ const el=$(id); if(el) el.value=value||''; });
 }
 
-function exportPdf(){ showToast('O relatório em PDF será disponibilizado em uma próxima versão.', true); }
-
-function exportContextName(){
-  const parts = ['PCM'];
-  ['ETAPA','FORNECEDOR','SOLICITANTE','MES_RECEBIMENTO'].forEach(key => {
-    const values = state.filters[key] || [];
-    if(values.length === 1) parts.push(values[0]);
-  });
-  if(state.search) parts.push(state.search);
-  const normalized = parts.join('_').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-zA-Z0-9]+/g,'_').replace(/^_+|_+$/g,'').slice(0,90);
-  const date = new Date().toISOString().slice(0,10);
-  return `${normalized || 'PCM_visao_atual'}_${date}.csv`;
+function exportSlug(value){
+  return String(value || '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '_')
+    .replace(/^_+|_+$/g, '')
+    .slice(0, 42);
 }
 
-async function exportFile(kind){
+function exportFilename(){
+  const parts = ['pcm'];
+  const etapa = (state.filters.ETAPA || [])[0];
+  const fornecedor = (state.filters.FORNECEDOR || [])[0];
+  const solicitante = (state.filters.SOLICITANTE || [])[0];
+  if(etapa) parts.push(exportSlug(etapa));
+  if(fornecedor) parts.push(exportSlug(fornecedor));
+  else if(solicitante) parts.push(exportSlug(solicitante));
+  const date = new Date().toISOString().slice(0,10);
+  return `${parts.filter(Boolean).join('_')}_${date}.csv`;
+}
+
+async function exportFile(kind='csv'){
   try{
-    if(kind === 'pdf'){ exportPdf(); return; }
     setLoading(true);
-    const blob = await api('/api/export/excel', tableQuery(), true);
+    const blob = await api('/api/export/csv', tableQuery(), true);
     const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = exportContextName();
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
+    const anchor = document.createElement('a');
+    anchor.href = url;
+    anchor.download = exportFilename();
+    document.body.appendChild(anchor);
+    anchor.click();
+    anchor.remove();
     URL.revokeObjectURL(url);
     showToast('CSV da visão atual exportado com sucesso.');
-  }catch(err){ showToast(err.message, true); }
-  finally{ setLoading(false); }
+  }catch(error){
+    showToast(error.message || 'Não foi possível exportar o CSV.', true);
+    showDataStatus('Falha na exportação', error.message || 'Tente novamente.', 'error');
+  }finally{
+    setLoading(false);
+  }
 }
 
 async function uploadWorkbook(){ throw new Error('Atualização da base no Cloudflare Pages é via GitHub.'); }
@@ -356,7 +409,7 @@ function staticOptions(rows, query){
       opts = opts.filter(x=>normalizeText(x).includes(term)); 
     }
     const selected = ((query.filters || {})[key] || []).filter(Boolean);
-    const limit = Math.max(10, Math.min(Number(query.limit || 500), 2000));
+    const limit = Math.max(10, Math.min(Number(query.limit || 50), 300));
     const ordered = Array.from(new Set([...selected, ...opts.slice(0, limit)]));
     return {options:ordered, total:opts.length};
   }catch(err){
@@ -386,8 +439,7 @@ function staticRows(rows, query){
       rec._VALOR_TOTAL = n(row._VALOR_TOTAL ?? row['VALOR TOTAL']);
       return rec;
     });
-    const totalValue = out.reduce((sum, row) => sum + n(row._VALOR_TOTAL), 0);
-    return {columns, rows:pageRows, total, total_value:totalValue, total_value_formatted:brMoney(totalValue), page, page_size:pageSize, pages, from: total ? start+1 : 0, to:end};
+    return {columns, rows:pageRows, total, page, page_size:pageSize, pages, from: total ? start+1 : 0, to:end};
   }catch(err){
     console.error('Erro em staticRows:', err);
     return {columns:[], rows:[], total:0, page:1, page_size:50, pages:1, from:0, to:0};
@@ -422,20 +474,25 @@ function groupByStage(rows){
 }
 function topSum(rows, groupCol, count=8){
   const map = new Map();
-  rows.forEach(r=>{
-    const label = cleanStatic(r[groupCol]) || 'NÃO INFORMADO';
+  rows.forEach(row => {
+    const label = cleanStatic(row[groupCol]) || 'NÃO INFORMADO';
     if(!map.has(label)) map.set(label, {label, value:0, qtd:0});
-    const item=map.get(label); item.value += n(r._VALOR_TOTAL); item.qtd += 1;
+    const item = map.get(label);
+    item.value += n(row._VALOR_TOTAL);
+    item.qtd += 1;
   });
-  return Array.from(map.values()).sort((a,b)=>b.value-a.value || b.qtd-a.qtd).slice(0,count).map(x=>({
-    label:String(x.label),
-    label_display:String(x.label).length > 80 ? `${String(x.label).slice(0,77)}…` : String(x.label),
-    value:x.value,
-    formatted:compactMoney(x.value),
-    full:brMoney(x.value),
-    qtd:x.qtd,
-    meta:`${x.qtd.toLocaleString('pt-BR')} RC${x.qtd!==1?'s':''}`
-  }));
+  return Array.from(map.values())
+    .sort((a,b) => b.value - a.value || b.qtd - a.qtd)
+    .slice(0, count)
+    .map(item => ({
+      label:String(item.label),
+      display_label:String(item.label).length > 80 ? `${String(item.label).slice(0,79)}…` : String(item.label),
+      value:item.value,
+      formatted:compactMoney(item.value),
+      full:brMoney(item.value),
+      qtd:item.qtd,
+      meta:`${item.qtd.toLocaleString('pt-BR')} RC${item.qtd !== 1 ? 's' : ''}`
+    }));
 }
 function topCount(rows, groupCol, count=8){
   const map = new Map(); rows.forEach(r=>{ const label=cleanStatic(r[groupCol]) || 'NÃO INFORMADO'; map.set(label,(map.get(label)||0)+1); });
@@ -599,63 +656,87 @@ function urgencyLabel(days, value, etapa=''){
 }
 
 function priorityRows(rows, count=5){
-  const pend = pendingRows(rows);
-  if(!pend.length) return [];
+  const pending = pendingRows(rows);
+  if(!pending.length) return [];
+
   const groups = new Map();
-  pend.forEach(r=>{
-    const etapa = r.ETAPA || 'PENDÊNCIA';
-    const fornecedor = cleanStatic(r.FORNECEDOR) || 'Fornecedor não informado';
-    const owner = cleanStatic(r['DONO DA AÇÃO']) || stageOwnerDefault(etapa);
+  pending.forEach(row => {
+    const etapa = row.ETAPA || 'PENDÊNCIA';
+    const fornecedor = cleanStatic(row.FORNECEDOR) || 'Fornecedor não informado';
+    const explicitOwner = cleanStatic(row['DONO DA AÇÃO']);
+    const owner = explicitOwner || stageOwnerDefault(etapa);
     const key = `${etapa}||${fornecedor}||${owner}`;
-    if(!groups.has(key)) groups.set(key, {etapa, fornecedor, owner, qtd:0, valor:0, maxDias:0, codigos:[], rows:[]});
-    const g=groups.get(key);
-    g.qtd += 1;
-    g.valor += n(r._VALOR_TOTAL);
-    g.maxDias = Math.max(g.maxDias, n(r._DIAS_PARADO));
-    const codigo = cleanStatic(r['Nº ORÇAMENTO FINAL']) || cleanStatic(r['Nº REQUISIÇÃO']) || '';
-    if(codigo && g.codigos.length < 3) g.codigos.push(codigo);
-    g.rows.push(r);
+
+    if(!groups.has(key)){
+      groups.set(key, {
+        etapa,
+        fornecedor,
+        owner,
+        filterOwner:explicitOwner,
+        qtd:0,
+        valor:0,
+        maxDias:0,
+        codigos:[],
+        rows:[]
+      });
+    }
+
+    const group = groups.get(key);
+    group.qtd += 1;
+    group.valor += n(row._VALOR_TOTAL);
+    group.maxDias = Math.max(group.maxDias, n(row._DIAS_PARADO));
+    const codigo = cleanStatic(row['Nº ORÇAMENTO FINAL']) || cleanStatic(row['Nº REQUISIÇÃO']) || '';
+    if(codigo && group.codigos.length < 3) group.codigos.push(codigo);
+    group.rows.push(row);
   });
-  const arr = Array.from(groups.values());
-  const maxVal = Math.max(1, ...arr.map(g=>g.valor));
-  const maxDays = Math.max(1, ...arr.map(g=>g.maxDias));
-  const maxQtd = Math.max(1, ...arr.map(g=>g.qtd));
-  // O ranking prioriza o que é trabalho direto do PCM: lançamento.
-  // Pedido e NF entram como acompanhamento/causa, sem roubar todo o painel.
-  const stageWeight={'SEM LANÇAMENTO':1.0,'SEM PEDIDO':0.45,'SEM NF':0.35,'CONCLUÍDO':0};
-  const weights = BUSINESS_RULES.priorityWeights;
-  return arr.map(g=>{
-    const score = 100 * (
-      weights.stage*(stageWeight[g.etapa] ?? .35) +
-      weights.age*(g.maxDias/maxDays) +
-      weights.value*(g.valor/maxVal) +
-      weights.quantity*(g.qtd/maxQtd)
-    );
-    const action = stageActionTitle(g.etapa);
-    const urgency = urgencyLabel(g.maxDias, g.valor, g.etapa);
-    const codigo = g.codigos[0] || `${g.qtd} RC${g.qtd!==1?'s':''}`;
-    return {
-      codigo: action,
-      fornecedor: g.fornecedor,
-      fornecedor_exibicao: g.fornecedor.length > 70 ? `${g.fornecedor.slice(0,67)}…` : g.fornecedor,
-      etapa:g.etapa,
-      dias:g.maxDias,
-      valor:g.valor,
-      valor_fmt:compactMoney(g.valor),
-      valor_full:brMoney(g.valor),
-      owner_team:g.owner,
-      owner_proxy:g.fornecedor,
-      sla_status:urgency,
-      score,
-      row_id:g.rows[0]?._ROW_ID,
-      qtd:g.qtd,
-      qtd_fmt:`${brInt(g.qtd)} RC${g.qtd!==1?'s':''}`,
-      action,
-      urgency,
-      reason:`${urgency} · ${brInt(g.qtd)} RC${g.qtd!==1?'s':''} · ${brInt(g.maxDias)} dias`,
-      codigos:g.codigos.join(', ') || codigo
-    };
-  }).sort((a,b)=>b.score-a.score || b.valor-a.valor || b.dias-a.dias).slice(0,count);
+
+  const groupsArray = Array.from(groups.values());
+  const maxValue = Math.max(1, ...groupsArray.map(group => group.valor));
+  const maxDays = Math.max(1, ...groupsArray.map(group => group.maxDias));
+  const maxQuantity = Math.max(1, ...groupsArray.map(group => group.qtd));
+  const stageWeight = {
+    'SEM LANÇAMENTO':1.0,
+    'SEM PEDIDO':0.45,
+    'SEM NF':0.35,
+    'CONCLUÍDO':0
+  };
+
+  return groupsArray
+    .map(group => {
+      const score =
+        60 * (stageWeight[group.etapa] ?? 0.35) +
+        20 * (group.maxDias / maxDays) +
+        15 * (group.valor / maxValue) +
+        5 * (group.qtd / maxQuantity);
+      const action = stageActionTitle(group.etapa);
+      const urgency = urgencyLabel(group.maxDias, group.valor, group.etapa);
+      const fallbackCode = group.codigos[0] || `${group.qtd} RC${group.qtd !== 1 ? 's' : ''}`;
+
+      return {
+        codigo:action,
+        fornecedor:group.fornecedor.length > 70 ? `${group.fornecedor.slice(0,69)}…` : group.fornecedor,
+        fornecedor_filter:group.fornecedor,
+        etapa:group.etapa,
+        dias:group.maxDias,
+        valor:group.valor,
+        valor_fmt:compactMoney(group.valor),
+        valor_full:brMoney(group.valor),
+        owner_team:group.owner,
+        owner_filter:group.filterOwner,
+        owner_proxy:group.fornecedor,
+        sla_status:urgency,
+        score,
+        row_id:group.rows[0]?._ROW_ID,
+        qtd:group.qtd,
+        qtd_fmt:`${brInt(group.qtd)} RC${group.qtd !== 1 ? 's' : ''}`,
+        action,
+        urgency,
+        reason:`${urgency} · ${brInt(group.qtd)} RC${group.qtd !== 1 ? 's' : ''} · ${brInt(group.maxDias)} dias`,
+        codigos:group.codigos.join(', ') || fallbackCode
+      };
+    })
+    .sort((a,b) => b.score - a.score || b.valor - a.valor || b.dias - a.dias)
+    .slice(0, count);
 }
 function topPendingByStage(rows, etapa){ const subset=rows.filter(r=>r.ETAPA===etapa); return topSum(subset,'FORNECEDOR',1)[0] || null; }
 function executiveActions(rows){
@@ -762,7 +843,6 @@ function dashboardGlobalQuery(query={}){
   delete filters['ETAPA'];
   delete filters['SLA STATUS'];
   delete filters['FAIXA ATRASO'];
-  delete filters['DONO DA AÇÃO'];
   return {...query, filters, search:''};
 }
 function hasOperationalQuickFilter(query={}){
@@ -794,12 +874,17 @@ function staticDashboard(rows, query){
     return {kpis:{},etapas:[],farol:{status:'ERRO'},top5_prioridades:[],comentario_executivo:'Erro ao carregar dashboard',alerts:{},charts:{}};
   }
 }
-function csvSafeValue(value){
-  if(typeof value === 'number') return value;
+function protectCsvCell(value){
   const text = String(value ?? '');
-  return /^[\s]*[=+\-@]/.test(text) ? `'${text}` : text;
+  const trimmed = text.trimStart();
+  const looksLikeNegativeNumber = /^-\d+(?:[.,]\d+)?$/.test(trimmed);
+  if(!looksLikeNegativeNumber && /^[=+\-@]/.test(trimmed)) return `'${text}`;
+  return text;
 }
+
 function toCsv(columns, rows){
-  const esc=v=>`"${String(csvSafeValue(v)).replace(/"/g,'""')}"`;
-  return '\ufeff' + [columns.map(esc).join(';'), ...rows.map(r=>columns.map(c=>esc(r[c])).join(';'))].join('\n');
+  const escapeCell = value => `"${protectCsvCell(value).replace(/"/g, '""')}"`;
+  const header = columns.map(escapeCell).join(';');
+  const body = rows.map(row => columns.map(column => escapeCell(row[column])).join(';'));
+  return '\ufeff' + [header, ...body].join('\n');
 }

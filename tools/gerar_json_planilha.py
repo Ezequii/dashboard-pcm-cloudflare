@@ -47,9 +47,7 @@ COMPACT_TABLE_COLUMNS = [
     "Nº PEDIDO DE COMPRA",
 ]
 
-PUBLIC_EXCLUDED_COLUMNS = {"OBS ADICIONAIS"}
-FULL_TABLE_COLUMNS = [column for column in TABLE_COLUMNS if column not in PUBLIC_EXCLUDED_COLUMNS]
-QUALITY_REPORT = ROOT / "data" / "quality-report.json"
+FULL_TABLE_COLUMNS = TABLE_COLUMNS
 
 
 def clean_value(value: Any) -> Any:
@@ -123,6 +121,15 @@ def int_number(value: Any) -> int:
         return 0
 
 
+def make_search(row: dict[str, Any]) -> str:
+    keys = [
+        "ETAPA", "FORNECEDOR", "SOLICITANTE", "PREFIXO", "EQUIPAMENTO",
+        "Nº ORÇAMENTO FINAL", "Nº REQUISIÇÃO", "Nº PEDIDO DE COMPRA",
+        "Nº NFS/DANFE", "STATUS", "OBS ADICIONAIS",
+    ]
+    return " ".join(str(row.get(k, "")) for k in keys if row.get(k, "")).upper()
+
+
 def build_rows(df: pd.DataFrame) -> list[dict[str, Any]]:
     rows: list[dict[str, Any]] = []
     for idx, source in df.reset_index(drop=True).iterrows():
@@ -150,90 +157,27 @@ def build_rows(df: pd.DataFrame) -> list[dict[str, Any]]:
         row["_DATA_LANCAMENTO_ISO"] = iso_date(source.get("DATA_LANCAMENTO_DT"))
         row["_DATA_PEDIDO_ISO"] = iso_date(source.get("DATA_PEDIDO_DT"))
         row["_DATA_NF_ISO"] = iso_date(source.get("DATA_NF_DT"))
+
+        etapa = str(source.get("ETAPA", "")).strip().upper()
+        if etapa == "SEM NF":
+            row["_AGING_BASE_ISO"] = (
+                row["_DATA_PEDIDO_ISO"]
+                or row["_DATA_LANCAMENTO_ISO"]
+                or row["_DATA_RECEBIMENTO_ISO"]
+            )
+        elif etapa == "SEM PEDIDO":
+            row["_AGING_BASE_ISO"] = (
+                row["_DATA_LANCAMENTO_ISO"]
+                or row["_DATA_RECEBIMENTO_ISO"]
+            )
+        elif etapa in {"CONCLUÍDO", "CONCLUIDO"}:
+            row["_AGING_BASE_ISO"] = ""
+        else:
+            row["_AGING_BASE_ISO"] = row["_DATA_RECEBIMENTO_ISO"]
+
+        row["_SEARCH"] = make_search(row)
         rows.append(row)
     return rows
-
-
-def build_quality_report(df: pd.DataFrame) -> dict[str, Any]:
-    total = int(len(df))
-    required = ["ETAPA", "STATUS", "FORNECEDOR", "SOLICITANTE", "VALOR TOTAL"]
-    missing_columns = [column for column in required if column not in df.columns]
-
-    def blank_count(column: str) -> int:
-        if column not in df.columns:
-            return total
-        values = df[column].fillna("").astype(str).str.strip()
-        return int(values.eq("").sum())
-
-    stage_order = set(STAGE_ORDER)
-    stage_values = df["ETAPA"].fillna("").astype(str).str.strip() if "ETAPA" in df.columns else pd.Series([], dtype=str)
-    unknown_stage = int((~stage_values.isin(stage_order)).sum()) if not stage_values.empty else total
-
-    negative_values = 0
-    if "VALOR TOTAL" in df.columns:
-        negative_values = int(pd.to_numeric(df["VALOR TOTAL"], errors="coerce").fillna(0).lt(0).sum())
-
-    value_mismatch = 0
-    if {"VALOR TOTAL", "VALOR SERVIÇO", "VALOR PEÇAS"}.issubset(df.columns):
-        total_values = pd.to_numeric(df["VALOR TOTAL"], errors="coerce").fillna(0)
-        components = (
-            pd.to_numeric(df["VALOR SERVIÇO"], errors="coerce").fillna(0)
-            + pd.to_numeric(df["VALOR PEÇAS"], errors="coerce").fillna(0)
-        )
-        value_mismatch = int((total_values.sub(components).abs() > 0.05).sum())
-
-    future_dates = 0
-    if "DATA_RECEBIMENTO_DT" in df.columns:
-        dates = pd.to_datetime(df["DATA_RECEBIMENTO_DT"], errors="coerce")
-        future_dates = int((dates.dt.date > datetime.now().date()).fillna(False).sum())
-
-    issues = {
-        "sem_fornecedor": blank_count("FORNECEDOR"),
-        "sem_solicitante": blank_count("SOLICITANTE"),
-        "sem_data_recebimento": blank_count("DATA DE RECEBIMENTO"),
-        "etapa_nao_reconhecida": unknown_stage,
-        "valores_negativos": negative_values,
-        "divergencia_valor_total": value_mismatch,
-        "datas_futuras": future_dates,
-    }
-    weighted = (
-        issues["sem_fornecedor"]
-        + issues["sem_solicitante"]
-        + issues["sem_data_recebimento"]
-        + issues["etapa_nao_reconhecida"] * 4
-        + issues["valores_negativos"] * 3
-        + issues["divergencia_valor_total"]
-        + issues["datas_futuras"] * 2
-    )
-    score = 100.0 if not total else max(0.0, 100.0 - (weighted / total * 100.0))
-    critical = bool(total == 0 or missing_columns or unknown_stage > 0)
-    return {
-        "generated_at": datetime.now(timezone.utc).isoformat(),
-        "total_rows": total,
-        "score": round(score, 1),
-        "critical": critical,
-        "missing_columns": missing_columns,
-        "issues": issues,
-    }
-
-
-def atomic_write_json(path: Path, payload: Any) -> None:
-    path.parent.mkdir(parents=True, exist_ok=True)
-    temp = path.with_suffix(path.suffix + ".tmp")
-    temp.write_text(json.dumps(payload, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
-    os.replace(temp, path)
-
-
-def atomic_publish(data_payload: Any, version_payload: Any) -> None:
-    """Prepara dados e versão antes de substituir a publicação atual."""
-    DATA_JSON.parent.mkdir(parents=True, exist_ok=True)
-    version_file = ROOT / "static" / "data" / "version.json"
-    data_temp = DATA_JSON.with_suffix(DATA_JSON.suffix + ".tmp")
-    version_temp = version_file.with_suffix(version_file.suffix + ".tmp")
-    data_temp.write_text(json.dumps(data_payload, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
-    version_temp.write_text(json.dumps(version_payload, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
-    os.replace(data_temp, DATA_JSON)
-    os.replace(version_temp, version_file)
 
 
 def read_existing_boot() -> dict[str, Any]:
@@ -271,14 +215,6 @@ def main() -> int:
     print(f"Lendo planilha: {workbook.name}")
     loaded = load_workbook_data(workbook)
     df = loaded.df.copy()
-    quality = build_quality_report(df)
-    QUALITY_REPORT.parent.mkdir(parents=True, exist_ok=True)
-    QUALITY_REPORT.write_text(json.dumps(quality, ensure_ascii=False, indent=2), encoding="utf-8")
-    if quality["critical"]:
-        print("ERRO CRÍTICO: a base não passou na validação. O JSON anterior foi preservado.")
-        print(f"Relatório: {QUALITY_REPORT}")
-        print(json.dumps(quality, ensure_ascii=False, indent=2))
-        return 2
     rows = build_rows(df)
 
     boot = read_existing_boot()
@@ -307,8 +243,8 @@ def main() -> int:
     status_counts = df["STATUS"].value_counts().to_dict() if "STATUS" in df.columns else {}
 
     boot["metadata"] = {
-        "arquivo": "Base oficial PCM 2026",
-        "arquivo_caminho": "",
+        "arquivo": workbook.name,
+        "arquivo_caminho": workbook.name,
         "data_dir": "static/data",
         "aba_principal": loaded.metadata.aba_principal,
         "linhas": int(len(df)),
@@ -318,27 +254,55 @@ def main() -> int:
         "modo": "Cloudflare Pages estático",
         "contagem_etapas": {str(k): int(v) for k, v in etapa_counts.items()},
         "contagem_status_excel": {str(k): int(v) for k, v in status_counts.items()},
-        "qualidade": quality,
     }
 
-    generated_at = datetime.now(timezone.utc).isoformat()
+    if not rows:
+        print("ERRO: a planilha foi processada, mas nenhum registro válido foi encontrado.")
+        return 1
+
+    if sum(int(value) for value in etapa_counts.values()) != len(rows):
+        print("ERRO: a soma das etapas não corresponde ao total de registros.")
+        return 1
+
+    generated_now = datetime.now(timezone.utc)
+    version_payload = {"v": generated_now.strftime("%Y%m%d%H%M%S")}
     payload = {
         "boot": boot,
         "rows": rows,
-        "generated_at": generated_at,
-        "quality": quality,
+        "generated_at": generated_now.isoformat(),
+        "data_version": version_payload["v"],
         "rules": {"dash_asterisk": "- e * contam como feito/preenchido"},
     }
-    # V97: prepara dashboard-data.json e version.json antes da troca final.
-    version_payload = {
-        "v": datetime.now(timezone.utc).strftime("%Y%m%d%H%M%S"),
-        "generated_at": generated_at,
-        "rows": len(rows),
-        "quality_score": quality["score"],
-        "stages": {str(k): int(v) for k, v in etapa_counts.items()},
-    }
-    atomic_publish(payload, version_payload)
-    
+
+    DATA_JSON.parent.mkdir(parents=True, exist_ok=True)
+    version_file = ROOT / "static" / "data" / "version.json"
+    data_temp = DATA_JSON.with_suffix(".json.tmp")
+    version_temp = version_file.with_suffix(".json.tmp")
+
+    try:
+        data_temp.write_text(
+            json.dumps(payload, ensure_ascii=False, separators=(",", ":")),
+            encoding="utf-8",
+        )
+        version_temp.write_text(
+            json.dumps(version_payload, ensure_ascii=False, separators=(",", ":")),
+            encoding="utf-8",
+        )
+
+        validated_payload = json.loads(data_temp.read_text(encoding="utf-8"))
+        validated_version = json.loads(version_temp.read_text(encoding="utf-8"))
+        if len(validated_payload.get("rows", [])) != len(rows):
+            raise RuntimeError("A validação do JSON gerado encontrou quantidade divergente.")
+        if validated_version.get("v") != version_payload["v"]:
+            raise RuntimeError("A validação do arquivo de versão falhou.")
+
+        os.replace(data_temp, DATA_JSON)
+        os.replace(version_temp, version_file)
+    except Exception:
+        data_temp.unlink(missing_ok=True)
+        version_temp.unlink(missing_ok=True)
+        raise
+
     print(f"OK: {len(rows):,} linhas geradas em {DATA_JSON}".replace(",", "."))
     print(f"Versão gerada: {version_payload['v']}")
     print("Contagem oficial por etapa:")

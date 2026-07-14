@@ -13,13 +13,29 @@ function v34MarkUpdated(el){
   target._v34UpdateTimer = window.setTimeout(() => target.classList.remove('text-updated'), 620);
 }
 
+function normalizedDashboardCacheKey(query){
+  const sortedFilters = Object.fromEntries(
+    Object.entries(query.filters || {})
+      .sort(([a],[b]) => a.localeCompare(b))
+      .map(([key, values]) => [key, [...(values || [])].map(String).sort()])
+  );
+  return JSON.stringify({
+    version:state.dataVersion || '',
+    filters:sortedFilters,
+    date_from:query.date_from || '',
+    date_to:query.date_to || '',
+    value_min:query.value_min,
+    value_max:query.value_max
+  });
+}
+
 async function loadDashboard(seq=null){
   const requestSeq = seq || ++state.dashboardSeq;
-  const query = dashboardQuery();
-  const cacheKey = `${state.dataVersion || __STATIC_DATA_VERSION || 'sem-versao'}:${JSON.stringify(query)}`;
-  const cached = cacheGet(cacheKey, BUSINESS_RULES.refresh.dashboardCacheMs);
+  const query = baseQuery();
+  const cacheKey = normalizedDashboardCacheKey(query);
+  const cached = cacheGet(cacheKey, 120000);
   if(cached){
-    renderDashboardData(cached);
+    if(requestSeq === state.dashboardSeq) renderDashboardData(cached);
     return;
   }
   const data = await api('/api/dashboard', query);
@@ -49,7 +65,6 @@ function renderDashboardData(data){
   setText('kPendenciasSub', `${semLancQtd.toLocaleString('pt-BR')} lançamento · ${semPedidoQtd.toLocaleString('pt-BR')} pedido · ${semNfQtd.toLocaleString('pt-BR')} NF`);
   setText('kPctConcluido', k.pct_concluido || '0%');
   setText('kConcluidoSub', `${concluidas} de ${total} RCs`);
-  setText('kMaiorAtraso', `${Number(k.maior_atraso_dias || 0).toLocaleString('pt-BR')} dias`);
   renderOldestPending(k);
   setText('kValorForaSla', k.valor_sem_lancamento_compacto || k.valor_fora_sla_compacto || k.valor_fora_sla || 'R$ 0', k.valor_sem_lancamento || k.valor_fora_sla || 'R$ 0');
   setText('kValorForaSlaSub', `${semLancQtd.toLocaleString('pt-BR')} RCs · ${semLanc.percentual_formatado || '0%'} da base`);
@@ -105,50 +120,72 @@ function stageDisplayName(etapa){
 }
 
 function renderOldestPending(k){
-  const host = $('kMaiorAtrasoSub');
+  const valueHost = $('kMaiorAtraso');
+  const contextHost = $('kMaiorAtrasoSub');
   const card = $('kpiMaisParadoCard');
-  if(!host) return;
+  if(!valueHost || !contextHost) return;
 
   const dias = Number(k.maior_atraso_dias || 0);
   const code = String(k.maior_atraso_label || '').trim();
   const codeType = String(k.maior_atraso_label_tipo || 'Referência').trim();
   const etapa = String(k.maior_atraso_etapa || '').trim();
   const stageLabel = stageDisplayName(etapa);
-  const tone = stageClass(etapa);
+  const stageTone = stageClass(etapa);
   const isEmpty = !dias || !code || code.toLowerCase().includes('sem pend');
 
   if(card){
-    card.classList.remove('oldest-red-v93','oldest-amber-v93','oldest-blue-v93','oldest-gray-v93','oldest-clickable-v93');
+    card.classList.remove(
+      'oldest-red-v93',
+      'oldest-amber-v93',
+      'oldest-blue-v93',
+      'oldest-gray-v93',
+      'oldest-clickable-v93'
+    );
     card.removeAttribute('role');
     card.removeAttribute('tabindex');
+    card.removeAttribute('aria-label');
     card.onclick = null;
     card.onkeydown = null;
   }
 
+  valueHost.className = 'oldest-value-v96';
+  valueHost.innerHTML = `
+    <span class="oldest-days-number-v96">${Math.max(0, dias).toLocaleString('pt-BR')}</span>
+    <span class="oldest-days-unit-v96">dias</span>`;
+
   if(isEmpty){
-    host.className = '';
-    host.textContent = 'Sem pendência';
-    host.title = k.maior_atraso_detail || 'Tudo concluído';
+    contextHost.className = 'oldest-context-v96';
+    contextHost.innerHTML = '<span class="oldest-empty-v96">Sem pendência</span>';
+    contextHost.title = k.maior_atraso_detail || 'Tudo concluído';
+    if(card) card.classList.add('oldest-gray-v93');
     return;
   }
 
-  const cardTone = tone === 'stage-red' ? 'oldest-red-v93' : tone === 'stage-amber' ? 'oldest-amber-v93' : tone === 'stage-blue' ? 'oldest-blue-v93' : 'oldest-gray-v93';
-  host.className = 'oldest-context-v95';
-  host.innerHTML = `
-    <span class="oldest-mini-panel-v96">
-      <span class="oldest-stage-chip-v95 ${tone}"><i></i><span>${escapeHtml(stageLabel || 'Outra pendência')}</span></span>
-      <span class="oldest-ref-pill-v96"><span>${escapeHtml(codeType)}</span><b>${escapeHtml(code)}</b></span>
-    </span>`;
+  const cardTone = dias > 60
+    ? 'oldest-red-v93'
+    : dias >= 31
+      ? 'oldest-amber-v93'
+      : 'oldest-blue-v93';
+
+  const referenceText = [codeType, code].filter(Boolean).join(' ');
+  contextHost.className = 'oldest-context-v96';
+  contextHost.innerHTML = `
+    <span class="oldest-stage-v96 ${stageTone}">
+      <i aria-hidden="true"></i>
+      <span>${escapeHtml(stageLabel || 'Outra pendência')}</span>
+    </span>
+    <span class="oldest-separator-v96" aria-hidden="true">·</span>
+    <span class="oldest-reference-v96">${escapeHtml(referenceText)}</span>`;
 
   const fullValue = k.maior_atraso_valor_full || k.maior_atraso_valor || '';
   const details = [
     `${dias.toLocaleString('pt-BR')} dias`,
     stageLabel,
-    `${codeType} ${code}`,
+    referenceText,
     k.maior_atraso_fornecedor,
     fullValue
   ].filter(Boolean).join(' · ');
-  host.title = details;
+  contextHost.title = details;
 
   if(card){
     card.classList.add(cardTone, 'oldest-clickable-v93');
@@ -156,7 +193,6 @@ function renderOldestPending(k){
     card.setAttribute('tabindex','0');
     card.setAttribute('aria-label', `${details}. Clique para localizar na base.`);
     const open = () => {
-      state.filters['DONO DA AÇÃO'] = [];
       if(etapa){
         state.filters.ETAPA = [etapa];
         updateFilterUI();
@@ -173,7 +209,10 @@ function renderOldestPending(k){
     };
     card.onclick = open;
     card.onkeydown = (ev) => {
-      if(ev.key === 'Enter' || ev.key === ' '){ ev.preventDefault(); open(); }
+      if(ev.key === 'Enter' || ev.key === ' '){
+        ev.preventDefault();
+        open();
+      }
     };
   }
 }
@@ -196,6 +235,10 @@ function clearKpiNavigationState(){
   state.search = '';
   state.searchScope = 'ALL';
   state.page = 1;
+  state.filters.ETAPA = [];
+  state.filters['SLA STATUS'] = [];
+  state.filters['FAIXA ATRASO'] = [];
+  state.filters['DONO DA AÇÃO'] = [];
   const search = $('globalSearch');
   const scope = $('searchScope');
   if(search) search.value = '';
@@ -203,11 +246,12 @@ function clearKpiNavigationState(){
   updateSearchUI?.();
 }
 
-function openBaseFromKpi(etapa=null){
+function openBaseFromKpi(etapas=null){
   clearKpiNavigationState();
-  state.filters.ETAPA = Array.isArray(etapa) ? etapa : (etapa ? [etapa] : []);
-  state.filters['DONO DA AÇÃO'] = [];
+  const values = Array.isArray(etapas) ? etapas.filter(Boolean) : (etapas ? [etapas] : []);
+  state.filters.ETAPA = values;
   updateFilterUI();
+  savePreferences();
   switchTab('base');
 }
 
@@ -230,8 +274,9 @@ function makeKpiActionable(id, label, handler){
 }
 
 function bindSmartKpiActions(){
-  makeKpiActionable('kpiValorAndamentoCard', 'Abrir todas as RCs em andamento na Base de Tratativa', () => openBaseFromKpi(PENDING_STAGES));
-  makeKpiActionable('kpiPendenciasCard', 'Abrir todas as RCs em andamento na Base de Tratativa', () => openBaseFromKpi(PENDING_STAGES));
+  const pendingStages = ['SEM LANÇAMENTO','SEM PEDIDO','SEM NF'];
+  makeKpiActionable('kpiValorAndamentoCard', 'Abrir somente as RCs em andamento na Base de Tratativa', () => openBaseFromKpi(pendingStages));
+  makeKpiActionable('kpiPendenciasCard', 'Abrir somente as RCs em andamento na Base de Tratativa', () => openBaseFromKpi(pendingStages));
   makeKpiActionable('kpiConcluidoCard', 'Abrir as RCs concluídas na Base de Tratativa', () => openBaseFromKpi('CONCLUÍDO'));
   makeKpiActionable('kpiFocoPcmCard', 'Abrir as RCs sem lançamento, foco direto do PCM', () => openBaseFromKpi('SEM LANÇAMENTO'));
 }
@@ -309,18 +354,22 @@ function toggleProcessFilter(etapa){
   state.filters.ETAPA = current.includes(etapa) ? [] : [etapa];
   state.page = 1;
   updateFilterUI();
-  refreshAll(false);
+  refreshAll(false).catch(error => console.error('Falha ao aplicar filtro de etapa:', error));
+}
+
+function filterContextAndOpenBase({etapa='', fornecedor='', owner='' } = {}){
+  clearKpiNavigationState();
+  if(etapa) state.filters.ETAPA = [etapa];
+  if(fornecedor) state.filters.FORNECEDOR = [fornecedor];
+  if(owner) state.filters['DONO DA AÇÃO'] = [owner];
+  state.page = 1;
+  updateFilterUI();
+  savePreferences();
+  switchTab('base');
 }
 
 function filterStageAndOpenBase(etapa){
-  clearKpiNavigationState();
-  if(etapa){
-    state.filters.ETAPA = [etapa];
-    state.filters['DONO DA AÇÃO'] = [];
-    state.page = 1;
-    updateFilterUI();
-  }
-  switchTab('base');
+  filterContextAndOpenBase({etapa});
 }
 
 function toneColor(name){
@@ -368,10 +417,10 @@ function filterDimensionAndOpenBase(column, value){
   const label = String(value || '').trim();
   if(!label) return;
   clearKpiNavigationState();
-  state.filters['DONO DA AÇÃO'] = [];
   state.filters[column] = [label];
   state.page = 1;
   updateFilterUI();
+  savePreferences();
   switchTab('base');
 }
 
@@ -390,13 +439,11 @@ function renderRankingRows(host, items, dimension){
       <button type="button" class="ranking-row-v88" data-ranking-value="${escapeAttr(item.label || '')}" title="Filtrar ${dimension === 'FORNECEDOR' ? 'fornecedor' : 'solicitante'}: ${escapeAttr(item.label || '')} · ${escapeAttr(item.full || item.formatted || '')}">
         <span class="ranking-position-v88">${index + 1}</span>
         <span class="ranking-content-v88">
-          <strong>${escapeHtml(item.label_display || item.label || '')}</strong>
+          <strong>${escapeHtml(item.display_label || item.label || '')}</strong>
+          <small>${qtd.toLocaleString('pt-BR')} RC${qtd !== 1 ? 's' : ''}</small>
           <span class="ranking-track-v88"><i style="--ranking-width:${width.toFixed(2)}%"></i></span>
         </span>
-        <span class="ranking-meta-v96">
-          <em>${escapeHtml(item.formatted || compactCurrency(value))}</em>
-          <small>${qtd.toLocaleString('pt-BR')} RC${qtd !== 1 ? 's' : ''}</small>
-        </span>
+        <em>${escapeHtml(item.formatted || compactCurrency(value))}</em>
       </button>`;
   }).join('');
   host.querySelectorAll('.ranking-row-v88').forEach(button => {
@@ -443,22 +490,24 @@ function renderTopPriorities(rows){
   const items = (rows || []).slice(0, 4);
   if(!items.length){ host.innerHTML = '<div class="empty-state">Sem prioridade pendente</div>'; return; }
   host.innerHTML = items.map((x, idx) => `
-    <button type="button" class="priority-row-v33 ${stageClass(x.etapa)}" data-etapa="${escapeAttr(x.etapa || '')}" data-fornecedor="${escapeAttr(x.fornecedor || '')}" data-owner="${escapeAttr(x.owner_team || '')}" title="${escapeAttr(x.fornecedor || '')} · ${escapeAttr(x.valor_full || x.valor_fmt || '')}">
+    <button
+      type="button"
+      class="priority-row-v33 ${stageClass(x.etapa)}"
+      data-etapa="${escapeAttr(x.etapa || '')}"
+      data-fornecedor="${escapeAttr(x.fornecedor_filter || x.fornecedor || '')}"
+      data-owner="${escapeAttr(x.owner_filter || '')}"
+      title="Abrir ${escapeAttr(x.etapa || 'pendência')} de ${escapeAttr(x.fornecedor_filter || x.fornecedor || '')} · ${escapeAttr(x.valor_full || x.valor_fmt || '')}">
       <div class="priority-rank">${idx + 1}</div>
-      <div class="priority-main"><strong>${escapeHtml(x.action || x.codigo || '')}</strong><span>${escapeHtml(x.fornecedor_exibicao || x.fornecedor || '')}</span></div>
-      <div class="priority-meta"><b>${escapeHtml(x.valor_fmt || '')}</b><span>${escapeHtml(x.qtd_fmt || '')} · máx. ${Number(x.dias || 0).toLocaleString('pt-BR')} dias</span></div>
+      <div class="priority-main"><strong>${escapeHtml(x.action || x.codigo || '')}</strong><span>${escapeHtml(x.fornecedor || '')}</span></div>
+      <div class="priority-meta"><b>${escapeHtml(x.valor_fmt || '')}</b><span>${escapeHtml(x.reason || `${Number(x.dias || 0).toLocaleString('pt-BR')} dias`)}</span></div>
       <div class="priority-owner" title="${escapeAttr(x.owner_team || '')}">${escapeHtml(shortOwnerLabel(x.owner_team || ''))}</div>
     </button>`).join('');
-  host.querySelectorAll('.priority-row-v33').forEach(btn => {
-    btn.onclick = () => {
-      clearKpiNavigationState();
-      state.filters.ETAPA = btn.dataset.etapa ? [btn.dataset.etapa] : [];
-      state.filters.FORNECEDOR = btn.dataset.fornecedor ? [btn.dataset.fornecedor] : [];
-      state.filters['DONO DA AÇÃO'] = btn.dataset.owner ? [btn.dataset.owner] : [];
-      state.page = 1;
-      updateFilterUI();
-      switchTab('base');
-    };
+  host.querySelectorAll('.priority-row-v33').forEach(button => {
+    button.onclick = () => filterContextAndOpenBase({
+      etapa:button.dataset.etapa || '',
+      fornecedor:button.dataset.fornecedor || '',
+      owner:button.dataset.owner || ''
+    });
   });
 }
 

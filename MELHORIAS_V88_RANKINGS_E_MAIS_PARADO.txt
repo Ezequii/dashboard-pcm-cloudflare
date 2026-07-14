@@ -1,0 +1,8 @@
+V88 - Rankings mais claros e identificacao da etapa em Mais parado
+
+- Top 3 fornecedores e Top 3 solicitantes agora aparecem em dois paineis equivalentes.
+- Cada ranking mostra posicao, nome, quantidade de RCs, valor e barra proporcional.
+- Os itens continuam clicaveis e abrem a Base de Tratativa filtrada.
+- O card Mais parado agora mostra a etapa: Sem lancamento, Sem pedido, Sem NF ou Outra pendencia.
+- O codigo da RC/orcamento continua visivel ao lado da etapa.
+- Nenhuma regra dos KPIs, filtros ou tabela foi alterada.

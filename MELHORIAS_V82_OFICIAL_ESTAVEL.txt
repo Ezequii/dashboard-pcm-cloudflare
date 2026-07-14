@@ -1,0 +1,13 @@
+V82 - Oficial estavel
+
+Atualizacoes seguras aplicadas:
+- Versao visual marcada como v82 estavel.
+- Cache bust atualizado para v82.
+- Adicionados arquivos de checklist e regras de confiabilidade.
+- Nenhuma alteracao agressiva na logica principal para preservar a estabilidade da v81.
+
+Mantido:
+- Cards executivos fixos no geral.
+- Filtros afetando fila/base.
+- Nomenclatura operacional segura.
+- Wrangler correto para Cloudflare.

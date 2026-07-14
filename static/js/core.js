@@ -1,47 +1,131 @@
-const scheduleDashboard = debounce(() => { savePreferences(); refreshAll(false); }, 160);
-const scheduleRows = debounce(() => { savePreferences(); loadRows(); }, 220);
+const scheduleDashboard = debounce(() => {
+  savePreferences();
+  refreshAll(false).catch(error => console.error('Atualização agendada falhou:', error));
+}, 160);
+
+const scheduleRows = debounce(() => {
+  savePreferences();
+  loadRows().catch(error => console.error('Carregamento agendado da tabela falhou:', error));
+}, 220);
+
+function loadRowsSafely(){
+  return loadRows().catch(error => {
+    console.error('Falha ao carregar a tabela:', error);
+    return null;
+  });
+}
+
+function updateHeaderMetadata(metadata={}, generatedAt=''){
+  const meta = $('meta');
+  const rows = Number(metadata.linhas || 0);
+  const formattedRows = rows.toLocaleString('pt-BR');
+  const generated = generatedAt
+    ? new Date(generatedAt).toLocaleString('pt-BR', {dateStyle:'short', timeStyle:'short'}).replace(',', '')
+    : '';
+
+  if(meta){
+    meta.textContent = `${formattedRows} registros${generated ? ` · atualizado ${generated}` : ''}`;
+    meta.title = [
+      `${formattedRows} registros carregados`,
+      metadata.arquivo ? `arquivo ${metadata.arquivo}` : '',
+      generated ? `base gerada em ${generated}` : ''
+    ].filter(Boolean).join(' · ');
+  }
+
+  updateDataFreshness(generatedAt);
+}
 
 async function init(){
   nowClock();
-  const boot = await api('/api/bootstrap');
-  // V89: somente quatro filtros principais, em ordem clara para a liderança.
-  state.mainFilters = [
-    {key:'SOLICITANTE', label:'Solicitante', type:'search-select'},
-    {key:'FORNECEDOR', label:'Fornecedor', type:'search-select'},
-    {key:'ETAPA', label:'Etapas', type:'search-select'},
-    {key:'MES_RECEBIMENTO', label:'Mês', type:'search-select'},
-  ];
-  state.columns = boot.table_columns || [];
-  state.stageColors = boot.stage_colors || {};
-  loadPreferences();
-  // Remove filtros antigos que ficariam invisíveis depois da retirada dos chips rápidos.
-  const allowedFilterKeys = new Set([...state.mainFilters.map(x => x.key), 'DONO DA AÇÃO']);
-  Object.keys(state.filters || {}).forEach(key => { if(!allowedFilterKeys.has(key)) delete state.filters[key]; });
-  state.mainFilters.forEach(def => { if(!Array.isArray(state.filters[def.key])) state.filters[def.key] = []; });
-  updateMetadataFromBoot(boot);
-  const uploadBtn = $('btnUploadWorkbook');
-  if(uploadBtn) uploadBtn.hidden = !boot.can_upload;
-  buildSmartFilters();
-  bindEvents();
-  hydrateAdvancedSearch();
-  switchTab(state.activeTab || 'visao', {loadRowsNow:false});
-  await refreshAll(true);
-  state.lastSuccessfulRefreshAt = new Date().toISOString();
-  document.body.classList.add('v34-ready');
-  const seconds = Number(boot.auto_reload_seconds || 0);
-  if(seconds >= 30) setInterval(() => refreshAll(false), seconds * 1000);
-  
-  // V83: Verificação de novos dados a cada 5 minutos (300 segundos)
-  // Isso resolve o problema de o usuário deixar o dash aberto e os dados mudarem no Cloudflare
-  setInterval(async () => {
-    const updated = await checkForDataUpdates();
-    if(updated) {
-      showToast('Novos dados detectados. Atualizando painel...');
-      const updatedData = await loadStaticData(true);
-      updateMetadataFromBoot({...updatedData.boot, generated_at: updatedData.generated_at});
-      await refreshAll(false);
+
+  try{
+    setLoading(true);
+    const boot = await api('/api/bootstrap');
+
+    state.mainFilters = [
+      {key:'SOLICITANTE', label:'Solicitante', type:'search-select'},
+      {key:'FORNECEDOR', label:'Fornecedor', type:'search-select'},
+      {key:'ETAPA', label:'Etapas', type:'search-select'},
+      {key:'MES_RECEBIMENTO', label:'Mês', type:'search-select'}
+    ];
+    state.columns = boot.table_columns || [];
+    state.stageColors = boot.stage_colors || {};
+    state.dataVersion = boot.data_version || state.dataVersion || '';
+    state.generatedAt = boot.generated_at || '';
+
+    loadPreferences();
+
+    const allowedFilterKeys = new Set([
+      ...state.mainFilters.map(item => item.key),
+      'DONO DA AÇÃO',
+      'SLA STATUS',
+      'FAIXA ATRASO'
+    ]);
+    Object.keys(state.filters || {}).forEach(key => {
+      if(!allowedFilterKeys.has(key)) delete state.filters[key];
+    });
+    state.mainFilters.forEach(definition => {
+      if(!Array.isArray(state.filters[definition.key])) state.filters[definition.key] = [];
+    });
+    ['DONO DA AÇÃO','SLA STATUS','FAIXA ATRASO'].forEach(key => {
+      if(!Array.isArray(state.filters[key])) state.filters[key] = [];
+    });
+
+    updateHeaderMetadata(boot.metadata || {}, boot.generated_at || '');
+
+    const uploadButton = $('btnUploadWorkbook');
+    if(uploadButton) uploadButton.hidden = !boot.can_upload;
+
+    buildSmartFilters();
+    bindEvents();
+    hydrateAdvancedSearch();
+    updateFilterUI();
+    switchTab(state.activeTab || 'visao', {loadRowsNow:false});
+    await refreshAll(false);
+
+    clearDataError();
+    document.body.classList.add('v34-ready');
+
+    const seconds = Number(boot.auto_reload_seconds || 0);
+    if(seconds >= 30){
+      setInterval(() => refreshAll(false).catch(error => console.error('Atualização automática falhou:', error)), seconds * 1000);
     }
-  }, BUSINESS_RULES.refresh.versionCheckMs);
+
+    setInterval(async () => {
+      try{
+        const updated = await checkForDataUpdates();
+        if(!updated){
+          updateDataFreshness(state.generatedAt);
+          return;
+        }
+
+        showToast('Nova base detectada. Atualizando painel...');
+        const refreshResult = await api('/api/refresh', {});
+        updateHeaderMetadata(refreshResult.metadata || {}, refreshResult.generated_at || '');
+        cacheClear();
+        await refreshAll(false);
+        clearDataError();
+        showToast('Painel atualizado com a nova base.');
+      }catch(error){
+        console.error('Falha na verificação automática:', error);
+        showDataStatus(
+          'Não foi possível verificar uma nova base',
+          error.message || 'A conexão pode estar indisponível.',
+          'error'
+        );
+      }
+    }, 300000);
+  }catch(error){
+    console.error('Falha na inicialização:', error);
+    showDataStatus(
+      'Dashboard indisponível',
+      error.message || 'Não foi possível carregar a base publicada.',
+      'error'
+    );
+    showToast(error.message || 'Não foi possível iniciar o dashboard.', true);
+  }finally{
+    setLoading(false);
+  }
 }
 
 function bindEvents(){
@@ -54,8 +138,9 @@ function bindEvents(){
       state.searchScope = searchScope.value || 'ALL';
       state.page = 1;
       updateSearchUI();
+      updateFilterUI();
       savePreferences();
-      loadRows();
+      loadRowsSafely();
     });
   }
   if(globalSearch){
@@ -64,6 +149,7 @@ function bindEvents(){
       state.search = String(e.target.value || '').slice(0, 200);
       state.page = 1;
       updateSearchUI();
+      updateFilterUI();
       scheduleRows();
     }, 220));
   }
@@ -73,8 +159,9 @@ function bindEvents(){
       if(globalSearch) globalSearch.value = '';
       state.page = 1;
       updateSearchUI();
+      updateFilterUI();
       savePreferences();
-      loadRows();
+      loadRowsSafely();
       globalSearch?.focus();
     });
   }
@@ -103,15 +190,17 @@ function bindEvents(){
   $('btnClear').onclick = clearAll;
   bindFilterDrawer();
   $('btnRefresh').onclick = refreshData;
-  $('btnRetryError')?.addEventListener('click', refreshData);
   bindWorkbookUpload();
-  $('btnExportExcel').onclick = () => { closeExportMenu(); exportFile('excel'); };
-  if($('btnExportPdf')) $('btnExportPdf').onclick = () => { closeExportMenu(); exportPdf(); };
+  $('btnExportCsv')?.addEventListener('click', () => {
+    closeExportMenu();
+    exportFile('csv');
+  });
+  $('btnRetryData')?.addEventListener('click', refreshData);
   bindExportMenu();
   bindAdvancedSearchPanel();
-  if($('pageSize')){ $('pageSize').value = String(state.pageSize || 50); $('pageSize').onchange = (e) => { state.pageSize = Number(e.target.value); state.page = 1; savePreferences(); loadRows(); }; }
-  $('prevPage').onclick = () => { if(state.page > 1){ state.page--; loadRows(); } };
-  $('nextPage').onclick = () => { state.page++; loadRows(); };
+  if($('pageSize')){ $('pageSize').value = String(state.pageSize || 50); $('pageSize').onchange = (e) => { state.pageSize = Number(e.target.value); state.page = 1; savePreferences(); loadRowsSafely(); }; }
+  $('prevPage').onclick = () => { if(state.page > 1){ state.page--; loadRowsSafely(); } };
+  $('nextPage').onclick = () => { state.page++; loadRowsSafely(); };
 
   document.addEventListener('click', (e) => {
     if(!e.target.closest('.smart-select')) closeAllPopovers();
@@ -124,7 +213,7 @@ function bindEvents(){
     if(e.altKey && e.key === '1'){ e.preventDefault(); switchTab('visao'); }
     if(e.altKey && e.key === '2'){ e.preventDefault(); switchTab('base'); }
     if(cmd && e.key.toLowerCase() === 'k'){ e.preventDefault(); switchTab('base'); setTimeout(() => $('globalSearch')?.focus(), 80); }
-    if(cmd && e.key.toLowerCase() === 'e'){ e.preventDefault(); exportFile('excel'); }
+    if(cmd && e.key.toLowerCase() === 'e'){ e.preventDefault(); exportFile('csv'); }
     if(cmd && e.key === 'Backspace'){ e.preventDefault(); clearAll(); }
     if(e.key === '?' && !['INPUT','TEXTAREA','SELECT'].includes(document.activeElement?.tagName || '')){
       showToast('Atalhos: Alt+1 visão, Alt+2 tabela, Ctrl+K busca, Ctrl+E exportar CSV.');
@@ -272,19 +361,34 @@ function openFilterDrawer(){
   state.lastFocus = document.activeElement;
   const drawer = $('filterDrawer');
   const backdrop = $('drawerBackdrop');
+  const openButton = $('btnOpenFilters');
   if(!drawer) return;
   drawer.classList.add('open');
   drawer.setAttribute('aria-hidden','false');
-  if(backdrop){ backdrop.hidden = false; requestAnimationFrame(()=>backdrop.classList.add('show')); }
+  openButton?.setAttribute('aria-expanded','true');
+  if(backdrop){
+    backdrop.hidden = false;
+    requestAnimationFrame(() => backdrop.classList.add('show'));
+  }
   setTimeout(() => $('btnCloseFilters')?.focus(), 60);
 }
 
 function closeFilterDrawer(){
   const drawer = $('filterDrawer');
   const backdrop = $('drawerBackdrop');
-  if(drawer){ drawer.classList.remove('open'); drawer.setAttribute('aria-hidden','true'); }
-  if(backdrop){ backdrop.classList.remove('show'); setTimeout(()=>{ backdrop.hidden = true; }, 180); }
-  if(state.lastFocus && typeof state.lastFocus.focus === 'function') setTimeout(() => state.lastFocus.focus(), 80);
+  const openButton = $('btnOpenFilters');
+  if(drawer){
+    drawer.classList.remove('open');
+    drawer.setAttribute('aria-hidden','true');
+  }
+  openButton?.setAttribute('aria-expanded','false');
+  if(backdrop){
+    backdrop.classList.remove('show');
+    setTimeout(() => { backdrop.hidden = true; }, 180);
+  }
+  if(state.lastFocus && typeof state.lastFocus.focus === 'function'){
+    setTimeout(() => state.lastFocus.focus(), 80);
+  }
 }
 
 function bindQuickChips(){
@@ -331,28 +435,40 @@ function syncQuickChips(activeKind=null){
   document.querySelectorAll('#quickChips .quick-chip').forEach(btn => btn.classList.toggle('active', btn.dataset.quick === kind));
 }
 
-function switchTab(tab, {loadRowsNow=true}={}){
+function switchTab(tab, options={}){
   const selected = tab || 'visao';
+  const loadRowsNow = options.loadRowsNow !== false;
   state.activeTab = selected;
   savePreferences();
-  document.querySelectorAll('.tab-btn').forEach(btn => {
-    btn.classList.toggle('active', btn.dataset.tab === selected);
-    btn.setAttribute('aria-selected', btn.dataset.tab === selected ? 'true' : 'false');
+
+  document.querySelectorAll('.tab-btn').forEach(button => {
+    const active = button.dataset.tab === selected;
+    button.classList.toggle('active', active);
+    button.setAttribute('aria-selected', active ? 'true' : 'false');
   });
+
   document.querySelectorAll('[data-panel]').forEach(panel => {
     panel.hidden = panel.dataset.panel !== selected;
   });
+
   document.body.classList.toggle('active-tab-visao', selected === 'visao');
   document.body.classList.toggle('active-tab-base', selected === 'base');
   closeAllPopovers();
   closeFilterDrawer();
+  updateFilterUI();
+
   if(selected === 'base' && loadRowsNow){
-    loadRows().catch(err => {
-      console.error('Erro ao abrir base:', err);
-      showPersistentError(err);
+    loadRows().catch(error => {
+      console.error('Falha ao abrir a Base de Tratativa:', error);
+      showDataStatus(
+        'Base de Tratativa indisponível',
+        error.message || 'Não foi possível carregar os registros.',
+        'error'
+      );
     });
   }
-  window.scrollTo({top: 0, behavior: 'auto'});
+
+  window.scrollTo({top:0, behavior:'auto'});
 }
 
 function clearAll(){
@@ -368,94 +484,97 @@ function clearAll(){
   closeAllPopovers();
   closeFilterDrawer();
   savePreferences();
-  refreshAll(true);
+  refreshAll(true).catch(error => console.error('Falha ao limpar filtros:', error));
 }
 
 async function refreshData(){
-  if(state.refreshInFlight) return;
+  if(state.refreshPromise) return state.refreshPromise;
+
   try{
     setLoading(true);
     cacheClear();
-    const refreshed = await loadStaticData(true);
-    updateMetadataFromBoot({...refreshed.boot, generated_at: refreshed.generated_at});
-    showToast('Dados atualizados da base estática.');
+    const result = await api('/api/refresh', {});
+    state.dataVersion = result.data_version || state.dataVersion || '';
+    state.generatedAt = result.generated_at || state.generatedAt || '';
+    updateHeaderMetadata(result.metadata || {}, state.generatedAt);
+    state.page = 1;
     await refreshAll(false);
-  }catch(err){
-    showPersistentError(err);
-    showToast(err.message, true);
+    clearDataError();
+    showToast(`${result.message || 'Dados atualizados'}. ${Number(result.linhas || 0).toLocaleString('pt-BR')} registros carregados.`);
+  }catch(error){
+    console.error('Falha na atualização manual:', error);
+    showToast(error.message || 'Não foi possível atualizar os dados.', true);
+    showDataStatus(
+      'Falha ao atualizar a base',
+      error.message || 'Verifique a conexão e tente novamente.',
+      'error'
+    );
+  }finally{
+    setLoading(false);
   }
-  finally{ setLoading(false); }
 }
 
 async function refreshAll(withLoader=true){
-  const seq = ++state.dashboardSeq;
-  const token = ++state.refreshToken;
-  state.refreshInFlight = true;
-  try{
-    if(withLoader) setLoading(true);
-    hidePersistentError();
-    updateFilterUI();
-    await loadDashboard(seq);
-    if(token !== state.refreshToken) return;
-    if(state.activeTab === 'base') await loadRows(seq);
-    if(token !== state.refreshToken) return;
-    state.lastSuccessfulRefreshAt = new Date().toISOString();
-  }catch(err){ 
-    console.error('Erro em refreshAll:', err);
-    showPersistentError(err);
-    showToast(err.message || 'Erro ao atualizar dashboard', true); 
+  state.dashboardSeq += 1;
+  const requestedSeq = state.dashboardSeq;
+
+  if(state.refreshPromise){
+    state.refreshQueued = true;
+    return state.refreshPromise;
   }
-  finally{ 
-    if(token === state.refreshToken) {
-      state.refreshInFlight = false;
+
+  const run = async () => {
+    try{
+      if(withLoader) setLoading(true);
+      updateFilterUI();
+      await loadDashboard(requestedSeq);
+      if(state.activeTab === 'base') await loadRows(requestedSeq);
+      state.lastSuccessfulRefresh = Date.now();
+      updateDataFreshness(state.generatedAt);
+      clearDataError();
+    }catch(error){
+      console.error('Erro em refreshAll:', error);
+      showToast(error.message || 'Erro ao atualizar dashboard.', true);
+      showDataStatus(
+        'Não foi possível atualizar o painel',
+        error.message || 'Os dados anteriores foram mantidos. Tente novamente.',
+        'error'
+      );
+      throw error;
+    }finally{
       if(withLoader) setLoading(false);
+    }
+  };
+
+  state.refreshPromise = run();
+
+  try{
+    return await state.refreshPromise;
+  }finally{
+    state.refreshPromise = null;
+    if(state.refreshQueued){
+      state.refreshQueued = false;
+      await refreshAll(false);
     }
   }
 }
 
 function setLoading(on){
-  state.isRefreshing = on;
-  document.body.classList.toggle('loading', on);
+  state.isRefreshing = Boolean(on);
+  document.body.classList.toggle('loading', Boolean(on));
   document.body.setAttribute('aria-busy', on ? 'true' : 'false');
-  ['btnRefresh','btnUploadWorkbook','btnExportExcel','btnExportPdf','btnClear','btnExportMenu','btnToggleAdvancedSearch','btnClearSearch'].forEach(id => { const el=$(id); if(el) el.disabled=on; });
-}
 
-function showPersistentError(error){
-  const box = $('errorState');
-  if(!box) return;
-  const message = error?.message || String(error || 'Erro desconhecido ao atualizar os dados.');
-  const now = new Date().toLocaleString('pt-BR', {dateStyle:'short', timeStyle:'medium'});
-  if($('errorStateMessage')) $('errorStateMessage').textContent = message;
-  if($('errorStateTime')) $('errorStateTime').textContent = `Falha registrada em ${now}. A última versão válida permanece exibida.`;
-  box.hidden = false;
-}
-
-function hidePersistentError(){
-  const box = $('errorState');
-  if(box) box.hidden = true;
-}
-
-function updateDataFreshness(generatedAt){
-  const meta = $('meta');
-  if(!meta || !generatedAt) return;
-  const timestamp = new Date(generatedAt).getTime();
-  if(!Number.isFinite(timestamp)) return;
-  const hours = Math.max(0, (Date.now() - timestamp) / 3600000);
-  const stale = hours >= BUSINESS_RULES.targets.staleDataHours;
-  meta.classList.toggle('is-stale-v97', stale);
-  meta.setAttribute('data-freshness', stale ? 'desatualizado' : 'atualizado');
-  if(stale) meta.title = `${meta.title || ''} · Atenção: dados gerados há ${Math.floor(hours)} horas.`;
-}
-
-function updateMetadataFromBoot(boot={}){
-  const meta = $('meta');
-  if(!meta) return;
-  const generatedAt = boot.generated_at || state.dataGeneratedAt || '';
-  const gerado = generatedAt
-    ? new Date(generatedAt).toLocaleString('pt-BR', {dateStyle:'short', timeStyle:'short'}).replace(',', '')
-    : '';
-  const linhas = Number(boot.metadata?.linhas || 0).toLocaleString('pt-BR');
-  meta.textContent = `${linhas} registros${gerado ? ' • ' + gerado : ''}`;
-  meta.title = `${linhas} registros carregados${gerado ? ' · atualizado em ' + gerado : ''}`;
-  updateDataFreshness(generatedAt);
+  [
+    'btnRefresh',
+    'btnUploadWorkbook',
+    'btnExportCsv',
+    'btnClear',
+    'btnExportMenu',
+    'btnToggleAdvancedSearch',
+    'btnClearSearch',
+    'btnRetryData'
+  ].forEach(id => {
+    const element = $(id);
+    if(element) element.disabled = Boolean(on);
+  });
 }

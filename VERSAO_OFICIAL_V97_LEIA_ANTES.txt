@@ -1,0 +1,12 @@
+VERSÃO OFICIAL V97
+
+Esta versão prioriza confiabilidade, navegação exata e transparência dos filtros.
+
+Antes de publicar:
+- gere novamente o dashboard-data.json com a planilha oficial;
+- confira as contagens por etapa;
+- não edite manualmente o JSON;
+- publique index.html, 404.html, _headers, static e tools juntos.
+
+A V97 preserva a regra de negócio da V83:
+a coluna STATUS da planilha é a fonte oficial das etapas.

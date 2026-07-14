@@ -12,6 +12,8 @@ const state = {
   dashboardSeq: 0,
   rowsSeq: 0,
   isRefreshing: false,
+  refreshPromise: null,
+  refreshQueued: false,
   activeTab: 'visao',
   lastFocus: null,
   dateFrom: '',
@@ -19,11 +21,9 @@ const state = {
   valueMin: '',
   valueMax: '',
   dataVersion: '',
-  dataGeneratedAt: '',
-  lastSuccessfulRefreshAt: '',
-  refreshToken: 0,
-  refreshInFlight: false,
-  rowsInFlight: false,
+  generatedAt: '',
+  lastSuccessfulRefresh: 0,
+  lastError: '',
 };
 
 const DESC_FIRST_COLUMNS = new Set([
@@ -34,11 +34,26 @@ const DESC_FIRST_COLUMNS = new Set([
 
 const $ = (id) => document.getElementById(id);
 const STORAGE_KEY = 'pcm-dashboard-preferences-v97-cloudflare';
+const LEGACY_STORAGE_KEYS = [
+  'pcm-dashboard-preferences-v89-cloudflare',
+  'pcm-dashboard-preferences-v88-cloudflare'
+];
 const DASH_CACHE_PREFIX = 'pcm-dashboard-cache-v97-cloudflare:';
+
+function readStoredPreferences(){
+  const keys = [STORAGE_KEY, ...LEGACY_STORAGE_KEYS];
+  for(const key of keys){
+    try{
+      const raw = localStorage.getItem(key);
+      if(raw) return JSON.parse(raw);
+    }catch(e){}
+  }
+  return {};
+}
 
 function loadPreferences(){
   try{
-    const prefs = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+    const prefs = readStoredPreferences();
     state.filters = prefs.filters || {};
     state.search = prefs.search || '';
     state.searchScope = prefs.searchScope || 'ALL';
@@ -56,9 +71,17 @@ function loadPreferences(){
 function savePreferences(){
   try{
     localStorage.setItem(STORAGE_KEY, JSON.stringify({
-      filters: state.filters, search: state.search, searchScope: state.searchScope, pageSize: state.pageSize,
-      sortCol: state.sortCol, sortDir: state.sortDir, activeTab: state.activeTab,
-      dateFrom: state.dateFrom, dateTo: state.dateTo, valueMin: state.valueMin, valueMax: state.valueMax
+      filters: state.filters,
+      search: state.search,
+      searchScope: state.searchScope,
+      pageSize: state.pageSize,
+      sortCol: state.sortCol,
+      sortDir: state.sortDir,
+      activeTab: state.activeTab,
+      dateFrom: state.dateFrom,
+      dateTo: state.dateTo,
+      valueMin: state.valueMin,
+      valueMax: state.valueMax
     }));
   }catch(e){}
 }
@@ -68,13 +91,30 @@ function cacheGet(key, maxAgeMs=60000){
     const raw = sessionStorage.getItem(DASH_CACHE_PREFIX + key);
     if(!raw) return null;
     const obj = JSON.parse(raw);
-    if(Date.now() - obj.time > maxAgeMs) return null;
+    if(Date.now() - obj.time > maxAgeMs){
+      sessionStorage.removeItem(DASH_CACHE_PREFIX + key);
+      return null;
+    }
     return obj.data;
-  }catch(e){ return null; }
+  }catch(e){
+    return null;
+  }
 }
+
 function cacheSet(key, data){
-  try{ sessionStorage.setItem(DASH_CACHE_PREFIX + key, JSON.stringify({time:Date.now(), data})); }catch(e){}
+  try{
+    sessionStorage.setItem(DASH_CACHE_PREFIX + key, JSON.stringify({
+      time: Date.now(),
+      version: state.dataVersion || '',
+      data
+    }));
+  }catch(e){}
 }
+
 function cacheClear(){
-  try{ Object.keys(sessionStorage).filter(k => k.startsWith(DASH_CACHE_PREFIX)).forEach(k => sessionStorage.removeItem(k)); }catch(e){}
+  try{
+    Object.keys(sessionStorage)
+      .filter(key => key.startsWith(DASH_CACHE_PREFIX))
+      .forEach(key => sessionStorage.removeItem(key));
+  }catch(e){}
 }
