@@ -832,3 +832,272 @@ function compactCurrency(value){
     );
   };
 })();
+
+/* ==========================================================================
+   V98.3 — arquitetura executiva sem duplicação
+   ========================================================================== */
+(() => {
+  "use strict";
+
+  const previousRenderDashboardDataV983 = window.renderDashboardData;
+
+  const toNumberV983 = (value) => Number(value || 0);
+  const formatIntV983 = (value) => toNumberV983(value).toLocaleString("pt-BR");
+  const stageByNameV983 = (data, name) =>
+    (data?.etapas || []).find(
+      (item) => String(item.etapa || "").toUpperCase() === name
+    ) || {};
+
+  function openCriticalV983(){
+    clearKpiNavigationState();
+    state.filters["FAIXA ATRASO"] = ["30+ dias"];
+    updateFilterUI();
+    savePreferences();
+    switchTab("base");
+  }
+
+  function renderPrimaryV983(data){
+    const kpis = data?.kpis || {};
+    const total = toNumberV983(kpis.total_rcs);
+    const completed = toNumberV983(kpis.concluidas);
+    const completion = Math.max(
+      0,
+      Math.min(
+        100,
+        toNumberV983(
+          kpis.pct_concluido_valor ||
+          (total ? completed / total * 100 : 0)
+        )
+      )
+    );
+
+    const progress = $("completionProgressV983");
+    if(progress) progress.style.width = `${completion}%`;
+
+    const focus = (data?.top5_prioridades || [])[0];
+    const focusButton = $("firstFocusV983");
+
+    if(!focus){
+      setText("focusSupplierV983", "Nenhuma prioridade pendente");
+      setText("focusMetaV983", "O contexto atual não possui itens para tratar");
+      if(focusButton){
+        focusButton.disabled = true;
+        focusButton.onclick = null;
+      }
+    }else{
+      const quantity = toNumberV983(focus.qtd);
+      setText(
+        "focusSupplierV983",
+        focus.fornecedor || "Fornecedor não informado"
+      );
+      setText(
+        "focusMetaV983",
+        `${focus.action || "Tratar pendência"} · ${formatIntV983(quantity)} RC${quantity === 1 ? "" : "s"} · ${focus.valor_fmt || compactCurrency(focus.valor)} · ${formatIntV983(focus.dias)} dias`
+      );
+      if(focusButton){
+        focusButton.disabled = false;
+        focusButton.onclick = () => filterContextAndOpenBase({
+          etapa: focus.etapa || "",
+          fornecedor: focus.fornecedor_filter || focus.fornecedor || "",
+          owner: focus.owner_filter || ""
+        });
+      }
+    }
+
+    const critical = toNumberV983(
+      kpis.critical_pending || kpis.rcs_criticas
+    );
+    setText("kFarolStatus", formatIntV983(critical));
+    setText(
+      "kFarolSub",
+      kpis.critical_pending_value_compacto
+        ? `${kpis.critical_pending_value_compacto} em valor`
+        : "Acima de 30 dias"
+    );
+
+    const criticalCard = $("farolRegional");
+    if(criticalCard){
+      criticalCard.classList.toggle("has-critical-v983", critical > 0);
+      criticalCard.onclick = openCriticalV983;
+    }
+  }
+
+  function processStepMarkupV983(stage, index, totalStages, compact=false){
+    const quantity = toNumberV983(stage.qtd);
+    const maxDays = toNumberV983(stage.max_dias);
+    const outside = toNumberV983(stage.fora_sla);
+    const completed = String(stage.etapa || "").toUpperCase() === "CONCLUÍDO";
+    const selected = (state.filters.ETAPA || []).includes(stage.etapa);
+
+    const timeLabel = completed
+      ? "Fluxo concluído"
+      : `${formatIntV983(maxDays)} dia${maxDays === 1 ? "" : "s"} máx.`;
+
+    const statusLabel = completed
+      ? "Concluído"
+      : outside
+        ? `${formatIntV983(outside)} fora do prazo`
+        : "Dentro do prazo";
+
+    return `
+      <button
+        type="button"
+        class="process-step-v983 ${stageClass(stage.etapa)} ${selected ? "is-active" : ""} ${compact ? "is-compact" : ""}"
+        style="--stage:${escapeAttr(stage.cor || "#00629E")}"
+        data-etapa="${escapeAttr(stage.etapa || "")}"
+        aria-pressed="${selected ? "true" : "false"}">
+        <span class="process-node-v983" aria-hidden="true">
+          <i></i>${index < totalStages - 1 ? "<b></b>" : ""}
+        </span>
+        <span class="process-step-copy-v983">
+          <small>${escapeHtml(stage.etapa || "")}</small>
+          <strong>${formatIntV983(quantity)}</strong>
+          <em>${escapeHtml(stage.valor_formatado || compactCurrency(stage.valor))}</em>
+          <span>${timeLabel}</span>
+          ${compact ? "" : `<mark class="${outside && !completed ? "is-alert" : "is-clear"}">${statusLabel}</mark>`}
+        </span>
+      </button>`;
+  }
+
+  function renderProcessFlowV983(data){
+    const stages = data?.etapas || [];
+    const hosts = [
+      {id:"processCards", compact:false},
+      {id:"processCardsBase", compact:true}
+    ];
+
+    hosts.forEach(({id, compact}) => {
+      const host = $(id);
+      if(!host) return;
+
+      if(!stages.length){
+        host.innerHTML = '<div class="empty-state">Nenhuma etapa disponível</div>';
+        return;
+      }
+
+      host.innerHTML = stages.map(
+        (stage, index) =>
+          processStepMarkupV983(stage, index, stages.length, compact)
+      ).join("");
+
+      host.querySelectorAll(".process-step-v983").forEach((button) => {
+        button.onclick = () => toggleProcessFilter(button.dataset.etapa || "");
+      });
+    });
+  }
+
+  function renderPrioritiesV983(data){
+    const host = $("topPrioridades");
+    if(!host) return;
+
+    const rows = (data?.top5_prioridades || []).slice(0, 3);
+    if(!rows.length){
+      host.innerHTML = '<div class="empty-state">Sem prioridades pendentes</div>';
+      return;
+    }
+
+    host.innerHTML = rows.map((item, index) => {
+      const quantity = toNumberV983(item.qtd);
+      return `
+        <button
+          type="button"
+          class="priority-line-v983"
+          data-etapa="${escapeAttr(item.etapa || "")}"
+          data-fornecedor="${escapeAttr(item.fornecedor_filter || item.fornecedor || "")}"
+          data-owner="${escapeAttr(item.owner_filter || "")}">
+          <span class="priority-number-v983">${index + 1}</span>
+          <span class="priority-main-v983">
+            <strong>${escapeHtml(item.fornecedor || "Fornecedor não informado")}</strong>
+            <small>${escapeHtml(item.action || "Tratar pendência")}</small>
+          </span>
+          <span class="priority-data-v983">
+            ${formatIntV983(quantity)} RC${quantity === 1 ? "" : "s"}
+            <b>·</b>
+            ${escapeHtml(item.valor_fmt || compactCurrency(item.valor))}
+            <b>·</b>
+            ${formatIntV983(item.dias)} dias
+          </span>
+          <span class="priority-go-v983" aria-hidden="true">→</span>
+        </button>`;
+    }).join("");
+
+    host.querySelectorAll(".priority-line-v983").forEach((button) => {
+      button.onclick = () => filterContextAndOpenBase({
+        etapa: button.dataset.etapa || "",
+        fornecedor: button.dataset.fornecedor || "",
+        owner: button.dataset.owner || ""
+      });
+    });
+  }
+
+  function renderRankingTableV983(hostId, rows, dimension){
+    const host = $(hostId);
+    if(!host) return;
+
+    const items = (rows || []).slice(0, 3);
+    if(!items.length){
+      host.innerHTML = '<div class="empty-state">Sem dados no contexto atual</div>';
+      return;
+    }
+
+    const maxValue = Math.max(
+      1,
+      ...items.map((item) => toNumberV983(item.value))
+    );
+
+    host.innerHTML = items.map((item, index) => {
+      const label = item.display_label || item.label || "Não informado";
+      const percent = Math.max(
+        3,
+        Math.min(100, toNumberV983(item.value) / maxValue * 100)
+      );
+      return `
+        <button
+          type="button"
+          class="ranking-line-v983"
+          data-value="${escapeAttr(item.label || label)}">
+          <span class="ranking-position-v983">${index + 1}</span>
+          <span class="ranking-name-v983">
+            <strong title="${escapeAttr(item.label || label)}">${escapeHtml(label)}</strong>
+            <i style="--width:${percent}%"></i>
+          </span>
+          <span class="ranking-quantity-v983">${formatIntV983(item.qtd)} RC${toNumberV983(item.qtd) === 1 ? "" : "s"}</span>
+          <span class="ranking-value-v983" title="${escapeAttr(item.full || "")}">${escapeHtml(item.formatted || compactCurrency(item.value))}</span>
+        </button>`;
+    }).join("");
+
+    host.querySelectorAll(".ranking-line-v983").forEach((button) => {
+      button.onclick = () => openRankingFilter(dimension, button.dataset.value || "");
+    });
+  }
+
+  function renderBaseHintV983(data){
+    const kpis = data?.kpis || {};
+    const hint = $("baseOverviewHintV983");
+    if(!hint) return;
+    hint.textContent = `${formatIntV983(kpis.pendentes)} pendentes · ${kpis.valor_pendente_compacto || kpis.valor_pendente || "R$ 0"} em andamento`;
+  }
+
+  window.renderDashboardData = function renderDashboardDataV983(data){
+    previousRenderDashboardDataV983(data);
+
+    renderPrimaryV983(data);
+    renderProcessFlowV983(data);
+    renderPrioritiesV983(data);
+    renderRankingTableV983(
+      "actionNowList",
+      data?.charts?.top_fornecedores_pendentes ||
+      data?.charts?.top_fornecedores ||
+      [],
+      "FORNECEDOR"
+    );
+    renderRankingTableV983(
+      "ownersCriticos",
+      data?.charts?.solicitantes_pendentes ||
+      data?.charts?.custo_solicitante ||
+      [],
+      "SOLICITANTE"
+    );
+    renderBaseHintV983(data);
+  };
+})();

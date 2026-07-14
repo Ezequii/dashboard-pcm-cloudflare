@@ -1,0 +1,25 @@
+DASHBOARD PCM — V98.3 FLUXO EXECUTIVO
+
+PRINCÍPIO DA VERSÃO
+Cada informação aparece uma vez, no local em que é mais útil.
+
+MUDANÇAS
+- Removida a repetição entre resumo e seis KPIs.
+- Mantidos quatro indicadores principais:
+  valor em andamento, RCs pendentes, conclusão e primeiro foco.
+- Fila PCM, criticidade e maior pendência foram movidas para uma faixa auxiliar.
+- Etapas agora formam um fluxo horizontal.
+- Fila prioritária usa divisórias, sem caixas aninhadas.
+- Rankings foram convertidos para estrutura de tabela.
+- Base de Tratativa recebeu cabeçalho e etapas compactas.
+- Tipografia essencial aumentada.
+- Sombras e arredondamentos foram reduzidos.
+- Conteúdo limitado a 1500 px.
+- Validador funciona com ou sem Node.js.
+
+PUBLICAÇÃO
+1. Substitua o deploy inteiro.
+2. Coloque a planilha oficial na pasta data.
+3. Execute ATUALIZAR_DADOS.cmd.
+4. Confirme: VALIDAÇÃO V98.3: OK.
+5. Faça Commit e Push.
