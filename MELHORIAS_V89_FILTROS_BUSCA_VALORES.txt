@@ -1,0 +1,25 @@
+V89 — filtros principais, busca guiada e valores monetários claros
+
+Alterações aplicadas sem mudar a lógica dos KPIs:
+
+1. Removidos os filtros rápidos que ficavam abaixo do cabeçalho.
+2. Mantidos somente quatro filtros principais:
+   - Solicitante
+   - Fornecedor
+   - Etapas
+   - Mês
+3. Os rankings Top 3 aparecem somente na Visão Executiva.
+4. Na Base de Tratativa, os cards de etapa ficaram com cantos menos arredondados.
+5. A pesquisa da base ganhou seleção do tipo de informação:
+   - Tudo
+   - RC / Requisição
+   - Pedido
+   - Fornecedor
+   - Solicitante
+   - Equipamento / Prefixo
+   - Orçamento / OS / NF
+6. Códigos exatos são priorizados na pesquisa para reduzir resultados confusos.
+7. A pesquisa mostra a quantidade de resultados e possui botão Limpar.
+8. Valor Total é exibido em moeda brasileira completa, por exemplo:
+   R$ 5.047,64
+9. Rankings, filtros, KPIs e STATUS oficial da planilha foram preservados.
