@@ -15,23 +15,18 @@ async function init(){
   state.stageColors = boot.stage_colors || {};
   loadPreferences();
   // Remove filtros antigos que ficariam invisíveis depois da retirada dos chips rápidos.
-  const allowedFilterKeys = new Set(state.mainFilters.map(x => x.key));
+  const allowedFilterKeys = new Set([...state.mainFilters.map(x => x.key), 'DONO DA AÇÃO']);
   Object.keys(state.filters || {}).forEach(key => { if(!allowedFilterKeys.has(key)) delete state.filters[key]; });
   state.mainFilters.forEach(def => { if(!Array.isArray(state.filters[def.key])) state.filters[def.key] = []; });
-  const meta = $('meta');
-  const gerado = boot.generated_at ? new Date(boot.generated_at).toLocaleString('pt-BR', {dateStyle:'short', timeStyle:'short'}).replace(',', '') : '';
-  if(meta){
-    const linhas = Number(boot.metadata.linhas || 0).toLocaleString('pt-BR');
-    meta.textContent = `${linhas} registros${gerado ? ' • ' + gerado : ''}`;
-    meta.title = `${linhas} registros carregados${boot.metadata.arquivo ? ' · ' + boot.metadata.arquivo : ''}${gerado ? ' · atualizado em ' + gerado : ''}`;
-  }
+  updateMetadataFromBoot(boot);
   const uploadBtn = $('btnUploadWorkbook');
   if(uploadBtn) uploadBtn.hidden = !boot.can_upload;
   buildSmartFilters();
   bindEvents();
   hydrateAdvancedSearch();
-  switchTab(state.activeTab || 'visao');
+  switchTab(state.activeTab || 'visao', {loadRowsNow:false});
   await refreshAll(true);
+  state.lastSuccessfulRefreshAt = new Date().toISOString();
   document.body.classList.add('v34-ready');
   const seconds = Number(boot.auto_reload_seconds || 0);
   if(seconds >= 30) setInterval(() => refreshAll(false), seconds * 1000);
@@ -42,9 +37,11 @@ async function init(){
     const updated = await checkForDataUpdates();
     if(updated) {
       showToast('Novos dados detectados. Atualizando painel...');
+      const updatedData = await loadStaticData(true);
+      updateMetadataFromBoot({...updatedData.boot, generated_at: updatedData.generated_at});
       await refreshAll(false);
     }
-  }, 300000);
+  }, BUSINESS_RULES.refresh.versionCheckMs);
 }
 
 function bindEvents(){
@@ -106,9 +103,10 @@ function bindEvents(){
   $('btnClear').onclick = clearAll;
   bindFilterDrawer();
   $('btnRefresh').onclick = refreshData;
+  $('btnRetryError')?.addEventListener('click', refreshData);
   bindWorkbookUpload();
   $('btnExportExcel').onclick = () => { closeExportMenu(); exportFile('excel'); };
-  $('btnExportPdf').onclick = () => { closeExportMenu(); exportPdf(); };
+  if($('btnExportPdf')) $('btnExportPdf').onclick = () => { closeExportMenu(); exportPdf(); };
   bindExportMenu();
   bindAdvancedSearchPanel();
   if($('pageSize')){ $('pageSize').value = String(state.pageSize || 50); $('pageSize').onchange = (e) => { state.pageSize = Number(e.target.value); state.page = 1; savePreferences(); loadRows(); }; }
@@ -127,10 +125,9 @@ function bindEvents(){
     if(e.altKey && e.key === '2'){ e.preventDefault(); switchTab('base'); }
     if(cmd && e.key.toLowerCase() === 'k'){ e.preventDefault(); switchTab('base'); setTimeout(() => $('globalSearch')?.focus(), 80); }
     if(cmd && e.key.toLowerCase() === 'e'){ e.preventDefault(); exportFile('excel'); }
-    if(cmd && e.shiftKey && e.key.toLowerCase() === 'p'){ e.preventDefault(); exportPdf(); }
     if(cmd && e.key === 'Backspace'){ e.preventDefault(); clearAll(); }
     if(e.key === '?' && !['INPUT','TEXTAREA','SELECT'].includes(document.activeElement?.tagName || '')){
-      showToast('Atalhos: Alt+1 visão, Alt+2 tabela, Ctrl+K busca, Ctrl+E Excel, Ctrl+Shift+P PDF.');
+      showToast('Atalhos: Alt+1 visão, Alt+2 tabela, Ctrl+K busca, Ctrl+E exportar CSV.');
     }
   });
 
@@ -334,12 +331,13 @@ function syncQuickChips(activeKind=null){
   document.querySelectorAll('#quickChips .quick-chip').forEach(btn => btn.classList.toggle('active', btn.dataset.quick === kind));
 }
 
-function switchTab(tab){
+function switchTab(tab, {loadRowsNow=true}={}){
   const selected = tab || 'visao';
   state.activeTab = selected;
   savePreferences();
   document.querySelectorAll('.tab-btn').forEach(btn => {
     btn.classList.toggle('active', btn.dataset.tab === selected);
+    btn.setAttribute('aria-selected', btn.dataset.tab === selected ? 'true' : 'false');
   });
   document.querySelectorAll('[data-panel]').forEach(panel => {
     panel.hidden = panel.dataset.panel !== selected;
@@ -348,7 +346,12 @@ function switchTab(tab){
   document.body.classList.toggle('active-tab-base', selected === 'base');
   closeAllPopovers();
   closeFilterDrawer();
-  if(selected === 'base') loadRows();
+  if(selected === 'base' && loadRowsNow){
+    loadRows().catch(err => {
+      console.error('Erro ao abrir base:', err);
+      showPersistentError(err);
+    });
+  }
   window.scrollTo({top: 0, behavior: 'auto'});
 }
 
@@ -369,31 +372,42 @@ function clearAll(){
 }
 
 async function refreshData(){
+  if(state.refreshInFlight) return;
   try{
     setLoading(true);
     cacheClear();
-    await api('/api/refresh', {});
+    const refreshed = await loadStaticData(true);
+    updateMetadataFromBoot({...refreshed.boot, generated_at: refreshed.generated_at});
     showToast('Dados atualizados da base estática.');
     await refreshAll(false);
-  }catch(err){ showToast(err.message, true); }
+  }catch(err){
+    showPersistentError(err);
+    showToast(err.message, true);
+  }
   finally{ setLoading(false); }
 }
 
 async function refreshAll(withLoader=true){
   const seq = ++state.dashboardSeq;
-  // Previne requisições concorrentes: se houver uma requisição em andamento, ignora esta
-  if(state.isRefreshing && seq !== state.dashboardSeq) return;
+  const token = ++state.refreshToken;
+  state.refreshInFlight = true;
   try{
     if(withLoader) setLoading(true);
+    hidePersistentError();
     updateFilterUI();
     await loadDashboard(seq);
+    if(token !== state.refreshToken) return;
     if(state.activeTab === 'base') await loadRows(seq);
+    if(token !== state.refreshToken) return;
+    state.lastSuccessfulRefreshAt = new Date().toISOString();
   }catch(err){ 
     console.error('Erro em refreshAll:', err);
+    showPersistentError(err);
     showToast(err.message || 'Erro ao atualizar dashboard', true); 
   }
   finally{ 
-    if(seq === state.dashboardSeq) {
+    if(token === state.refreshToken) {
+      state.refreshInFlight = false;
       if(withLoader) setLoading(false);
     }
   }
@@ -404,4 +418,44 @@ function setLoading(on){
   document.body.classList.toggle('loading', on);
   document.body.setAttribute('aria-busy', on ? 'true' : 'false');
   ['btnRefresh','btnUploadWorkbook','btnExportExcel','btnExportPdf','btnClear','btnExportMenu','btnToggleAdvancedSearch','btnClearSearch'].forEach(id => { const el=$(id); if(el) el.disabled=on; });
+}
+
+function showPersistentError(error){
+  const box = $('errorState');
+  if(!box) return;
+  const message = error?.message || String(error || 'Erro desconhecido ao atualizar os dados.');
+  const now = new Date().toLocaleString('pt-BR', {dateStyle:'short', timeStyle:'medium'});
+  if($('errorStateMessage')) $('errorStateMessage').textContent = message;
+  if($('errorStateTime')) $('errorStateTime').textContent = `Falha registrada em ${now}. A última versão válida permanece exibida.`;
+  box.hidden = false;
+}
+
+function hidePersistentError(){
+  const box = $('errorState');
+  if(box) box.hidden = true;
+}
+
+function updateDataFreshness(generatedAt){
+  const meta = $('meta');
+  if(!meta || !generatedAt) return;
+  const timestamp = new Date(generatedAt).getTime();
+  if(!Number.isFinite(timestamp)) return;
+  const hours = Math.max(0, (Date.now() - timestamp) / 3600000);
+  const stale = hours >= BUSINESS_RULES.targets.staleDataHours;
+  meta.classList.toggle('is-stale-v97', stale);
+  meta.setAttribute('data-freshness', stale ? 'desatualizado' : 'atualizado');
+  if(stale) meta.title = `${meta.title || ''} · Atenção: dados gerados há ${Math.floor(hours)} horas.`;
+}
+
+function updateMetadataFromBoot(boot={}){
+  const meta = $('meta');
+  if(!meta) return;
+  const generatedAt = boot.generated_at || state.dataGeneratedAt || '';
+  const gerado = generatedAt
+    ? new Date(generatedAt).toLocaleString('pt-BR', {dateStyle:'short', timeStyle:'short'}).replace(',', '')
+    : '';
+  const linhas = Number(boot.metadata?.linhas || 0).toLocaleString('pt-BR');
+  meta.textContent = `${linhas} registros${gerado ? ' • ' + gerado : ''}`;
+  meta.title = `${linhas} registros carregados${gerado ? ' · atualizado em ' + gerado : ''}`;
+  updateDataFreshness(generatedAt);
 }

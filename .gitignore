@@ -9,3 +9,5 @@ __pycache__/
 *.pyc
 .venv/
 venv/
+*.tmp
+/data/.last-valid-*.json

@@ -79,7 +79,7 @@ async function loadOptions(wrap){
       option_search: search.value || '',
       date_from: state.dateFrom || '',
       date_to: state.dateTo || '',
-      limit: 100,
+      limit: 500,
     });
     const selected = new Set(state.filters[key] || []);
     const options = (data.options || []).filter(x => String(x || '').trim());
@@ -156,22 +156,25 @@ function renderActiveFilters(){
   host.classList.add('has-context');
   const priority = active.find(x => ['ETAPA','SLA STATUS','FAIXA ATRASO'].includes(x.key)) || active[0];
   let title = priority.text;
-  let detail = 'Cards gerais mantidos; fila e base filtradas';
+  let detail = 'Contexto aplicado à base de tratativa';
   if(priority.key === 'ETAPA' && priority.values.length === 1){
-    detail = `Fila e base: apenas ${priority.text}`;
+    detail = `Etapa: ${priority.text}`;
   }else if(priority.key === 'SLA STATUS'){
-    detail = 'Fila e base com itens em atenção';
+    detail = 'Itens em atenção';
   }else if(priority.key === 'FAIXA ATRASO'){
-    detail = 'Fila e base por tempo parado';
+    detail = 'Faixa de tempo parada';
+  }else if(priority.key === 'DONO DA AÇÃO'){
+    detail = `Responsável: ${priority.text}`;
   }else if(active.length > 1){
     detail = `${active.length} filtros ativos`;
   }
   const clearButtons = active.slice(0, 3).map(x => `<button class="active-filter-mini" data-key="${escapeAttr(x.key)}" title="Limpar ${escapeAttr(x.label)}">${escapeHtml(x.label)} ×</button>`).join('');
   host.innerHTML = `
     <div class="filter-context-chip-v35">
-      <span>Painel filtrado</span>
+      <span>Base filtrada por</span>
       <strong>${escapeHtml(title)}</strong>
       <small>${escapeHtml(detail)}</small>
+      <b class="filter-context-summary-v97">Calculando registros...</b>
       <div class="filter-mini-actions">${clearButtons}<button class="active-filter-clear" data-clear-all="1">Limpar</button></div>
     </div>`;
   host.querySelectorAll('[data-key]').forEach(btn => {

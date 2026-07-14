@@ -1,0 +1,19 @@
+SEGURANÇA DOS DADOS — V97
+
+O dashboard continua sendo um site estático. Portanto, o arquivo JSON precisa ser protegido pela camada de acesso da Cloudflare.
+
+RECOMENDADO
+
+1. Cloudflare Zero Trust / Access.
+2. Aplicação Self-hosted apontando para o domínio do dashboard.
+3. Política Allow somente para e-mails autorizados ou domínio corporativo.
+4. Sessão de 8 a 24 horas.
+5. Não usar política Bypass para o endereço completo.
+
+A V97 reduz o payload público:
+- remove OBS ADICIONAIS das próximas gerações;
+- remove _SEARCH;
+- não mostra nome do arquivo original nos metadados;
+- adiciona headers de segurança.
+
+Essas medidas reduzem exposição, mas não substituem autenticação no Cloudflare Access.

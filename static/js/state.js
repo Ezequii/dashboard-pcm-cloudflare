@@ -18,6 +18,12 @@ const state = {
   dateTo: '',
   valueMin: '',
   valueMax: '',
+  dataVersion: '',
+  dataGeneratedAt: '',
+  lastSuccessfulRefreshAt: '',
+  refreshToken: 0,
+  refreshInFlight: false,
+  rowsInFlight: false,
 };
 
 const DESC_FIRST_COLUMNS = new Set([
@@ -27,8 +33,8 @@ const DESC_FIRST_COLUMNS = new Set([
 ]);
 
 const $ = (id) => document.getElementById(id);
-const STORAGE_KEY = 'pcm-dashboard-preferences-v89-cloudflare';
-const DASH_CACHE_PREFIX = 'pcm-dashboard-cache-v89-cloudflare:';
+const STORAGE_KEY = 'pcm-dashboard-preferences-v97-cloudflare';
+const DASH_CACHE_PREFIX = 'pcm-dashboard-cache-v97-cloudflare:';
 
 function loadPreferences(){
   try{

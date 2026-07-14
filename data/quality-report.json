@@ -1,0 +1,16 @@
+{
+  "generated_at": "2026-07-14T19:56:18.378139+00:00",
+  "total_rows": 2194,
+  "score": 99.9,
+  "critical": false,
+  "missing_columns": [],
+  "issues": {
+    "sem_fornecedor": 0,
+    "sem_solicitante": 1,
+    "sem_data_recebimento": 0,
+    "etapa_nao_reconhecida": 0,
+    "valores_negativos": 0,
+    "divergencia_valor_total": 1,
+    "datas_futuras": 0
+  }
+}

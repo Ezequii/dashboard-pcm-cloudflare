@@ -1,33 +1,44 @@
 async function loadRows(seq=null){
   const requestSeq = seq || ++state.rowsSeq;
-  const data = await api('/api/rows', tableQuery());
-  if(seq && seq !== state.dashboardSeq) return;
-  if(!seq && requestSeq !== state.rowsSeq) return;
-  state.page = data.page;
-  const table = $('dataTable');
-  const thead = table.querySelector('thead');
-  const tbody = table.querySelector('tbody');
-  // V90: mantém os dados intactos, mas coloca o valor total junto do orçamento,
-  // antes dos nomes, para a liderança enxergar dinheiro sem rolar horizontalmente.
-  const preferredOrder = [
-    'ETAPA','DIAS PARADO','SLA STATUS','DONO DA AÇÃO',
-    'DATA DE RECEBIMENTO','DATA LANÇAMENTO','Nº ORÇAMENTO FINAL','VALOR TOTAL',
-    'FORNECEDOR','SOLICITANTE','PREFIXO','EQUIPAMENTO','Nº REQUISIÇÃO','Nº PEDIDO DE COMPRA',
-    'FAIXA ATRASO'
-  ];
-  const sourceColumns = Array.isArray(data.columns) ? data.columns : [];
-  const columns = [
-    ...preferredOrder.filter(col => sourceColumns.includes(col)),
-    ...sourceColumns.filter(col => !preferredOrder.includes(col))
-  ];
-  thead.innerHTML = '<tr>' + columns.map(c => renderHeader(c)).join('') + '</tr>';
-  tbody.innerHTML = data.rows.map(row => `<tr class="${stageClass(row._ETAPA)}">` + columns.map(c => renderCell(c, row[c], row._ETAPA, row)).join('') + '</tr>').join('');
-  thead.querySelectorAll('th.sortable').forEach(th => th.onclick = () => sortBy(th.dataset.col));
-  $('tableCounter').textContent = `${Number(data.from).toLocaleString('pt-BR')}-${Number(data.to).toLocaleString('pt-BR')} de ${Number(data.total).toLocaleString('pt-BR')} registros`;
-  $('pageInfo').textContent = `${data.page}/${data.pages}`;
-  $('prevPage').disabled = data.page <= 1;
-  $('nextPage').disabled = data.page >= data.pages;
-  updateSearchUI(data.total);
+  state.rowsInFlight = true;
+  try{
+    const data = await api('/api/rows', tableQuery());
+    if(seq && seq !== state.dashboardSeq) return;
+    if(!seq && requestSeq !== state.rowsSeq) return;
+    state.page = data.page;
+    const table = $('dataTable');
+    const thead = table.querySelector('thead');
+    const tbody = table.querySelector('tbody');
+    // V97: mantém dinheiro e contexto operacional nas primeiras colunas úteis.
+    const preferredOrder = [
+      'ETAPA','DIAS PARADO','SLA STATUS','DONO DA AÇÃO',
+      'DATA DE RECEBIMENTO','DATA LANÇAMENTO','Nº ORÇAMENTO FINAL','VALOR TOTAL',
+      'FORNECEDOR','SOLICITANTE','PREFIXO','EQUIPAMENTO','Nº REQUISIÇÃO','Nº PEDIDO DE COMPRA',
+      'FAIXA ATRASO'
+    ];
+    const sourceColumns = Array.isArray(data.columns) ? data.columns : [];
+    const columns = [
+      ...preferredOrder.filter(col => sourceColumns.includes(col)),
+      ...sourceColumns.filter(col => !preferredOrder.includes(col))
+    ];
+    thead.innerHTML = '<tr>' + columns.map(c => renderHeader(c)).join('') + '</tr>';
+    tbody.innerHTML = data.rows.length
+      ? data.rows.map(row => `<tr class="${stageClass(row._ETAPA)}">` + columns.map(c => renderCell(c, row[c], row._ETAPA, row)).join('') + '</tr>').join('')
+      : `<tr><td class="table-empty-v97" colspan="${Math.max(1, columns.length)}"><strong>Nenhum registro encontrado</strong><span>Revise os filtros aplicados, altere o tipo de busca ou use “Limpar tudo”.</span></td></tr>`;
+    thead.querySelectorAll('th.sortable').forEach(th => th.onclick = () => sortBy(th.dataset.col));
+    $('tableCounter').textContent = `${Number(data.from).toLocaleString('pt-BR')}-${Number(data.to).toLocaleString('pt-BR')} de ${Number(data.total).toLocaleString('pt-BR')} registros`;
+    $('pageInfo').textContent = `${data.page}/${data.pages}`;
+    $('prevPage').disabled = data.page <= 1;
+    $('nextPage').disabled = data.page >= data.pages;
+    updateSearchUI(data.total);
+    updateActiveFilterSummary(data);
+    hidePersistentError?.();
+  }catch(err){
+    showPersistentError?.(err);
+    throw err;
+  }finally{
+    if(!seq || requestSeq === state.rowsSeq) state.rowsInFlight = false;
+  }
 }
 
 function headerInfo(col){
@@ -55,7 +66,8 @@ function renderHeader(col){
   const active = state.sortCol === col;
   const directionText = active ? (state.sortDir === 'asc' ? 'crescente' : 'decrescente') : 'sem ordenação';
   const [main, sub] = headerInfo(col);
-  return `<th class="sortable ${colClass(col)}${active ? ' active-sort' : ''}" data-col="${escapeAttr(col)}" title="Clique para ordenar por ${escapeAttr(col)} (${directionText})">
+  const ariaSort = active ? (state.sortDir === 'asc' ? 'ascending' : 'descending') : 'none';
+  return `<th class="sortable ${colClass(col)}${active ? ' active-sort' : ''}" data-col="${escapeAttr(col)}" aria-sort="${ariaSort}" title="Clique para ordenar por ${escapeAttr(col)} (${directionText})">
     <span class="th-label"><span class="th-main">${escapeHtml(main)}</span>${sub ? `<span class="th-sub">${escapeHtml(sub)}</span>` : ''}</span><span class="sort-icon">${sortMark(col)}</span>
   </th>`;
 }
@@ -87,9 +99,9 @@ function renderCell(col, value, etapa, row={}){
   if(col === 'DIAS PARADO'){
     const dias = parseInt(String(val || '0').replace(/[^0-9]/g, ''), 10) || 0;
     let level = 'ok';
-    if(dias > 30) level = 'very-critical';
-    else if(dias > 15) level = 'critical';
-    else if(dias > 7) level = 'attention';
+    if(dias >= BUSINESS_RULES.aging.critical) level = 'very-critical';
+    else if(dias >= BUSINESS_RULES.aging.high) level = 'critical';
+    else if(dias >= BUSINESS_RULES.aging.attention) level = 'attention';
     return `<td class="${cls}" title="Dias parado: ${safeTitle}"><span class="delay-badge ${level}">${escapeHtml(val || '0 dias')}</span></td>`;
   }
   if(col === 'SLA STATUS'){
@@ -106,13 +118,13 @@ function renderCell(col, value, etapa, row={}){
     if(slaValue === 'CONCLUÍDO' || slaValue === 'CONCLUIDO' || etapaNorm === 'CONCLUÍDO' || etapaNorm === 'CONCLUIDO'){
       level = 'done';
       display = 'Concluído';
-    }else if(dias >= 30){
+    }else if(dias >= BUSINESS_RULES.aging.critical){
       level = 'critical';
       display = 'Muito parado';
-    }else if(dias >= 16){
+    }else if(dias >= BUSINESS_RULES.aging.high){
       level = 'critical';
       display = 'Prioridade alta';
-    }else if(dias >= 8){
+    }else if(dias >= BUSINESS_RULES.aging.attention){
       level = 'attention';
       display = 'Acompanhar';
     }else if(etapaNorm === 'SEM LANÇAMENTO' || etapaNorm === 'SEM LANCAMENTO'){
@@ -179,4 +191,14 @@ function sortBy(col){
   state.page = 1;
   savePreferences();
   loadRows();
+}
+
+function updateActiveFilterSummary(data){
+  const host = $('activeFilters');
+  if(!host) return;
+  const summary = host.querySelector('.filter-context-summary-v97');
+  if(!summary) return;
+  const total = Number(data?.total || 0).toLocaleString('pt-BR');
+  const value = data?.total_value_formatted || formatCurrencyBR(data?.total_value || 0);
+  summary.textContent = `${total} registros · ${value}`;
 }

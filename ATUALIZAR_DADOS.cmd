@@ -49,7 +49,7 @@ echo Gerando arquivo static\data\dashboard-data.json...
 if %errorlevel% neq 0 (
     echo.
     echo ERRO: Nao consegui gerar o dashboard-data.json.
-    echo Confira se a planilha esta fechada no Excel e com o nome correto.
+    echo Confira a planilha e abra data\quality-report.json para ver a causa.
     echo.
     pause
     exit /b 1
@@ -58,6 +58,7 @@ if %errorlevel% neq 0 (
 echo.
 echo ======================================================
 echo   Pronto!
+echo   Foram gerados dashboard-data.json, version.json e quality-report.json.
 echo   Agora abra o GitHub Desktop, faca Commit e Push.
 echo ======================================================
 echo.

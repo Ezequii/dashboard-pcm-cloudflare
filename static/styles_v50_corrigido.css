@@ -6849,25 +6849,35 @@ body.v95-header-kpi-polish #kpiMaisParadoCard #kMaiorAtrasoSub{
   text-overflow:clip !important;
 }
 body.v95-header-kpi-polish .oldest-context-v95{
-  display:grid !important;
-  grid-template-columns:auto minmax(0,1fr) !important;
+  display:block !important;
+  width:100% !important;
+  min-width:0 !important;
+  margin-top:4px !important;
+}
+body.v95-header-kpi-polish .oldest-mini-panel-v96{
+  display:flex !important;
   align-items:center !important;
+  flex-wrap:wrap !important;
   gap:6px !important;
   width:100% !important;
   min-width:0 !important;
-  margin-top:1px !important;
+  padding:5px 6px !important;
+  border:1px solid #E4EDF3 !important;
+  border-radius:11px !important;
+  background:linear-gradient(180deg,#FFFFFF 0%,#F8FBFD 100%) !important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.65) !important;
 }
 body.v95-header-kpi-polish .oldest-stage-chip-v95{
   display:inline-flex !important;
   align-items:center !important;
   gap:4px !important;
-  height:18px !important;
+  height:19px !important;
   padding:0 6px !important;
   border:1px solid #D8E3EA !important;
-  border-radius:6px !important;
+  border-radius:999px !important;
   background:#F6F8FA !important;
   color:#475467 !important;
-  font-size:8.1px !important;
+  font-size:8px !important;
   line-height:1 !important;
   font-weight:850 !important;
   text-transform:uppercase !important;
@@ -6886,209 +6896,320 @@ body.v95-header-kpi-polish .oldest-stage-chip-v95.stage-amber{background:#FFFAEB
 body.v95-header-kpi-polish .oldest-stage-chip-v95.stage-amber i{background:#F2A900 !important;}
 body.v95-header-kpi-polish .oldest-stage-chip-v95.stage-blue{background:#EFF8FF !important;border-color:#B2DDFF !important;color:#005B91 !important;}
 body.v95-header-kpi-polish .oldest-stage-chip-v95.stage-blue i{background:#00629E !important;}
-body.v95-header-kpi-polish .oldest-ref-v95{
-  display:flex !important;
-  align-items:baseline !important;
-  gap:3px !important;
+body.v95-header-kpi-polish .oldest-ref-pill-v96{
+  display:inline-flex !important;
+  align-items:center !important;
+  gap:5px !important;
   min-width:0 !important;
+  max-width:100% !important;
+  min-height:19px !important;
+  padding:0 7px !important;
+  border:1px solid #D8E3EA !important;
+  border-radius:999px !important;
+  background:#F7FAFC !important;
   color:#667085 !important;
-  font-size:8.6px !important;
-  line-height:1.1 !important;
+  font-size:8.4px !important;
+  line-height:1 !important;
   white-space:nowrap !important;
   overflow:hidden !important;
 }
-body.v95-header-kpi-polish .oldest-ref-v95 span{
+body.v95-header-kpi-polish .oldest-ref-pill-v96 span{
   flex:0 0 auto !important;
-  font-weight:650 !important;
+  font-weight:800 !important;
+  text-transform:uppercase !important;
+  color:#728197 !important;
 }
-body.v95-header-kpi-polish .oldest-ref-v95 b{
+body.v95-header-kpi-polish .oldest-ref-pill-v96 b{
   min-width:0 !important;
   overflow:hidden !important;
   text-overflow:ellipsis !important;
-  color:#344054 !important;
-  font-weight:850 !important;
+  color:#243244 !important;
+  font-weight:900 !important;
 }
 body.v95-header-kpi-polish #kpiMaisParadoCard.kpi-actionable-v94::before{
   right:8px !important;
   bottom:7px !important;
   opacity:.3 !important;
 }
+body.v95-header-kpi-polish #kpiMaisParadoCard{
+  position:relative !important;
+  overflow:hidden !important;
+}
+body.v95-header-kpi-polish #kpiMaisParadoCard .kpi-copy strong{
+  margin-bottom:4px !important;
+}
+body.v95-header-kpi-polish #kpiMaisParadoCard.oldest-red-v93 .oldest-mini-panel-v96{
+  border-color:#F4C7C3 !important;
+  background:linear-gradient(180deg,#FFF9F8 0%,#FFF4F2 100%) !important;
+}
+body.v95-header-kpi-polish #kpiMaisParadoCard.oldest-amber-v93 .oldest-mini-panel-v96{
+  border-color:#F8D98A !important;
+  background:linear-gradient(180deg,#FFFDF6 0%,#FFFAEB 100%) !important;
+}
+body.v95-header-kpi-polish #kpiMaisParadoCard.oldest-blue-v93 .oldest-mini-panel-v96{
+  border-color:#B9DCF4 !important;
+  background:linear-gradient(180deg,#FAFDFF 0%,#F1F8FD 100%) !important;
+}
+
+/* V96 — Top 3 com hierarquia mais clara */
+body.v95-header-kpi-polish .ranking-panel-v88{
+  border-radius:18px !important;
+}
+body.v95-header-kpi-polish .ranking-panel-head-v88{
+  margin-bottom:12px !important;
+  padding-bottom:8px !important;
+  border-bottom:1px solid #EEF3F7 !important;
+}
+body.v95-header-kpi-polish .ranking-panel-head-v88 strong{
+  font-size:13.5px !important;
+}
+body.v95-header-kpi-polish .ranking-list-v88{
+  gap:8px !important;
+}
+body.v95-header-kpi-polish .ranking-row-v88{
+  grid-template-columns:30px minmax(0,1fr) auto !important;
+  min-height:46px !important;
+  padding:8px 10px !important;
+  border-radius:14px !important;
+}
+body.v95-header-kpi-polish .ranking-position-v88{
+  width:28px !important;
+  height:28px !important;
+  border-radius:10px !important;
+  font-size:11px !important;
+}
+body.v95-header-kpi-polish .ranking-row-v88:nth-child(1) .ranking-position-v88{
+  background:linear-gradient(180deg,#EAF6FC 0%,#DFF2FB 100%) !important;
+  box-shadow:0 0 0 1px rgba(0,98,158,.06) inset !important;
+}
+body.v95-header-kpi-polish .ranking-row-v88:nth-child(2) .ranking-position-v88{
+  background:linear-gradient(180deg,#EFF4F8 0%,#E6EDF4 100%) !important;
+  color:#4B647C !important;
+}
+body.v95-header-kpi-polish .ranking-row-v88:nth-child(3) .ranking-position-v88{
+  background:linear-gradient(180deg,#F6F1E7 0%,#F1E8D8 100%) !important;
+  color:#8B5E12 !important;
+}
+body.v95-header-kpi-polish .ranking-content-v88{
+  display:grid !important;
+  grid-template-columns:1fr !important;
+  gap:6px !important;
+  align-items:center !important;
+}
+body.v95-header-kpi-polish .ranking-content-v88 strong{
+  font-size:11px !important;
+}
+body.v95-header-kpi-polish .ranking-track-v88{
+  margin-top:0 !important;
+  height:4px !important;
+  background:#EAF0F4 !important;
+}
+body.v95-header-kpi-polish .ranking-meta-v96{
+  display:grid !important;
+  justify-items:end !important;
+  gap:3px !important;
+  padding-left:8px !important;
+}
+body.v95-header-kpi-polish .ranking-meta-v96 em{
+  display:inline-flex !important;
+  align-items:center !important;
+  min-height:24px !important;
+  padding:0 9px !important;
+  border-radius:999px !important;
+  background:#F3FAFE !important;
+  color:#00629E !important;
+  font-size:11.5px !important;
+  font-style:normal !important;
+  font-weight:900 !important;
+}
+body.v95-header-kpi-polish .ranking-panel-requesters-v88 .ranking-meta-v96 em{
+  background:#F0FBF6 !important;
+  color:#18885A !important;
+}
+body.v95-header-kpi-polish .ranking-meta-v96 small{
+  color:#7B8A9C !important;
+  font-size:9px !important;
+  font-weight:800 !important;
+  white-space:nowrap !important;
+}
 
 @media(max-width:1180px){
   body.v95-header-kpi-polish .meta-inline-v95{max-width:190px !important;font-size:8.7px !important;}
   body.v95-header-kpi-polish #kpiMaisParadoCard .kpi-copy strong{font-size:19px !important;}
   body.v95-header-kpi-polish .oldest-stage-chip-v95{font-size:7.7px !important;padding:0 5px !important;}
-  body.v95-header-kpi-polish .oldest-ref-v95{font-size:8.1px !important;}
+  body.v95-header-kpi-polish .oldest-ref-pill-v96{font-size:8.1px !important;}
+  body.v95-header-kpi-polish .ranking-row-v88{grid-template-columns:28px minmax(0,1fr) auto !important;}
+  body.v95-header-kpi-polish .ranking-meta-v96 em{font-size:11px !important;}
 }
 @media(max-width:900px){
   body.v95-header-kpi-polish .meta-inline-v95{display:none !important;}
 }
 
-
 /* =========================================================
-   V96 — Pendência mais antiga compacta e coerente com os KPIs
-   - número e unidade com hierarquia clara
-   - etapa e referência em uma única linha, sem aparência de input
-   - criticidade visual baseada nos dias, não na etapa
-   - mantém a navegação para a Base de Tratativa
+   V97 — confiabilidade, contexto e navegação exata
    ========================================================= */
-body.v96-oldest-compact #kpiMaisParadoCard{
-  background:linear-gradient(180deg,#FFFFFF 0%,#FCFDFE 100%) !important;
+body.v97-robust [hidden]{display:none !important;}
+
+.skip-link-v97{
+  position:fixed;
+  left:16px;
+  top:-60px;
+  z-index:9999;
+  padding:10px 14px;
+  border-radius:10px;
+  background:#00629E;
+  color:#fff;
+  font-weight:850;
+  text-decoration:none;
+  box-shadow:0 10px 28px rgba(0,98,158,.25);
+  transition:top .16s ease;
+}
+.skip-link-v97:focus{top:12px;}
+
+.persistent-error-v97{
+  width:min(1180px,calc(100vw - 32px));
+  margin:12px auto 0;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:18px;
+  padding:12px 14px;
+  border:1px solid #F5B7B1;
+  border-left:4px solid #D32F2F;
+  border-radius:14px;
+  background:#FFF7F6;
+  box-shadow:0 8px 24px rgba(179,35,24,.08);
+  color:#7A271A;
+}
+.persistent-error-v97 > div{display:grid;gap:2px;min-width:0;}
+.persistent-error-v97 strong{font-size:13px;font-weight:900;color:#912018;}
+.persistent-error-v97 span{font-size:11px;font-weight:750;overflow-wrap:anywhere;}
+.persistent-error-v97 small{font-size:9.5px;color:#A15C52;}
+
+body.v97-robust .meta-inline-v95.is-stale-v97{
+  border-color:#F4C56A !important;
+  background:#FFF9E8 !important;
+  color:#946200 !important;
+}
+body.v97-robust .meta-inline-v95.is-stale-v97::before{
+  content:'!';
+  display:inline-grid;
+  place-items:center;
+  width:14px;
+  height:14px;
+  margin-right:4px;
+  border-radius:50%;
+  background:#F2A900;
+  color:#fff;
+  font-size:9px;
+  font-weight:900;
 }
 
-body.v96-oldest-compact #kpiMaisParadoCard .kpi-copy{
-  display:block !important;
-  width:100% !important;
-  min-width:0 !important;
-  overflow:hidden !important;
+.active-filters-context-v97{
+  margin:0 0 10px;
+}
+.active-filters-context-v97:empty{display:none !important;}
+.active-filters-context-v97 .filter-context-chip-v35{
+  display:grid;
+  grid-template-columns:auto minmax(140px,1fr) auto auto;
+  align-items:center;
+  gap:7px 12px;
+  width:100%;
+  padding:9px 12px;
+  border:1px solid #CFE3EF;
+  border-left:4px solid #00629E;
+  border-radius:14px;
+  background:linear-gradient(180deg,#FFFFFF 0%,#F6FBFE 100%);
+  box-shadow:0 7px 20px rgba(0,98,158,.045);
+}
+.active-filters-context-v97 .filter-context-chip-v35 > span{
+  color:#00629E;
+  font-size:9px;
+  font-weight:900;
+  text-transform:uppercase;
+  letter-spacing:.04em;
+}
+.active-filters-context-v97 .filter-context-chip-v35 > strong{
+  min-width:0;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+  color:#182230;
+  font-size:11px;
+  font-weight:900;
+}
+.active-filters-context-v97 .filter-context-chip-v35 > small{
+  color:#667085;
+  font-size:9.5px;
+  font-weight:700;
+  white-space:nowrap;
+}
+.active-filters-context-v97 .filter-context-summary-v97{
+  color:#00629E;
+  font-size:10px;
+  font-weight:900;
+  white-space:nowrap;
+}
+.active-filters-context-v97 .filter-mini-actions{
+  grid-column:1 / -1;
+  display:flex;
+  flex-wrap:wrap;
+  gap:6px;
+}
+.active-filters-context-v97 .active-filter-mini,
+.active-filters-context-v97 .active-filter-clear{
+  min-height:25px;
+  padding:0 9px;
+  border:1px solid #D8E5ED;
+  border-radius:999px;
+  background:#fff;
+  color:#526275;
+  font:inherit;
+  font-size:9px;
+  font-weight:800;
+  cursor:pointer;
+}
+.active-filters-context-v97 .active-filter-clear{
+  border-color:#B9D9EA;
+  color:#00629E;
+}
+.active-filters-context-v97 button:hover{border-color:#8FBFD8;background:#F3FAFE;}
+
+body.v97-robust .priority-row-v33::after{
+  content:'Abrir →';
+  align-self:center;
+  color:#00629E;
+  font-size:9px;
+  font-weight:900;
+  opacity:0;
+  transform:translateX(-4px);
+  transition:opacity .16s ease,transform .16s ease;
+}
+body.v97-robust .priority-row-v33:hover::after,
+body.v97-robust .priority-row-v33:focus-visible::after{
+  opacity:1;
+  transform:translateX(0);
 }
 
-body.v96-oldest-compact #kpiMaisParadoCard .kpi-copy > span{
-  padding-right:14px !important;
+.table-empty-v97{
+  padding:44px 20px !important;
+  text-align:center !important;
+  background:#FBFDFE !important;
+}
+.table-empty-v97 strong,
+.table-empty-v97 span{display:block;}
+.table-empty-v97 strong{font-size:14px;color:#243244;margin-bottom:5px;}
+.table-empty-v97 span{font-size:11px;color:#7B8A9C;}
+
+body.v97-robust thead th[aria-sort="ascending"],
+body.v97-robust thead th[aria-sort="descending"]{
+  color:#00629E !important;
+  background:#EFF8FD !important;
 }
 
-body.v96-oldest-compact #kpiMaisParadoCard .oldest-value-v96{
-  display:flex !important;
-  align-items:baseline !important;
-  gap:4px !important;
-  width:max-content !important;
-  max-width:100% !important;
-  margin:4px 0 4px !important;
-  overflow:visible !important;
-  color:#172033 !important;
-  line-height:1 !important;
-  white-space:nowrap !important;
-}
-
-body.v96-oldest-compact .oldest-days-number-v96{
-  display:inline-block !important;
-  color:#172033 !important;
-  font-size:24px !important;
-  line-height:.9 !important;
-  font-weight:900 !important;
-  letter-spacing:-.055em !important;
-}
-
-body.v96-oldest-compact .oldest-days-unit-v96{
-  display:inline-block !important;
-  color:#667085 !important;
-  font-size:10px !important;
-  line-height:1 !important;
-  font-weight:760 !important;
-  letter-spacing:0 !important;
-  text-transform:lowercase !important;
-}
-
-body.v96-oldest-compact #kpiMaisParadoCard #kMaiorAtrasoSub,
-body.v96-oldest-compact .oldest-context-v96{
-  display:flex !important;
-  align-items:center !important;
-  gap:5px !important;
-  width:100% !important;
-  min-width:0 !important;
-  max-width:100% !important;
-  height:15px !important;
-  padding:0 !important;
-  margin:0 !important;
-  border:0 !important;
-  border-radius:0 !important;
-  background:transparent !important;
-  color:#667085 !important;
-  font-size:8.5px !important;
-  line-height:1 !important;
-  font-weight:760 !important;
-  letter-spacing:.015em !important;
-  white-space:nowrap !important;
-  overflow:hidden !important;
-  text-overflow:clip !important;
-}
-
-body.v96-oldest-compact .oldest-stage-v96{
-  flex:0 0 auto !important;
-  display:inline-flex !important;
-  align-items:center !important;
-  gap:4px !important;
-  min-width:0 !important;
-  color:#475467 !important;
-  font-size:inherit !important;
-  line-height:inherit !important;
-  font-weight:850 !important;
-  text-transform:uppercase !important;
-  white-space:nowrap !important;
-}
-
-body.v96-oldest-compact .oldest-stage-v96 i{
-  flex:0 0 auto !important;
-  width:5px !important;
-  height:5px !important;
-  border-radius:50% !important;
-  background:#7B8A9C !important;
-  box-shadow:none !important;
-}
-
-body.v96-oldest-compact .oldest-stage-v96.stage-red i{background:#D32F2F !important;}
-body.v96-oldest-compact .oldest-stage-v96.stage-amber i{background:#F2A900 !important;}
-body.v96-oldest-compact .oldest-stage-v96.stage-blue i{background:#0077B6 !important;}
-body.v96-oldest-compact .oldest-stage-v96.stage-gray i{background:#7B8A9C !important;}
-
-body.v96-oldest-compact .oldest-separator-v96{
-  flex:0 0 auto !important;
-  color:#B0BAC5 !important;
-  font-weight:900 !important;
-}
-
-body.v96-oldest-compact .oldest-reference-v96{
-  min-width:0 !important;
-  overflow:hidden !important;
-  text-overflow:ellipsis !important;
-  color:#667085 !important;
-  font-size:inherit !important;
-  line-height:inherit !important;
-  font-weight:760 !important;
-  text-transform:uppercase !important;
-  white-space:nowrap !important;
-}
-
-body.v96-oldest-compact .oldest-empty-v96{
-  color:#7B8A9C !important;
-  font-size:9px !important;
-  font-weight:700 !important;
-  text-transform:none !important;
-}
-
-body.v96-oldest-compact #kpiMaisParadoCard.oldest-clickable-v93::before{
-  right:9px !important;
-  top:10px !important;
-  bottom:auto !important;
-  opacity:.18 !important;
-  transition:opacity .16s ease,transform .16s ease !important;
-}
-
-body.v96-oldest-compact #kpiMaisParadoCard.oldest-clickable-v93:hover::before,
-body.v96-oldest-compact #kpiMaisParadoCard.oldest-clickable-v93:focus-visible::before{
-  opacity:.62 !important;
-  transform:rotate(-45deg) translate(1px,1px) !important;
-}
-
-/* A barra lateral representa idade: azul até 30, âmbar de 31 a 60, vermelho acima de 60 dias. */
-body.v96-oldest-compact #kpiMaisParadoCard.oldest-blue-v93::after{background:#0077B6 !important;}
-body.v96-oldest-compact #kpiMaisParadoCard.oldest-amber-v93::after{background:#F2A900 !important;}
-body.v96-oldest-compact #kpiMaisParadoCard.oldest-red-v93::after{background:#D32F2F !important;}
-body.v96-oldest-compact #kpiMaisParadoCard.oldest-gray-v93::after{background:#B8C2CC !important;}
-
-@media(max-width:1180px){
-  body.v96-oldest-compact .oldest-days-number-v96{font-size:21px !important;}
-  body.v96-oldest-compact .oldest-days-unit-v96{font-size:9px !important;}
-  body.v96-oldest-compact #kpiMaisParadoCard #kMaiorAtrasoSub,
-  body.v96-oldest-compact .oldest-context-v96{
-    gap:4px !important;
-    font-size:8px !important;
-  }
-}
-
-@media(max-width:1080px){
-  body.v96-oldest-compact .oldest-days-number-v96{font-size:23px !important;}
-  body.v96-oldest-compact .oldest-days-unit-v96{font-size:9.5px !important;}
-  body.v96-oldest-compact #kpiMaisParadoCard #kMaiorAtrasoSub,
-  body.v96-oldest-compact .oldest-context-v96{font-size:8.4px !important;}
+@media(max-width:900px){
+  .persistent-error-v97{align-items:flex-start;flex-direction:column;}
+  .active-filters-context-v97 .filter-context-chip-v35{grid-template-columns:1fr;}
+  .active-filters-context-v97 .filter-context-chip-v35 > small,
+  .active-filters-context-v97 .filter-context-summary-v97{white-space:normal;}
 }
