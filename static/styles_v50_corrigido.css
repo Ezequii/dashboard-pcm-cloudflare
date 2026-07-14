@@ -6742,3 +6742,184 @@ body.v94-kpis-smart #farolRegional .kpi-copy small{
 @media(max-width:1180px){
   body.v94-kpis-smart .kpis-v33 .kpi-copy small{font-size:8.6px !important;}
 }
+
+
+/* =========================================================
+   V95 — acabamento executivo do cabeçalho e KPI mais antigo
+   - atualização compacta ao lado de Recarregar
+   - filtros com a mesma tipografia nas duas abas
+   - card Pendência mais antiga com leitura limpa, sem barra/pílula esticada
+   - nenhuma alteração de cálculo ou fonte de dados
+   ========================================================= */
+body.v95-header-kpi-polish .top-actions{
+  display:flex !important;
+  align-items:center !important;
+  justify-content:flex-end !important;
+  gap:8px !important;
+  min-width:0 !important;
+}
+body.v95-header-kpi-polish .meta-inline-v95{
+  display:inline-flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+  height:28px !important;
+  max-width:250px !important;
+  padding:0 9px !important;
+  border:1px solid #E3EBF0 !important;
+  border-radius:7px !important;
+  background:#F7FAFC !important;
+  color:#667085 !important;
+  font-family:var(--font) !important;
+  font-size:9.2px !important;
+  line-height:1 !important;
+  font-weight:720 !important;
+  letter-spacing:0 !important;
+  white-space:nowrap !important;
+  overflow:hidden !important;
+  text-overflow:ellipsis !important;
+}
+body.v95-header-kpi-polish .topbar-row-filters-v40{
+  grid-template-columns:minmax(0,1fr) !important;
+  gap:0 !important;
+  padding-bottom:4px !important;
+}
+body.v95-header-kpi-polish .top-meta-v40{display:none !important;}
+
+/* Mesma tipografia e proporção dos filtros na Visão Executiva e Base de Tratativa. */
+body.v95-header-kpi-polish .top-inline-filters .smart-trigger,
+body.v95-header-kpi-polish.active-tab-visao .top-inline-filters .smart-trigger,
+body.v95-header-kpi-polish.active-tab-base .top-inline-filters .smart-trigger{
+  height:34px !important;
+  padding:4px 10px !important;
+  border-radius:8px !important;
+  border-color:#E4E7EC !important;
+  background:#FFFFFF !important;
+  box-shadow:none !important;
+  font-family:var(--font) !important;
+}
+body.v95-header-kpi-polish .top-inline-filters .smart-title,
+body.v95-header-kpi-polish.active-tab-visao .top-inline-filters .smart-title,
+body.v95-header-kpi-polish.active-tab-base .top-inline-filters .smart-title{
+  font-family:var(--font) !important;
+  font-size:8.5px !important;
+  line-height:1 !important;
+  font-weight:760 !important;
+  letter-spacing:.035em !important;
+  color:#667085 !important;
+}
+body.v95-header-kpi-polish .top-inline-filters .smart-value,
+body.v95-header-kpi-polish.active-tab-visao .top-inline-filters .smart-value,
+body.v95-header-kpi-polish.active-tab-base .top-inline-filters .smart-value{
+  font-family:var(--font) !important;
+  font-size:11.2px !important;
+  line-height:1.05 !important;
+  font-weight:650 !important;
+  letter-spacing:0 !important;
+  color:#344054 !important;
+}
+body.v95-header-kpi-polish .top-inline-filters .smart-trigger.has-value .smart-title{color:#00629E !important;}
+body.v95-header-kpi-polish .top-inline-filters .smart-trigger.has-value .smart-value{color:#0B4F78 !important;}
+
+/* Pendência mais antiga: leitura compacta e hierarquia visual correta. */
+body.v95-header-kpi-polish #kpiMaisParadoCard{
+  background:linear-gradient(180deg,#FFFFFF 0%,#FBFCFD 100%) !important;
+}
+body.v95-header-kpi-polish #kpiMaisParadoCard .kpi-copy{
+  width:100% !important;
+  min-width:0 !important;
+}
+body.v95-header-kpi-polish #kpiMaisParadoCard .kpi-copy strong{
+  margin:4px 0 3px !important;
+  font-size:21px !important;
+  line-height:1 !important;
+  letter-spacing:-.035em !important;
+}
+body.v95-header-kpi-polish #kpiMaisParadoCard #kMaiorAtrasoSub{
+  display:block !important;
+  width:100% !important;
+  min-width:0 !important;
+  max-width:100% !important;
+  padding:0 !important;
+  margin:0 !important;
+  border:0 !important;
+  border-radius:0 !important;
+  background:transparent !important;
+  white-space:normal !important;
+  overflow:visible !important;
+  text-overflow:clip !important;
+}
+body.v95-header-kpi-polish .oldest-context-v95{
+  display:grid !important;
+  grid-template-columns:auto minmax(0,1fr) !important;
+  align-items:center !important;
+  gap:6px !important;
+  width:100% !important;
+  min-width:0 !important;
+  margin-top:1px !important;
+}
+body.v95-header-kpi-polish .oldest-stage-chip-v95{
+  display:inline-flex !important;
+  align-items:center !important;
+  gap:4px !important;
+  height:18px !important;
+  padding:0 6px !important;
+  border:1px solid #D8E3EA !important;
+  border-radius:6px !important;
+  background:#F6F8FA !important;
+  color:#475467 !important;
+  font-size:8.1px !important;
+  line-height:1 !important;
+  font-weight:850 !important;
+  text-transform:uppercase !important;
+  white-space:nowrap !important;
+}
+body.v95-header-kpi-polish .oldest-stage-chip-v95 i{
+  width:6px !important;
+  height:6px !important;
+  border-radius:50% !important;
+  background:#7B8A9C !important;
+  box-shadow:none !important;
+}
+body.v95-header-kpi-polish .oldest-stage-chip-v95.stage-red{background:#FFF4F2 !important;border-color:#FECDCA !important;color:#B42318 !important;}
+body.v95-header-kpi-polish .oldest-stage-chip-v95.stage-red i{background:#D32F2F !important;}
+body.v95-header-kpi-polish .oldest-stage-chip-v95.stage-amber{background:#FFFAEB !important;border-color:#FEDF89 !important;color:#946200 !important;}
+body.v95-header-kpi-polish .oldest-stage-chip-v95.stage-amber i{background:#F2A900 !important;}
+body.v95-header-kpi-polish .oldest-stage-chip-v95.stage-blue{background:#EFF8FF !important;border-color:#B2DDFF !important;color:#005B91 !important;}
+body.v95-header-kpi-polish .oldest-stage-chip-v95.stage-blue i{background:#00629E !important;}
+body.v95-header-kpi-polish .oldest-ref-v95{
+  display:flex !important;
+  align-items:baseline !important;
+  gap:3px !important;
+  min-width:0 !important;
+  color:#667085 !important;
+  font-size:8.6px !important;
+  line-height:1.1 !important;
+  white-space:nowrap !important;
+  overflow:hidden !important;
+}
+body.v95-header-kpi-polish .oldest-ref-v95 span{
+  flex:0 0 auto !important;
+  font-weight:650 !important;
+}
+body.v95-header-kpi-polish .oldest-ref-v95 b{
+  min-width:0 !important;
+  overflow:hidden !important;
+  text-overflow:ellipsis !important;
+  color:#344054 !important;
+  font-weight:850 !important;
+}
+body.v95-header-kpi-polish #kpiMaisParadoCard.kpi-actionable-v94::before{
+  right:8px !important;
+  bottom:7px !important;
+  opacity:.3 !important;
+}
+
+@media(max-width:1180px){
+  body.v95-header-kpi-polish .meta-inline-v95{max-width:190px !important;font-size:8.7px !important;}
+  body.v95-header-kpi-polish #kpiMaisParadoCard .kpi-copy strong{font-size:19px !important;}
+  body.v95-header-kpi-polish .oldest-stage-chip-v95{font-size:7.7px !important;padding:0 5px !important;}
+  body.v95-header-kpi-polish .oldest-ref-v95{font-size:8.1px !important;}
+}
+@media(max-width:900px){
+  body.v95-header-kpi-polish .meta-inline-v95{display:none !important;}
+}

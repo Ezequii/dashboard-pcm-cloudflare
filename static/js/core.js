@@ -19,8 +19,12 @@ async function init(){
   Object.keys(state.filters || {}).forEach(key => { if(!allowedFilterKeys.has(key)) delete state.filters[key]; });
   state.mainFilters.forEach(def => { if(!Array.isArray(state.filters[def.key])) state.filters[def.key] = []; });
   const meta = $('meta');
-  const gerado = boot.generated_at ? new Date(boot.generated_at).toLocaleString('pt-BR', {dateStyle:'short', timeStyle:'short'}) : '';
-  if(meta) meta.textContent = `${Number(boot.metadata.linhas || 0).toLocaleString('pt-BR')} registros carregados · ${boot.metadata.arquivo || 'base Excel'} · Cloudflare Pages${gerado ? ' · atualizado em ' + gerado : ''}`;
+  const gerado = boot.generated_at ? new Date(boot.generated_at).toLocaleString('pt-BR', {dateStyle:'short', timeStyle:'short'}).replace(',', '') : '';
+  if(meta){
+    const linhas = Number(boot.metadata.linhas || 0).toLocaleString('pt-BR');
+    meta.textContent = `${linhas} registros${gerado ? ' • ' + gerado : ''}`;
+    meta.title = `${linhas} registros carregados${boot.metadata.arquivo ? ' · ' + boot.metadata.arquivo : ''}${gerado ? ' · atualizado em ' + gerado : ''}`;
+  }
   const uploadBtn = $('btnUploadWorkbook');
   if(uploadBtn) uploadBtn.hidden = !boot.can_upload;
   buildSmartFilters();

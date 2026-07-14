@@ -133,10 +133,10 @@ function renderOldestPending(k){
   }
 
   const cardTone = tone === 'stage-red' ? 'oldest-red-v93' : tone === 'stage-amber' ? 'oldest-amber-v93' : tone === 'stage-blue' ? 'oldest-blue-v93' : 'oldest-gray-v93';
-  host.className = 'oldest-context-v93';
+  host.className = 'oldest-context-v95';
   host.innerHTML = `
-    <span class="oldest-stage-v93 ${tone}"><i></i>${escapeHtml(stageLabel || 'Outra pendência')}</span>
-    <span class="oldest-ref-v93"><b>${escapeHtml(codeType)}</b> ${escapeHtml(code)}</span>`;
+    <span class="oldest-stage-chip-v95 ${tone}"><i></i><span>${escapeHtml(stageLabel || 'Outra pendência')}</span></span>
+    <span class="oldest-ref-v95"><span>${escapeHtml(codeType)}</span><b>${escapeHtml(code)}</b></span>`;
 
   const fullValue = k.maior_atraso_valor_full || k.maior_atraso_valor || '';
   const details = [
