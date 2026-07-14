@@ -5,9 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Controle de Requisições PCM 2026</title>
   <link rel="icon" type="image/png" href="/static/favicon.png" />
-  <link rel="stylesheet" href="/static/styles_v50_corrigido.css?v=98" />
+  <link rel="stylesheet" href="/static/styles_v50_corrigido.css?v=982" />
 </head>
-<body class="v44-polish v48-balanced v50-real-fix v51-visual-clean v66-premium v76-inteligente v78-lideranca-pcm v79-sem-resumo v79-refino-pcm v80-confiavel v81-estavel v82-oficial v86-table-lines v87-ranking v88-ranking-clear v89-simple-filters-search-money v90-layout-safe v91-layout-final v92-smart-polish v93-oldest-clear v94-kpis-smart v95-header-kpi-polish v96-oldest-compact v97-reliability-navigation v971-runtime-fix v98-executive-clarity app-booting">
+<body class="v44-polish v48-balanced v50-real-fix v51-visual-clean v66-premium v76-inteligente v78-lideranca-pcm v79-sem-resumo v79-refino-pcm v80-confiavel v81-estavel v82-oficial v86-table-lines v87-ranking v88-ranking-clear v89-simple-filters-search-money v90-layout-safe v91-layout-final v92-smart-polish v93-oldest-clear v94-kpis-smart v95-header-kpi-polish v96-oldest-compact v97-reliability-navigation v971-runtime-fix v982-executive-clean app-booting">
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
   <div id="drawerBackdrop" class="drawer-backdrop no-print" hidden></div>
 
@@ -17,8 +17,8 @@
         <div class="brand-logo-box"><img src="/static/logo_amaggi.png" alt="AMAGGI" /></div>
         <div class="brand-copy-wrap">
           <div>
-            <div class="brand-title-line"><h1>Controle de Requisições PCM</h1>        <span class="version-pill-v34" aria-label="Versão visual premium">Visual v98 • clareza executiva</span></div>
-            <p class="subtitle-top">Acompanhamento executivo e tratativa operacional — 2026</p>
+            <div class="brand-title-line"><h1>Controle de Requisições PCM</h1>        <span class="version-pill-v34" aria-label="Versão visual premium">V98.2</span></div>
+            <p class="subtitle-top">Controle de lançamento e acompanhamento — 2026</p>
           </div>
           <nav class="dashboard-tabs no-print prominent-tabs inline-tabs" aria-label="Navegação do dashboard">
             <button class="tab-btn active" data-tab="visao"><span>Visão Executiva</span><small>visão gerencial</small></button>
@@ -76,143 +76,166 @@
 
     <section id="activeFilters" class="active-filters-v97 no-print" aria-live="polite" hidden></section>
 
-    <section class="kpi-grid essential-kpis executive-essential-kpis kpis-v33 kpi-no-scroll-v45 kpis-v98" data-panel="visao" aria-label="Indicadores executivos">
-      <article id="kpiValorAndamentoCard" class="kpi-card metric-card kpi-pendente principal kpi-primary-v41 kpi-v98" aria-live="polite">
-        <div class="kpi-icon" aria-hidden="true">R$</div>
+    <section class="executive-overview-v982" data-panel="visao" aria-label="Resumo executivo">
+      <div class="overview-head-v982">
+        <div>
+          <span class="eyebrow-v982">Resumo executivo</span>
+          <strong id="summaryContextV982">Visão geral</strong>
+        </div>
+        <small id="overviewUpdatedV982">Indicadores do contexto atual</small>
+      </div>
+
+      <div class="overview-content-v982">
+        <div class="overview-stats-v982">
+          <button type="button" class="overview-stat-v982 is-success" data-overview-stage="CONCLUÍDO">
+            <span>Concluído</span>
+            <strong id="quickCompletionV982">—%</strong>
+            <small>do processo</small>
+          </button>
+          <button type="button" class="overview-stat-v982 is-neutral" data-overview-stage="PENDING">
+            <span>Em andamento</span>
+            <strong id="quickPendingV982">—</strong>
+            <small>RCs pendentes</small>
+          </button>
+          <button type="button" class="overview-stat-v982 is-danger" data-overview-stage="SEM LANÇAMENTO">
+            <span>Fila do PCM</span>
+            <strong id="quickPcmV982">—</strong>
+            <small>sem lançamento</small>
+          </button>
+          <button type="button" class="overview-stat-v982 is-warning" data-overview-stage="CRITICAL">
+            <span>Críticas</span>
+            <strong id="quickCriticalV982">—</strong>
+            <small>acima de 30 dias</small>
+          </button>
+        </div>
+
+        <button id="firstFocusV982" type="button" class="first-focus-v982" disabled>
+          <span class="focus-icon-v982" aria-hidden="true">→</span>
+          <span class="focus-copy-v982">
+            <small>Primeiro foco recomendado</small>
+            <strong id="focusSupplierV982">Carregando prioridade…</strong>
+            <em id="focusMetaV982">Aguardando dados</em>
+          </span>
+          <span class="focus-open-v982">Abrir na base</span>
+        </button>
+      </div>
+    </section>
+
+    <section class="kpi-grid essential-kpis executive-essential-kpis kpis-v33 kpi-no-scroll-v45 kpis-v982" data-panel="visao">
+      <article id="kpiValorAndamentoCard" class="kpi-card metric-card kpi-pendente principal kpi-primary-v41 kpi-v982" aria-live="polite">
+        <div class="kpi-icon">R$</div>
         <div class="kpi-copy">
           <span>Valor em andamento</span>
           <strong id="kValorPendente" aria-label="Carregando valor em andamento">R$ —</strong>
           <small id="kValorPendenteSub">Carregando dados…</small>
-          <em id="trendValorPendente" class="kpi-trend-v98 is-neutral">Comparação após a próxima atualização</em>
         </div>
       </article>
-      <article id="kpiPendenciasCard" class="kpi-card metric-card kpi-pendencias kpi-primary-v41 kpi-v98" aria-live="polite">
-        <div class="kpi-icon" aria-hidden="true">RC</div>
+
+      <article id="kpiPendenciasCard" class="kpi-card metric-card kpi-pendencias kpi-primary-v41 kpi-v982" aria-live="polite">
+        <div class="kpi-icon">!</div>
         <div class="kpi-copy">
           <span>RCs em andamento</span>
           <strong id="kPendencias" aria-label="Carregando RCs em andamento">—</strong>
           <small id="kPendenciasSub">Carregando composição…</small>
-          <em id="trendPendencias" class="kpi-trend-v98 is-neutral">Comparação após a próxima atualização</em>
         </div>
       </article>
-      <article id="kpiConcluidoCard" class="kpi-card metric-card kpi-concluido kpi-primary-v41 kpi-v98" aria-live="polite">
-        <div class="kpi-icon" aria-hidden="true">%</div>
+
+      <article id="kpiConcluidoCard" class="kpi-card metric-card kpi-concluido kpi-primary-v41 kpi-v982" aria-live="polite">
+        <div class="kpi-icon">%</div>
         <div class="kpi-copy">
           <span>Processo concluído</span>
           <strong id="kPctConcluido" aria-label="Carregando percentual concluído">—%</strong>
           <small id="kConcluidoSub">Carregando dados…</small>
-          <div class="kpi-progress-v98" aria-hidden="true"><i id="completionProgressV98"></i><b id="completionTargetV98"></b></div>
-          <em id="trendConcluido" class="kpi-trend-v98 is-neutral">Meta: 95%</em>
+          <span class="completion-track-v982" aria-hidden="true"><i id="completionProgressV982"></i></span>
         </div>
       </article>
-      <article id="kpiMaisParadoCard" class="kpi-card metric-card tempo kpi-atraso kpi-secondary-v41 kpi-v98" aria-live="polite">
-        <div class="kpi-icon" aria-hidden="true">D</div>
+
+      <article id="kpiMaisParadoCard" class="kpi-card metric-card tempo kpi-atraso kpi-secondary-v41 kpi-v982" aria-live="polite">
+        <div class="kpi-icon">D</div>
         <div class="kpi-copy">
           <span>Pendência mais antiga</span>
-          <strong id="kMaiorAtraso" class="oldest-value-v96"><span class="oldest-days-number-v96">—</span><span class="oldest-days-unit-v96">dias</span></strong>
-          <small id="kMaiorAtrasoSub" class="oldest-context-v96"><span class="oldest-empty-v96">Carregando dados…</span></small>
-          <em id="trendOldest" class="kpi-trend-v98 is-neutral">Aguardando referência</em>
+          <strong id="kMaiorAtraso" class="oldest-value-v96">
+            <span class="oldest-days-number-v96">—</span>
+            <span class="oldest-days-unit-v96">dias</span>
+          </strong>
+          <small id="kMaiorAtrasoSub" class="oldest-context-v96">
+            <span class="oldest-empty-v96">Carregando dados…</span>
+          </small>
         </div>
       </article>
-      <article id="kpiFocoPcmCard" class="kpi-card metric-card money kpi-sla kpi-secondary-v41 kpi-v98" aria-live="polite">
-        <div class="kpi-icon" aria-hidden="true">PCM</div>
+
+      <article id="kpiFocoPcmCard" class="kpi-card metric-card money kpi-sla kpi-secondary-v41 kpi-v982" aria-live="polite">
+        <div class="kpi-icon">PCM</div>
         <div class="kpi-copy">
-          <span>Fila direta do PCM</span>
-          <strong id="kValorForaSla" aria-label="Carregando fila direta do PCM">R$ —</strong>
+          <span>Valor na fila do PCM</span>
+          <strong id="kValorForaSla" aria-label="Carregando valor da fila PCM">R$ —</strong>
           <small id="kValorForaSlaSub">Carregando dados…</small>
-          <em id="trendPcmQueue" class="kpi-trend-v98 is-neutral">Limite operacional: 40 RCs</em>
         </div>
       </article>
-      <article id="farolRegional" class="kpi-card metric-card critical-card-v98 kpi-secondary-v41 kpi-v98" aria-live="polite">
-        <div class="kpi-icon" aria-hidden="true">!</div>
+
+      <article id="farolRegional" class="kpi-card metric-card critical-card-v982 kpi-secondary-v41 kpi-v982" aria-live="polite">
+        <div class="kpi-icon">30+</div>
         <div class="kpi-copy">
           <span>Pendências críticas</span>
           <strong id="kFarolStatus" aria-label="Carregando pendências críticas">—</strong>
-          <small id="kFarolSub">Carregando dados…</small>
-          <em id="trendCritical" class="kpi-trend-v98 is-neutral">Critério: acima de 30 dias</em>
+          <small id="kFarolSub">Acima de 30 dias</small>
         </div>
       </article>
     </section>
 
-    <section class="executive-summary-v98" data-panel="visao" aria-labelledby="quickReadTitle">
-      <div class="summary-head-v98">
-        <div>
-          <span class="comment-label">Leitura rápida</span>
-          <strong id="quickReadTitle">Situação atual do processo</strong>
-        </div>
-        <small id="summaryContextV98">Visão geral</small>
-      </div>
-      <div class="summary-metrics-v98">
-        <button type="button" class="summary-metric-v98 is-success" data-summary-filter="CONCLUÍDO" aria-label="Abrir registros concluídos">
-          <strong id="quickCompletion">—%</strong>
-          <span>Concluído</span>
-        </button>
-        <button type="button" class="summary-metric-v98 is-primary" data-summary-filter="SEM LANÇAMENTO" aria-label="Abrir fila direta do PCM">
-          <strong id="quickPcm">—</strong>
-          <span>No PCM</span>
-        </button>
-        <button type="button" class="summary-metric-v98 is-warning" data-summary-filter="SEM PEDIDO" aria-label="Abrir registros sem pedido">
-          <strong id="quickOrder">—</strong>
-          <span>Sem pedido</span>
-        </button>
-        <button type="button" class="summary-metric-v98 is-info" data-summary-filter="SEM NF" aria-label="Abrir registros sem nota fiscal">
-          <strong id="quickNf">—</strong>
-          <span>Sem NF</span>
-        </button>
-      </div>
-      <button id="firstFocusV98" type="button" class="first-focus-v98" aria-label="Abrir primeiro foco recomendado">
-        <span class="focus-badge-v98">Primeiro foco</span>
-        <span class="focus-copy-v98">
-          <strong id="focusSupplierV98">Carregando prioridade…</strong>
-          <small id="focusMetaV98">Aguardando dados</small>
-        </span>
-        <span class="focus-action-v98"><b id="focusActionV98">Abrir</b><i aria-hidden="true">→</i></span>
-      </button>
-      <p id="executiveComment" class="executive-comment-text-v98" aria-live="polite">Carregando leitura executiva…</p>
-    </section>
-
-    <section class="cockpit-grid-v33 cockpit-grid-v98" data-panel="visao">
-      <article class="chart-card cockpit-card funnel-card-v33">
-        <div class="chart-head chart-head-v98">
-          <div><h3>Etapas do processo</h3><span>Quantidade, valor, participação e envelhecimento</span></div>
-          <small>Selecione uma etapa para abrir a base</small>
-        </div>
-        <div id="processCards" class="process-grid process-grid-compact process-grid-executive process-cards-host process-v33 process-v98"><div class="panel-loading-v971" role="status">Carregando etapas…</div></div>
-      </article>
-      <article class="chart-card cockpit-card priority-card-v33">
-        <div class="chart-head chart-head-v98">
-          <div><h3>Fila de tratativa PCM</h3><span>Prioridades agrupadas por ação e fornecedor</span></div>
-          <div class="priority-sort-v98" role="group" aria-label="Ordenar fila de tratativa">
-            <button type="button" class="is-active" data-priority-sort="priority">Prioridade</button>
-            <button type="button" data-priority-sort="age">Idade</button>
-            <button type="button" data-priority-sort="value">Valor</button>
-            <button type="button" data-priority-sort="quantity">Quantidade</button>
+    <section class="cockpit-grid-v33 cockpit-grid-v982" data-panel="visao">
+      <article class="chart-card cockpit-card funnel-card-v33 panel-v982">
+        <div class="chart-head chart-head-v982">
+          <div>
+            <span class="eyebrow-v982">Fluxo</span>
+            <h3>Etapas do processo</h3>
           </div>
+          <small>Quantidade, valor e tempo de cada etapa</small>
         </div>
-        <div id="topPrioridades" class="priority-list-v33 priority-list-v98"><div class="panel-loading-v971" role="status">Carregando fila de tratativa…</div></div>
+        <div id="processCards" class="process-grid process-grid-compact process-grid-executive process-cards-host process-v33 process-grid-v982">
+          <div class="panel-loading-v971" role="status">Carregando etapas…</div>
+        </div>
+      </article>
+
+      <article class="chart-card cockpit-card priority-card-v33 panel-v982">
+        <div class="chart-head chart-head-v982">
+          <div>
+            <span class="eyebrow-v982">Tratativa</span>
+            <h3>Fila prioritária do PCM</h3>
+          </div>
+          <small>Abra exatamente o grupo que deve ser tratado</small>
+        </div>
+        <div id="topPrioridades" class="priority-list-v33 priority-list-v982">
+          <div class="panel-loading-v971" role="status">Carregando fila de tratativa…</div>
+        </div>
       </article>
     </section>
 
-    <section class="action-now-v33 rankings-zone-v88 rankings-zone-v98" data-panel="visao">
-      <article class="ranking-panel-v88 ranking-panel-suppliers-v88">
-        <div class="ranking-panel-head-v88 ranking-panel-head-v98">
-          <div><strong>Top 3 fornecedores</strong><span id="supplierRankingSubtitleV98">Maior valor pendente</span></div>
-          <div class="ranking-mode-v98" role="group" aria-label="Contexto do ranking de fornecedores">
-            <button type="button" class="is-active" data-ranking-kind="supplier" data-ranking-mode="pending">Em andamento</button>
-            <button type="button" data-ranking-kind="supplier" data-ranking-mode="total">Total</button>
+    <section class="action-now-v33 rankings-zone-v88 rankings-v982" data-panel="visao">
+      <article class="ranking-panel-v88 panel-v982">
+        <div class="ranking-panel-head-v88 ranking-head-v982">
+          <div>
+            <span class="eyebrow-v982">Concentração financeira</span>
+            <strong>Fornecedores com maior valor pendente</strong>
           </div>
+          <small>Clique para abrir a base filtrada</small>
         </div>
-        <div id="actionNowList" class="ranking-list-v88"><div class="panel-loading-v971" role="status">Carregando fornecedores…</div></div>
+        <div id="actionNowList" class="ranking-list-v88 ranking-list-v982">
+          <div class="panel-loading-v971" role="status">Carregando fornecedores…</div>
+        </div>
       </article>
-      <article class="ranking-panel-v88 ranking-panel-requesters-v88">
-        <div class="ranking-panel-head-v88 ranking-panel-head-v98">
-          <div><strong>Top 3 solicitantes</strong><span id="requesterRankingSubtitleV98">Maior valor pendente</span></div>
-          <div class="ranking-mode-v98" role="group" aria-label="Contexto do ranking de solicitantes">
-            <button type="button" class="is-active" data-ranking-kind="requester" data-ranking-mode="pending">Em andamento</button>
-            <button type="button" data-ranking-kind="requester" data-ranking-mode="total">Total</button>
+
+      <article class="ranking-panel-v88 panel-v982">
+        <div class="ranking-panel-head-v88 ranking-head-v982">
+          <div>
+            <span class="eyebrow-v982">Origem da demanda</span>
+            <strong>Solicitantes com maior valor pendente</strong>
           </div>
+          <small>Clique para abrir a base filtrada</small>
         </div>
-        <div id="ownersCriticos" class="ranking-list-v88"><div class="panel-loading-v971" role="status">Carregando solicitantes…</div></div>
+        <div id="ownersCriticos" class="ranking-list-v88 ranking-list-v982">
+          <div class="panel-loading-v971" role="status">Carregando solicitantes…</div>
+        </div>
       </article>
     </section>
 
@@ -287,14 +310,14 @@
     </footer>
   </main>
 
-  <script src="/static/js/app-config.js?v=98"></script>
-  <script src="/static/js/state.js?v=98"></script>
-  <script src="/static/js/utils.js?v=98"></script>
-  <script src="/static/js/api.js?v=98"></script>
-  <script src="/static/js/filters.js?v=98"></script>
-  <script src="/static/js/dashboard.js?v=98"></script>
-  <script src="/static/js/table.js?v=98"></script>
-  <script src="/static/js/core.js?v=98"></script>
-  <script src="/static/js/main.js?v=98"></script>
+  <script src="/static/js/app-config.js?v=982"></script>
+  <script src="/static/js/state.js?v=982"></script>
+  <script src="/static/js/utils.js?v=982"></script>
+  <script src="/static/js/api.js?v=982"></script>
+  <script src="/static/js/filters.js?v=982"></script>
+  <script src="/static/js/dashboard.js?v=982"></script>
+  <script src="/static/js/table.js?v=982"></script>
+  <script src="/static/js/core.js?v=982"></script>
+  <script src="/static/js/main.js?v=982"></script>
 </body>
 </html>
