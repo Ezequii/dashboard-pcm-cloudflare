@@ -51,7 +51,7 @@
   },
   {
     "name": "quatro_colunas_fixadas_sem_sobrepor",
-    "passed": true,
+    "passed": false,
     "detail": "seleção + offsets das quatro primeiras colunas"
   },
   {

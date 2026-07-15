@@ -1,0 +1,11 @@
+body.ui-v2 .btn,body.ui-v2 .productivity-button-v99,body.ui-v2 .details-actions-v99 button,body.ui-v2 .ranking-scope-toggle-v994a6 button{
+ min-height:40px;border:1px solid var(--ui-color-line-strong)!important;border-radius:var(--ui-radius-md)!important;
+ padding:.55rem .85rem!important;display:inline-flex;align-items:center;justify-content:center;gap:.45rem;font-weight:700;
+ font-size:var(--ui-font-sm)!important;color:var(--ui-color-ink-800)!important;background:var(--ui-color-surface)!important;
+ box-shadow:var(--ui-shadow-xs);transition:transform var(--ui-duration-fast),border-color var(--ui-duration-fast),box-shadow var(--ui-duration-fast),background var(--ui-duration-fast)
+}
+body.ui-v2 .btn:hover,body.ui-v2 .productivity-button-v99:hover,body.ui-v2 .details-actions-v99 button:hover{transform:translateY(-1px);border-color:var(--ui-color-brand-600)!important;box-shadow:var(--ui-shadow-sm)}
+body.ui-v2 .btn-primary,body.ui-v2 .productivity-button-v99.is-primary{color:#fff!important;background:var(--ui-color-brand-700)!important;border-color:var(--ui-color-brand-700)!important}
+body.ui-v2 .btn-primary:hover,body.ui-v2 .productivity-button-v99.is-primary:hover{background:var(--ui-color-brand-800)!important}
+body.ui-v2 .btn-small,body.ui-v2 .btn-compact{min-height:34px;padding:.35rem .65rem!important;font-size:var(--ui-font-xs)!important}
+body.ui-v2 .btn:disabled,body.ui-v2 button:disabled{opacity:.48;cursor:not-allowed;transform:none}
