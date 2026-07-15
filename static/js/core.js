@@ -5,7 +5,7 @@ function validateRuntimeConfiguration(){
   if(!rules || !rules.aging || !rules.targets || !rules.priorityWeights){
     throw new Error("Configuração de regras de negócio indisponível. Recarregue a página.");
   }
-  if(!config || String(config.assetVersion || "") !== "993"){
+  if(!config || String(config.assetVersion || "") !== "9942"){
     throw new Error("Os arquivos da aplicação estão em versões diferentes. Recarregue sem cache.");
   }
 
@@ -26,7 +26,7 @@ function bindBootRecovery(){
   const retry = $("btnRetryData");
   if(!retry) return;
   retry.dataset.bootRecoveryBound = "1";
-  retry.onclick = () => window.location.reload();
+  retry.onclick = () => refreshData();
 }
 
 const scheduleDashboard = debounce(() => {
@@ -75,6 +75,7 @@ async function init(){
   try{
     setLoading(true);
     validateRuntimeConfiguration();
+    await window.SecurityV994a?.initialize();
     const boot = await api('/api/bootstrap');
 
     state.mainFilters = [
@@ -87,6 +88,9 @@ async function init(){
     state.stageColors = boot.stage_colors || {};
     state.dataVersion = boot.data_version || state.dataVersion || '';
     state.generatedAt = boot.generated_at || '';
+    state.publicationStatus = boot.publication_status || null;
+    state.lastValidVersion = state.dataVersion || state.lastValidVersion || '';
+    state.lastValidGeneratedAt = state.generatedAt || state.lastValidGeneratedAt || '';
 
     loadPreferences();
     window.restoreProductivityStateV99?.();
@@ -152,8 +156,9 @@ async function init(){
           'error'
         );
       }
-    }, 300000);
+    }, Number(window.PCM_APP_CONFIG?.runtime?.updateCheckIntervalMs || 300000));
   }catch(error){
+    window.markDataFailureV994a?.(error);
     console.error('Falha na inicialização:', error);
     document.body.classList.remove('app-booting');
     document.body.classList.add('app-error');
@@ -536,7 +541,11 @@ function clearAll(){
 }
 
 async function refreshData(){
-  if(state.refreshPromise) return state.refreshPromise;
+  if(state.refreshPromise){
+    state.refreshQueued = true;
+    return state.refreshPromise;
+  }
+  window.abortAllRequestsV994a?.('manual-refresh');
 
   try{
     setLoading(true);
@@ -544,6 +553,8 @@ async function refreshData(){
     const result = await api('/api/refresh', {});
     state.dataVersion = result.data_version || state.dataVersion || '';
     state.generatedAt = result.generated_at || state.generatedAt || '';
+    state.publicationStatus = result.publication_status || state.publicationStatus;
+    window.markDataSuccessV994a?.({dataVersion:state.dataVersion, generatedAt:state.generatedAt});
     updateHeaderMetadata(result.metadata || {}, state.generatedAt);
     state.page = 1;
     await refreshAll(false);
@@ -552,6 +563,7 @@ async function refreshData(){
     document.body.classList.add('app-ready');
     showToast(`${result.message || 'Dados atualizados'}. ${Number(result.linhas || 0).toLocaleString('pt-BR')} registros carregados.`);
   }catch(error){
+    window.markDataFailureV994a?.(error);
     console.error('Falha na atualização manual:', error);
     showToast(error.message || 'Não foi possível atualizar os dados.', true);
     showDataStatus(
@@ -583,6 +595,7 @@ async function refreshAll(withLoader=true){
       updateDataFreshness(state.generatedAt);
       clearDataError();
     }catch(error){
+      window.markDataFailureV994a?.(error);
       console.error('Erro em refreshAll:', error);
       showToast(error.message || 'Erro ao atualizar dashboard.', true);
       showDataStatus(

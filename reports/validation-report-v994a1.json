@@ -1,0 +1,152 @@
+[
+  {
+    "name": "arquivos_obrigatorios",
+    "passed": true,
+    "detail": "todos presentes"
+  },
+  {
+    "name": "versionamento_9942",
+    "passed": true,
+    "detail": "HTML, configuração e runtime usam 9942"
+  },
+  {
+    "name": "ordem_scripts",
+    "passed": true,
+    "detail": "{'app-config.js': 23918, 'state.js': 23976, 'utils.js': 24029, 'security-v994a.js': 24082, 'api.js': 24144, 'filters.js': 24195, 'dashboard.js': 24250, 'table.js': 24307, 'xlsx-v99.js': 24360, 'productivity-v99.js': 24416, 'core.js': 24480, 'main.js': 24532}"
+  },
+  {
+    "name": "ids_unicos",
+    "passed": true,
+    "detail": "{'mainContent': 1, 'securityContextV994a': 1, 'securityRoleV994a': 1, 'securityClassificationV994a': 1, 'dataErrorTimeV994a': 1, 'lastValidVersionV994a': 1, 'lastSuccessTimeV994a': 1, 'btnOpenMultiSearchV99': 1, 'selectionBarV99': 1, 'detailsDrawerV99': 1, 'completionProgressV991': 1}"
+  },
+  {
+    "name": "csp_sem_inline",
+    "passed": true,
+    "detail": "scripts e estilos inline bloqueados"
+  },
+  {
+    "name": "ui_sem_estilo_inline",
+    "passed": true,
+    "detail": "{'index.html': False, '404.html': False, 'dashboard.js': False, 'productivity-v99.js': False}"
+  },
+  {
+    "name": "abort_controller",
+    "passed": true,
+    "detail": "implementado"
+  },
+  {
+    "name": "payload_separado",
+    "passed": true,
+    "detail": "implementado"
+  },
+  {
+    "name": "validacao_cruzada",
+    "passed": true,
+    "detail": "implementado"
+  },
+  {
+    "name": "fail_closed",
+    "passed": true,
+    "detail": "implementado"
+  },
+  {
+    "name": "ultima_versao_valida",
+    "passed": true,
+    "detail": "implementado"
+  },
+  {
+    "name": "rollback",
+    "passed": true,
+    "detail": "implementado"
+  },
+  {
+    "name": "produtividade_preservada",
+    "passed": true,
+    "detail": "implementado"
+  },
+  {
+    "name": "xlsx_real",
+    "passed": true,
+    "detail": "implementado"
+  },
+  {
+    "name": "progressos_csp_safe",
+    "passed": true,
+    "detail": "implementado"
+  },
+  {
+    "name": "indice_executivo_minimizado",
+    "passed": true,
+    "detail": "implementado"
+  },
+  {
+    "name": "politica_seguranca",
+    "passed": true,
+    "detail": "environment=production, failClosed=True"
+  },
+  {
+    "name": "headers_seguranca",
+    "passed": true,
+    "detail": "HSTS, CSP, DENY, COOP, CORP e no-store"
+  },
+  {
+    "name": "404_minimo",
+    "passed": true,
+    "detail": "redirecionamento sem cópia do dashboard"
+  },
+  {
+    "name": "payload_legado_ausente",
+    "passed": true,
+    "detail": "dashboard-data.json não está publicado"
+  },
+  {
+    "name": "conjunto_dados_completo",
+    "passed": true,
+    "detail": "4/4 arquivos"
+  },
+  {
+    "name": "dados_publicados_validos",
+    "passed": true,
+    "detail": "versão 20260715123626"
+  },
+  {
+    "name": "pacote_sem_legado_executavel",
+    "passed": false,
+    "detail": "tools\\validar_v97.py, tools\\validar_v971.py, tools\\validar_v982.py, tools\\validar_v985.py, tools\\validar_v991.py, tools\\validar_v992.py, tools\\validar_v993.py, qa\\v99_operacional\\amostra_exportacao_v99.xlsx"
+  },
+  {
+    "name": "node_disponivel",
+    "passed": false,
+    "detail": "não encontrado"
+  },
+  {
+    "name": "testes_python",
+    "passed": true,
+    "detail": ""
+  },
+  {
+    "name": "xlsx_ooxml",
+    "passed": false,
+    "detail": "amostra temporária não criada"
+  },
+  {
+    "name": "fluxo_quatro_etapas",
+    "passed": true,
+    "detail": "quatro etapas canônicas e grade de quatro colunas"
+  },
+  {
+    "name": "tabela_sem_sobreposicao",
+    "passed": true,
+    "detail": "seleção e quatro primeiras colunas com offsets próprios"
+  },
+  {
+    "name": "gaveta_formatada",
+    "passed": true,
+    "detail": "moeda, dias, datas e documentos formatados"
+  },
+  {
+    "name": "legibilidade_visual",
+    "passed": true,
+    "detail": "rótulos críticos ampliados"
+  }
+]

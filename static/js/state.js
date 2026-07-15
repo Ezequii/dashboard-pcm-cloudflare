@@ -26,6 +26,16 @@ const state = {
   generatedAt: '',
   lastSuccessfulRefresh: 0,
   lastError: '',
+  lastErrorAt: 0,
+  lastValidVersion: '',
+  lastValidGeneratedAt: '',
+  dashboardAbortController: null,
+  rowsAbortController: null,
+  versionAbortController: null,
+  publicationAbortController: null,
+  securityRole: '',
+  securityVerified: false,
+  publicationStatus: null,
 };
 
 const DESC_FIRST_COLUMNS = new Set([
@@ -35,13 +45,13 @@ const DESC_FIRST_COLUMNS = new Set([
 ]);
 
 const $ = (id) => document.getElementById(id);
-const STORAGE_KEY = 'pcm-dashboard-preferences-v99-productivity';
+const STORAGE_KEY = 'pcm-dashboard-preferences-v994a-hardening';
 const LEGACY_STORAGE_KEYS = [
   'pcm-dashboard-preferences-v97-cloudflare',
   'pcm-dashboard-preferences-v89-cloudflare',
   'pcm-dashboard-preferences-v88-cloudflare'
 ];
-const DASH_CACHE_PREFIX = 'pcm-dashboard-cache-v97-cloudflare:';
+const DASH_CACHE_PREFIX = 'pcm-dashboard-cache-v994a:';
 
 function readStoredPreferences(){
   const keys = [STORAGE_KEY, ...LEGACY_STORAGE_KEYS];
@@ -126,3 +136,72 @@ function cacheClear(){
       .forEach(key => sessionStorage.removeItem(key));
   }catch(e){}
 }
+const REQUEST_CONTROLLER_FIELDS_V994A = Object.freeze({
+  executive: 'dashboardAbortController',
+  operational: 'rowsAbortController',
+  version: 'versionAbortController',
+  publication: 'publicationAbortController'
+});
+
+function requestControllerFieldV994a(channel){
+  return REQUEST_CONTROLLER_FIELDS_V994A[channel] || null;
+}
+
+function abortRequestV994a(channel, reason='superseded'){
+  const field = requestControllerFieldV994a(channel);
+  if(!field) return;
+  const controller = state[field];
+  if(controller && !controller.signal.aborted){
+    try{ controller.abort(reason); }catch(_){}
+  }
+  state[field] = null;
+}
+
+function beginRequestV994a(channel, timeoutMs=30000){
+  const field = requestControllerFieldV994a(channel);
+  if(!field) throw new Error(`Canal de requisição desconhecido: ${channel}`);
+  abortRequestV994a(channel);
+
+  const controller = new AbortController();
+  state[field] = controller;
+  const timeout = window.setTimeout(() => {
+    if(!controller.signal.aborted) controller.abort('timeout');
+  }, Math.max(1000, Number(timeoutMs || 30000)));
+
+  return {
+    signal: controller.signal,
+    controller,
+    release(){
+      window.clearTimeout(timeout);
+      if(state[field] === controller) state[field] = null;
+    }
+  };
+}
+
+function abortAllRequestsV994a(reason='cancelled'){
+  Object.keys(REQUEST_CONTROLLER_FIELDS_V994A)
+    .forEach(channel => abortRequestV994a(channel, reason));
+}
+
+function markDataSuccessV994a(metadata={}){
+  state.lastSuccessfulRefresh = Date.now();
+  state.lastError = '';
+  state.lastErrorAt = 0;
+  state.lastValidVersion = String(
+    metadata.dataVersion || state.dataVersion || state.lastValidVersion || ''
+  );
+  state.lastValidGeneratedAt = String(
+    metadata.generatedAt || state.generatedAt || state.lastValidGeneratedAt || ''
+  );
+}
+
+function markDataFailureV994a(error){
+  state.lastError = String(error?.message || error || 'Falha de dados');
+  state.lastErrorAt = Date.now();
+}
+
+window.abortRequestV994a = abortRequestV994a;
+window.beginRequestV994a = beginRequestV994a;
+window.abortAllRequestsV994a = abortAllRequestsV994a;
+window.markDataSuccessV994a = markDataSuccessV994a;
+window.markDataFailureV994a = markDataFailureV994a;

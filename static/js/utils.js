@@ -113,14 +113,33 @@ function updateDataFreshness(generatedAt){
 
 function showDataStatus(title, message, tone='error'){
   state.lastError = tone === 'error' ? String(message || title || '') : state.lastError;
+  if(tone === 'error' && !state.lastErrorAt) state.lastErrorAt = Date.now();
   const banner = $('dataStatusBanner');
   if(!banner) return;
   banner.hidden = false;
   banner.className = `data-status-banner-v97 no-print tone-${tone}`;
   const titleEl = $('dataStatusTitle');
   const messageEl = $('dataStatusMessage');
+  const errorTime = $('dataErrorTimeV994a');
+  const lastVersion = $('lastValidVersionV994a');
+  const lastSuccess = $('lastSuccessTimeV994a');
   if(titleEl) titleEl.textContent = title || 'Atenção';
   if(messageEl) messageEl.textContent = message || '';
+  if(errorTime){
+    errorTime.textContent = state.lastErrorAt
+      ? `Falha: ${new Date(state.lastErrorAt).toLocaleString('pt-BR')}`
+      : '';
+  }
+  if(lastVersion){
+    lastVersion.textContent = state.lastValidVersion
+      ? `Última versão válida: ${state.lastValidVersion}`
+      : '';
+  }
+  if(lastSuccess){
+    lastSuccess.textContent = state.lastSuccessfulRefresh
+      ? `Último sucesso: ${new Date(state.lastSuccessfulRefresh).toLocaleString('pt-BR')}`
+      : '';
+  }
   const retry = $('btnRetryData');
   if(retry) retry.hidden = tone !== 'error' && tone !== 'warning';
 }
@@ -133,6 +152,7 @@ function hideDataStatus(force=false){
 
 function clearDataError(){
   state.lastError = '';
+  state.lastErrorAt = 0;
   const age = relativeDataAge(state.generatedAt);
   if(age.tone === 'stale'){
     showDataStatus(

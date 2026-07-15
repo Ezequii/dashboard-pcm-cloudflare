@@ -5,12 +5,16 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Controle de Requisições PCM 2026</title>
   <link rel="icon" type="image/png" href="/static/favicon.png" />
-  <link rel="stylesheet" href="/static/styles_v50_corrigido.css?v=993" />
-  <link rel="stylesheet" href="/static/styles_v991_faithful.css?v=993" />
-  <link rel="stylesheet" href="/static/styles_v992_polished.css?v=993" />
-  <link rel="stylesheet" href="/static/styles_v99_productivity.css?v=993" />
+  <link rel="stylesheet" href="/static/styles_v50_corrigido.css?v=9942" />
+  <link rel="stylesheet" href="/static/styles_v991_faithful.css?v=9942" />
+  <link rel="stylesheet" href="/static/styles_v992_polished.css?v=9942" />
+  <link rel="stylesheet" href="/static/styles_v99_productivity.css?v=9942" />
+  <link rel="stylesheet" href="/static/styles_v994a_hardening.css?v=9942" />
+  <link rel="stylesheet" href="/static/styles_v994a2_audit.css?v=9942" />
+  <link rel="stylesheet" href="/static/styles_v994a2_visual.css?v=9942" />
 </head>
-<body class="v86-table-lines v89-simple-filters-search-money v90-layout-safe v91-layout-final v95-header-kpi-polish v97-reliability-navigation v971-runtime-fix v991-faithful v992-polished v993-productivity app-booting">
+<body class="v86-table-lines v89-simple-filters-search-money v90-layout-safe v91-layout-final v95-header-kpi-polish v97-reliability-navigation v971-runtime-fix v991-faithful v992-polished v993-productivity v994a-hardening v994a2-audited v994a2-visual app-booting">
+  <a class="skip-link-v994a" href="#mainContent">Pular para o conteúdo</a>
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
   <div id="drawerBackdrop" class="drawer-backdrop no-print" hidden></div>
 
@@ -20,16 +24,20 @@
         <div class="brand-logo-box"><img src="/static/logo_amaggi.png" alt="AMAGGI" /></div>
         <div class="brand-copy-wrap">
           <div>
-            <div class="brand-title-line"><h1>Controle de Requisições PCM</h1>        <span class="version-pill-v34" aria-label="Versão visual premium">V99.3</span></div>
+            <div class="brand-title-line"><h1>Controle de Requisições PCM</h1>        <span class="version-pill-v34" aria-label="Versão visual premium">V99.4A.2</span></div>
             <p class="subtitle-top">Controle de lançamento e acompanhamento — 2026</p>
           </div>
-          <nav class="dashboard-tabs no-print prominent-tabs inline-tabs" aria-label="Navegação do dashboard">
-            <button class="tab-btn active" data-tab="visao"><span>Visão Executiva</span><small>visão gerencial</small></button>
-            <button class="tab-btn" data-tab="base"><span>Base de Tratativa</span><small>base operacional</small></button>
+          <nav class="dashboard-tabs no-print prominent-tabs inline-tabs" role="tablist" aria-label="Navegação do dashboard">
+            <button class="tab-btn active" role="tab" aria-selected="true" data-tab="visao"><span>Visão Executiva</span><small>visão gerencial</small></button>
+            <button class="tab-btn" role="tab" aria-selected="false" data-tab="base"><span>Base de Tratativa</span><small>base operacional</small></button>
           </nav>
         </div>
       </div>
       <div class="top-actions no-print">
+        <div id="securityContextV994a" class="security-context-v994a" aria-live="polite">
+          <span id="securityRoleV994a">Acesso: verificando</span>
+          <small id="securityClassificationV994a">Dados internos</small>
+        </div>
         <span id="clock" class="clock" aria-label="Relógio do sistema"></span>
         <span id="meta" class="meta-inline-v95" aria-label="Última atualização da base">Carregando...</span>
         <span id="dataFreshness" class="data-freshness-v97 is-loading" aria-live="polite" title="Situação da atualização da base"><i aria-hidden="true"></i><span>Verificando base...</span></span>
@@ -67,13 +75,18 @@
     </div>
   </aside>
 
-  <main class="page executive-page page-v33 page-v34 page-v35 page-v38 page-v39 page-v40 page-v41">
+  <main id="mainContent" tabindex="-1" class="page executive-page page-v33 page-v34 page-v35 page-v38 page-v39 page-v40 page-v41">
 
     <section id="dataStatusBanner" class="data-status-banner-v97 no-print" role="alert" aria-live="assertive" hidden>
       <span class="data-status-icon-v97" aria-hidden="true">!</span>
-      <div>
+      <div class="data-status-copy-v994a">
         <strong id="dataStatusTitle">Não foi possível atualizar os dados</strong>
         <small id="dataStatusMessage">Tente novamente.</small>
+        <span class="data-error-metadata-v994a">
+          <time id="dataErrorTimeV994a"></time>
+          <span id="lastValidVersionV994a"></span>
+          <span id="lastSuccessTimeV994a"></span>
+        </span>
       </div>
       <button id="btnRetryData" class="btn btn-small btn-soft" type="button">Tentar novamente</button>
     </section>
@@ -111,7 +124,7 @@
           <small>Processo concluído</small>
           <strong id="kPctConcluido">—%</strong>
           <em id="kConcluidoSub">Carregando dados…</em>
-          <span class="hero-progress-v991" aria-hidden="true"><i id="completionProgressV991"></i></span>
+          <span class="hero-progress-v991" aria-hidden="true"><progress id="completionProgressV991" max="100" value="0"></progress></span>
         </span>
       </button>
 
@@ -454,16 +467,17 @@
     <div id="detailsContentV99" class="details-content-v99"></div>
   </aside>
 
-  <script src="/static/js/app-config.js?v=993"></script>
-  <script src="/static/js/state.js?v=993"></script>
-  <script src="/static/js/utils.js?v=993"></script>
-  <script src="/static/js/api.js?v=993"></script>
-  <script src="/static/js/filters.js?v=993"></script>
-  <script src="/static/js/dashboard.js?v=993"></script>
-  <script src="/static/js/table.js?v=993"></script>
-  <script src="/static/js/xlsx-v99.js?v=993"></script>
-  <script src="/static/js/productivity-v99.js?v=993"></script>
-  <script src="/static/js/core.js?v=993"></script>
-  <script src="/static/js/main.js?v=993"></script>
+  <script src="/static/js/app-config.js?v=9942"></script>
+  <script src="/static/js/state.js?v=9942"></script>
+  <script src="/static/js/utils.js?v=9942"></script>
+  <script src="/static/js/security-v994a.js?v=9942"></script>
+  <script src="/static/js/api.js?v=9942"></script>
+  <script src="/static/js/filters.js?v=9942"></script>
+  <script src="/static/js/dashboard.js?v=9942"></script>
+  <script src="/static/js/table.js?v=9942"></script>
+  <script src="/static/js/xlsx-v99.js?v=9942"></script>
+  <script src="/static/js/productivity-v99.js?v=9942"></script>
+  <script src="/static/js/core.js?v=9942"></script>
+  <script src="/static/js/main.js?v=9942"></script>
 </body>
 </html>

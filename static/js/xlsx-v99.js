@@ -295,6 +295,12 @@
     add("DASHBOARD PCM — RESUMO DA EXPORTAÇÃO", "", 5);
     add("Gerado em", new Date().toLocaleString("pt-BR"));
     add("Escopo", summary.scope || "Visão atual");
+    add("Classificação", summary.security?.classification || "interno");
+    add("Perfil", summary.security?.role || "não verificado");
+    add("Versão dos dados", summary.dataVersion || "");
+    if(Array.isArray(summary.appliedFilters) && summary.appliedFilters.length){
+      add("Filtros aplicados", summary.appliedFilters.join(" · "));
+    }
     add("Registros", summary.count || 0, 3);
     add("Valor total", summary.totalValue || 0, 2);
     add("Maior tempo parado", summary.maxDays || 0, 3);

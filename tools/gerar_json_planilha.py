@@ -1,26 +1,41 @@
 from __future__ import annotations
 
 import json
-import math
-import os
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
-import numpy as np
 import pandas as pd
 
 ROOT = Path(__file__).resolve().parents[1]
 TOOLS = ROOT / "tools"
 sys.path.insert(0, str(TOOLS))
 
+from services.atomic_publish import publish_atomically  # noqa: E402
+from services.constants import ETAPA_COLORS, STAGE_ORDER  # noqa: E402
 from services.loader import find_workbook, load_workbook_data  # noqa: E402
-from services.constants import ETAPA_COLORS, STAGE_ORDER, TABLE_COLUMNS  # noqa: E402
+from services.local_state import local_state_root  # noqa: E402
+from services.payload import (  # noqa: E402
+    EXECUTIVE_PUBLIC_FIELDS,
+    EXECUTIVE_INTERNAL_FIELDS,
+    OPERATIONAL_PUBLIC_FIELDS,
+    build_executive_records,
+    build_operational_records,
+    validate_payload,
+)
+from services.security import parse_security_policy  # noqa: E402
 
-DATA_JSON = ROOT / "static" / "data" / "dashboard-data.json"
 DATA_DIR = ROOT / "data"
+STATIC_DATA_DIR = ROOT / "static/data"
 DEFAULT_EXCEL = DATA_DIR / "CONTROLE_DE_REQUISICOES_2026.xlsx"
+SECURITY_CONFIG_PATH = ROOT / "static/config/security-config.json"
+LOCAL_STATE = local_state_root(ROOT)
+
+EXECUTIVE_RELATIVE = "static/data/executive-data.json"
+OPERATIONAL_RELATIVE = "static/data/operational-data.json"
+VERSION_RELATIVE = "static/data/version.json"
+PUBLICATION_RELATIVE = "static/data/publication-status.json"
 
 MAIN_FILTERS = [
     {"key": "SOLICITANTE", "label": "Solicitante", "type": "search-select"},
@@ -29,7 +44,7 @@ MAIN_FILTERS = [
     {"key": "MES_RECEBIMENTO", "label": "Mês", "type": "search-select"},
 ]
 
-COMPACT_TABLE_COLUMNS = [
+OPERATIONAL_TABLE_COLUMNS = [
     "ETAPA",
     "DIAS PARADO",
     "SLA STATUS",
@@ -47,268 +62,227 @@ COMPACT_TABLE_COLUMNS = [
     "Nº PEDIDO DE COMPRA",
 ]
 
-FULL_TABLE_COLUMNS = TABLE_COLUMNS
+
+def load_security_config() -> dict[str, Any]:
+    if not SECURITY_CONFIG_PATH.exists():
+        raise RuntimeError(
+            "A configuração de segurança não foi encontrada em "
+            "static/config/security-config.json."
+        )
+    config = json.loads(SECURITY_CONFIG_PATH.read_text(encoding="utf-8"))
+    parse_security_policy(config)
+    return config
 
 
-def clean_value(value: Any) -> Any:
-    """Converte valores do pandas/numpy para JSON seguro."""
-    if value is None:
-        return ""
-    try:
-        if pd.isna(value):
-            return ""
-    except Exception:
-        pass
-    if isinstance(value, pd.Timestamp):
-        if pd.isna(value):
-            return ""
-        return value.strftime("%d/%m/%Y")
-    if isinstance(value, (np.integer,)):
-        return int(value)
-    if isinstance(value, (np.floating,)):
-        if math.isnan(float(value)):
-            return ""
-        return float(value)
-    if isinstance(value, float) and math.isnan(value):
-        return ""
-    if isinstance(value, (datetime,)):
-        return value.strftime("%d/%m/%Y")
-    return value
+def date_range(frame: pd.DataFrame) -> tuple[str, str]:
+    if "DATA_RECEBIMENTO_DT" not in frame.columns:
+        return "", ""
+    values = frame["DATA_RECEBIMENTO_DT"].dropna()
+    if values.empty:
+        return "", ""
+    return (
+        values.min().strftime("%Y-%m-%d"),
+        values.max().strftime("%Y-%m-%d"),
+    )
 
 
-def iso_date(value: Any) -> str:
-    try:
-        if pd.isna(value):
-            return ""
-        return pd.Timestamp(value).strftime("%Y-%m-%d")
-    except Exception:
-        return ""
+def stage_counts(frame: pd.DataFrame) -> dict[str, int]:
+    if "ETAPA" not in frame.columns:
+        return {}
+    return {
+        str(key): int(value)
+        for key, value in frame["ETAPA"].value_counts().to_dict().items()
+    }
 
 
-def _safe_text(value: Any) -> str:
-    try:
-        if value is None or pd.isna(value):
-            return ""
-    except Exception:
-        pass
-    text = str(value).strip()
-    return "" if text.lower() in {"nan", "nat", "none", "null"} else text
+def build_boot(
+    *,
+    frame: pd.DataFrame,
+    generated_at: str,
+    classification: str,
+) -> dict[str, Any]:
+    date_min, date_max = date_range(frame)
+    counts = stage_counts(frame)
 
-def br_date(value: Any, fallback: Any = "") -> str:
-    try:
-        if pd.isna(value):
-            return _safe_text(fallback)
-        return pd.Timestamp(value).strftime("%d/%m/%Y")
-    except Exception:
-        return _safe_text(fallback)
-
-
-def money_number(value: Any) -> float:
-    try:
-        if pd.isna(value):
-            return 0.0
-        return float(value)
-    except Exception:
-        return 0.0
-
-
-def int_number(value: Any) -> int:
-    try:
-        if pd.isna(value):
-            return 0
-        return int(float(value))
-    except Exception:
-        return 0
-
-
-def make_search(row: dict[str, Any]) -> str:
-    keys = [
-        "ETAPA", "FORNECEDOR", "SOLICITANTE", "PREFIXO", "EQUIPAMENTO",
-        "Nº ORÇAMENTO FINAL", "Nº REQUISIÇÃO", "Nº PEDIDO DE COMPRA",
-        "Nº NFS/DANFE", "STATUS", "OBS ADICIONAIS",
-    ]
-    return " ".join(str(row.get(k, "")) for k in keys if row.get(k, "")).upper()
-
-
-def build_rows(df: pd.DataFrame) -> list[dict[str, Any]]:
-    rows: list[dict[str, Any]] = []
-    for idx, source in df.reset_index(drop=True).iterrows():
-        row: dict[str, Any] = {}
-        for col in FULL_TABLE_COLUMNS:
-            if col in source:
-                row[col] = clean_value(source[col])
-            else:
-                row[col] = ""
-
-        # Garante datas bonitas no display principal.
-        row["DATA DE RECEBIMENTO"] = br_date(source.get("DATA_RECEBIMENTO_DT"), source.get("DATA DE RECEBIMENTO", ""))
-        row["DATA LANÇAMENTO"] = br_date(source.get("DATA_LANCAMENTO_DT"), source.get("DATA LANÇAMENTO", ""))
-        row["DATA DO PEDIDO"] = br_date(source.get("DATA_PEDIDO_DT"), source.get("DATA DO PEDIDO", ""))
-        row["DATA LANÇAMENTO NFS"] = clean_value(source.get("DATA LANÇAMENTO NFS", ""))
-
-        row["MES_RECEBIMENTO"] = clean_value(source.get("MES_RECEBIMENTO", ""))
-        row["_ETAPA"] = str(source.get("ETAPA", ""))
-        row["_ROW_ID"] = int_number(source.get("_ROW_ID", idx + 1))
-        row["_VALOR_TOTAL"] = money_number(source.get("VALOR TOTAL", 0))
-        row["_VALOR_SERVICO"] = money_number(source.get("VALOR SERVIÇO", 0))
-        row["_VALOR_PECAS"] = money_number(source.get("VALOR PEÇAS", 0))
-        row["_DIAS_PARADO"] = int_number(source.get("DIAS PARADO", 0))
-        row["_DATA_RECEBIMENTO_ISO"] = iso_date(source.get("DATA_RECEBIMENTO_DT"))
-        row["_DATA_LANCAMENTO_ISO"] = iso_date(source.get("DATA_LANCAMENTO_DT"))
-        row["_DATA_PEDIDO_ISO"] = iso_date(source.get("DATA_PEDIDO_DT"))
-        row["_DATA_NF_ISO"] = iso_date(source.get("DATA_NF_DT"))
-
-        etapa = str(source.get("ETAPA", "")).strip().upper()
-        if etapa == "SEM NF":
-            row["_AGING_BASE_ISO"] = (
-                row["_DATA_PEDIDO_ISO"]
-                or row["_DATA_LANCAMENTO_ISO"]
-                or row["_DATA_RECEBIMENTO_ISO"]
-            )
-        elif etapa == "SEM PEDIDO":
-            row["_AGING_BASE_ISO"] = (
-                row["_DATA_LANCAMENTO_ISO"]
-                or row["_DATA_RECEBIMENTO_ISO"]
-            )
-        elif etapa in {"CONCLUÍDO", "CONCLUIDO"}:
-            row["_AGING_BASE_ISO"] = ""
-        else:
-            row["_AGING_BASE_ISO"] = row["_DATA_RECEBIMENTO_ISO"]
-
-        row["_SEARCH"] = make_search(row)
-        rows.append(row)
-    return rows
-
-
-def read_existing_boot() -> dict[str, Any]:
-    if DATA_JSON.exists():
-        try:
-            payload = json.loads(DATA_JSON.read_text(encoding="utf-8"))
-            boot = payload.get("boot")
-            if isinstance(boot, dict):
-                return boot
-        except Exception:
-            pass
     return {
         "app_name": "Dashboard PCM 2026",
         "can_upload": False,
         "role": "viewer",
         "main_filters": MAIN_FILTERS,
         "advanced_filters": [],
-        "table_columns": COMPACT_TABLE_COLUMNS,
-        "full_table_columns": FULL_TABLE_COLUMNS,
+        "table_columns": OPERATIONAL_TABLE_COLUMNS,
+        "full_table_columns": list(OPERATIONAL_PUBLIC_FIELDS),
         "stage_order": STAGE_ORDER,
         "stage_colors": ETAPA_COLORS,
         "auto_reload_seconds": 0,
+        "metadata": {
+            "linhas": int(len(frame)),
+            "date_min": date_min,
+            "date_max": date_max,
+            "classification": classification,
+            "contagem_etapas": counts,
+            "generated_at": generated_at,
+        },
     }
+
+
+def remove_legacy_payload() -> None:
+    legacy = STATIC_DATA_DIR / "dashboard-data.json"
+    legacy.unlink(missing_ok=True)
 
 
 def main() -> int:
-    DATA_DIR.mkdir(exist_ok=True)
+    DATA_DIR.mkdir(parents=True, exist_ok=True)
+    STATIC_DATA_DIR.mkdir(parents=True, exist_ok=True)
+
     if not DEFAULT_EXCEL.exists():
-        candidates = list(DATA_DIR.glob("*.xlsx")) + list(DATA_DIR.glob("*.xlsm")) + list(DATA_DIR.glob("*.xls"))
+        candidates = (
+            list(DATA_DIR.glob("*.xlsx"))
+            + list(DATA_DIR.glob("*.xlsm"))
+            + list(DATA_DIR.glob("*.xls"))
+        )
         if not candidates:
-            print("ERRO: coloque a planilha em data/CONTROLE_DE_REQUISICOES_2026.xlsx")
+            print(
+                "ERRO: coloque a planilha em "
+                "data/CONTROLE_DE_REQUISICOES_2026.xlsx"
+            )
             return 1
 
-    workbook = find_workbook(ROOT, preferred=str(DEFAULT_EXCEL) if DEFAULT_EXCEL.exists() else None)
+    security = load_security_config()
+    workbook = find_workbook(
+        ROOT,
+        preferred=str(DEFAULT_EXCEL) if DEFAULT_EXCEL.exists() else None,
+    )
+
     print(f"Lendo planilha: {workbook.name}")
     loaded = load_workbook_data(workbook)
-    df = loaded.df.copy()
-    rows = build_rows(df)
+    frame = loaded.df.copy()
 
-    boot = read_existing_boot()
-    boot.update({
-        "app_name": "Dashboard PCM 2026",
-        "can_upload": False,
-        "role": "viewer",
-        "main_filters": MAIN_FILTERS,
-        "advanced_filters": [],
-        "table_columns": COMPACT_TABLE_COLUMNS,
-        "full_table_columns": FULL_TABLE_COLUMNS,
-        "stage_order": STAGE_ORDER,
-        "stage_colors": ETAPA_COLORS,
-        "auto_reload_seconds": 0,
-    })
-
-    date_min = ""
-    date_max = ""
-    if "DATA_RECEBIMENTO_DT" in df.columns:
-        vals = df["DATA_RECEBIMENTO_DT"].dropna()
-        if not vals.empty:
-            date_min = vals.min().strftime("%Y-%m-%d")
-            date_max = vals.max().strftime("%Y-%m-%d")
-
-    etapa_counts = df["ETAPA"].value_counts().to_dict() if "ETAPA" in df.columns else {}
-    status_counts = df["STATUS"].value_counts().to_dict() if "STATUS" in df.columns else {}
-
-    boot["metadata"] = {
-        "arquivo": workbook.name,
-        "arquivo_caminho": workbook.name,
-        "data_dir": "static/data",
-        "aba_principal": loaded.metadata.aba_principal,
-        "linhas": int(len(df)),
-        "colunas": int(len(df.columns)),
-        "date_min": date_min,
-        "date_max": date_max,
-        "modo": "Cloudflare Pages estático",
-        "contagem_etapas": {str(k): int(v) for k, v in etapa_counts.items()},
-        "contagem_status_excel": {str(k): int(v) for k, v in status_counts.items()},
-    }
-
-    if not rows:
-        print("ERRO: a planilha foi processada, mas nenhum registro válido foi encontrado.")
+    if frame.empty:
+        print("ERRO: a planilha não contém registros válidos.")
         return 1
 
-    if sum(int(value) for value in etapa_counts.values()) != len(rows):
+    counts = stage_counts(frame)
+    if sum(counts.values()) != len(frame):
         print("ERRO: a soma das etapas não corresponde ao total de registros.")
         return 1
 
-    generated_now = datetime.now(timezone.utc)
-    version_payload = {"v": generated_now.strftime("%Y%m%d%H%M%S")}
-    payload = {
+    generated = datetime.now(timezone.utc)
+    generated_at = generated.isoformat()
+    data_version = generated.strftime("%Y%m%d%H%M%S")
+    classification = str(security.get("dataClassification", "interno"))
+
+    executive_rows = build_executive_records(frame)
+    operational_rows = build_operational_records(frame)
+    boot = build_boot(
+        frame=frame,
+        generated_at=generated_at,
+        classification=classification,
+    )
+
+    executive_payload = {
         "boot": boot,
-        "rows": rows,
-        "generated_at": generated_now.isoformat(),
-        "data_version": version_payload["v"],
-        "rules": {"dash_asterisk": "- e * contam como feito/preenchido"},
+        "rows": executive_rows,
+        "generated_at": generated_at,
+        "data_version": data_version,
+        "classification": classification,
+        "contract": "executive-index-v994a1",
+    }
+    operational_payload = {
+        "columns": OPERATIONAL_TABLE_COLUMNS,
+        "rows": operational_rows,
+        "generated_at": generated_at,
+        "data_version": data_version,
+        "classification": classification,
+        "contract": "operational-v994a",
+    }
+    publication_status = {
+        "data_version": data_version,
+        "published_at": generated_at,
+        "records": len(frame),
+        "status": "valid",
+        "last_valid_version": data_version,
+        "classification": classification,
+        "contracts": {
+            "executive": "executive-index-v994a1",
+            "operational": "operational-v994a",
+        },
+    }
+    version_payload = {
+        "v": data_version,
+        "published_at": generated_at,
     }
 
-    DATA_JSON.parent.mkdir(parents=True, exist_ok=True)
-    version_file = ROOT / "static" / "data" / "version.json"
-    data_temp = DATA_JSON.with_suffix(".json.tmp")
-    version_temp = version_file.with_suffix(".json.tmp")
+    executive_metrics = validate_payload(
+        executive_payload,
+        public_fields=EXECUTIVE_PUBLIC_FIELDS,
+        expected_version=data_version,
+        internal_fields=EXECUTIVE_INTERNAL_FIELDS,
+    )
+    operational_metrics = validate_payload(
+        operational_payload,
+        public_fields=OPERATIONAL_PUBLIC_FIELDS,
+        expected_version=data_version,
+    )
 
-    try:
-        data_temp.write_text(
-            json.dumps(payload, ensure_ascii=False, separators=(",", ":")),
-            encoding="utf-8",
+    def validate_executive(path: Path) -> None:
+        payload = json.loads(path.read_text(encoding="utf-8"))
+        validate_payload(
+            payload,
+            public_fields=EXECUTIVE_PUBLIC_FIELDS,
+            expected_version=data_version,
+            internal_fields=EXECUTIVE_INTERNAL_FIELDS,
         )
-        version_temp.write_text(
-            json.dumps(version_payload, ensure_ascii=False, separators=(",", ":")),
-            encoding="utf-8",
+
+    def validate_operational(path: Path) -> None:
+        payload = json.loads(path.read_text(encoding="utf-8"))
+        validate_payload(
+            payload,
+            public_fields=OPERATIONAL_PUBLIC_FIELDS,
+            expected_version=data_version,
         )
 
-        validated_payload = json.loads(data_temp.read_text(encoding="utf-8"))
-        validated_version = json.loads(version_temp.read_text(encoding="utf-8"))
-        if len(validated_payload.get("rows", [])) != len(rows):
-            raise RuntimeError("A validação do JSON gerado encontrou quantidade divergente.")
-        if validated_version.get("v") != version_payload["v"]:
-            raise RuntimeError("A validação do arquivo de versão falhou.")
+    payloads = {
+        EXECUTIVE_RELATIVE: executive_payload,
+        OPERATIONAL_RELATIVE: operational_payload,
+        PUBLICATION_RELATIVE: publication_status,
+        VERSION_RELATIVE: version_payload,
+    }
 
-        os.replace(data_temp, DATA_JSON)
-        os.replace(version_temp, version_file)
-    except Exception:
-        data_temp.unlink(missing_ok=True)
-        version_temp.unlink(missing_ok=True)
-        raise
+    result = publish_atomically(
+        root=ROOT,
+        payloads=payloads,
+        data_version=data_version,
+        backup_dir=LOCAL_STATE / "last-valid",
+        report_dir=LOCAL_STATE / "reports",
+        validators={
+            EXECUTIVE_RELATIVE: validate_executive,
+            OPERATIONAL_RELATIVE: validate_operational,
+        },
+        version_relative_path=VERSION_RELATIVE,
+    )
 
-    print(f"OK: {len(rows):,} linhas geradas em {DATA_JSON}".replace(",", "."))
-    print(f"Versão gerada: {version_payload['v']}")
+    remove_legacy_payload()
+
+    print(f"OK: {len(frame):,} registros publicados".replace(",", "."))
+    print(f"Versão gerada: {data_version}")
+    print(
+        "Payload executivo: "
+        f"{executive_metrics.bytes_utf8 / 1024:.1f} KB"
+    )
+    print(
+        "Payload operacional: "
+        f"{operational_metrics.bytes_utf8 / 1024:.1f} KB"
+    )
+    print(
+        "Backup anterior: "
+        + ("confirmado" if result.backup_created else "primeira publicação")
+    )
+    print("Campos proibidos: nenhum")
+    print(f"Estado local protegido: {LOCAL_STATE}")
     print("Contagem oficial por etapa:")
-    for etapa in ["CONCLUÍDO", "SEM LANÇAMENTO", "SEM PEDIDO", "SEM NF"]:
-        print(f" - {etapa}: {int(etapa_counts.get(etapa, 0))}")
-    print("Se esses números baterem com os filtros do Excel, faça Commit e Push no GitHub Desktop.")
+    for stage in ["CONCLUÍDO", "SEM LANÇAMENTO", "SEM PEDIDO", "SEM NF"]:
+        print(f" - {stage}: {counts.get(stage, 0)}")
     return 0
 
 

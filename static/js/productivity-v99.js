@@ -265,8 +265,7 @@
       }else{
         const textarea = document.createElement("textarea");
         textarea.value = value;
-        textarea.style.position = "fixed";
-        textarea.style.opacity = "0";
+        textarea.className = "clipboard-fallback-v994a";
         document.body.appendChild(textarea);
         textarea.select();
         if(!document.execCommand("copy")){
@@ -863,6 +862,11 @@
       ),
     ];
 
+    const securityContext = window.SecurityV994a?.getContext?.() || {};
+    const appliedFilters = Object.entries(state.filters || {})
+      .filter(([, values]) => Array.isArray(values) && values.length)
+      .map(([key, values]) => `${key}: ${values.join(", ")}`);
+
     return {
       scope,
       count: items.length,
@@ -871,6 +875,12 @@
       stages,
       topSuppliers,
       text: lines.join("\n"),
+      dataVersion: state.dataVersion || "",
+      appliedFilters,
+      security: {
+        classification: securityContext.classification || "interno",
+        role: securityContext.role || "não verificado"
+      }
     };
   }
 
@@ -919,6 +929,9 @@
 
   async function exportExcelFromCurrentViewV99(){
     try{
+      if(!window.SecurityV994a?.canExport()){
+        throw new Error('Seu perfil não permite exportar dados.');
+      }
       setLoading(true);
       const result = await rowsForCurrentActionV99();
       if(!result.rows.length){
@@ -988,6 +1001,88 @@
     ];
   }
 
+  function splitDetailValuesV994a2(value, includeSlash=false){
+    const expression = includeSlash ? /[|;,/]+/ : /[|;,\n]+/;
+    return String(value ?? "")
+      .split(expression)
+      .map(item => item.trim())
+      .filter(Boolean);
+  }
+
+  function detailDisplayV994a2(field, value, row){
+    const empty = value === null
+      || value === undefined
+      || String(value).trim() === "";
+
+    if(empty){
+      return {
+        html:"Não informado",
+        plain:"Não informado",
+        className:"is-empty"
+      };
+    }
+
+    const normalizedField = String(field || "").trim().toUpperCase();
+    const moneyFields = new Set([
+      "VALOR TOTAL",
+      "VALOR PEÇAS",
+      "VALOR SERVIÇO",
+      "VALOR UNITÁRIO"
+    ]);
+
+    if(moneyFields.has(normalizedField)){
+      const source = normalizedField === "VALOR TOTAL"
+        ? (row?._VALOR_TOTAL ?? value)
+        : normalizedField === "VALOR PEÇAS"
+          ? (row?._VALOR_PECAS ?? value)
+          : normalizedField === "VALOR SERVIÇO"
+            ? (row?._VALOR_SERVICO ?? value)
+            : value;
+      const formatted = formatCurrencyBR(source);
+      return {
+        html:escapeHtml(formatted),
+        plain:formatted,
+        className:"is-money-v994a2"
+      };
+    }
+
+    if(normalizedField === "DIAS PARADO"){
+      const days = Math.max(0, Number(row?._DIAS_PARADO ?? value) || 0);
+      const formatted = `${days.toLocaleString("pt-BR")} dia${days === 1 ? "" : "s"}`;
+      return {
+        html:escapeHtml(formatted),
+        plain:formatted,
+        className:days >= 30 ? "is-critical-v994a2" : ""
+      };
+    }
+
+    const isDateField = normalizedField.includes("DATA");
+    const isDocumentField = normalizedField.startsWith("Nº")
+      || normalizedField.includes("DANFE")
+      || normalizedField.includes("ORDEM SERVIÇO");
+
+    const parts = splitDetailValuesV994a2(value, isDocumentField && !isDateField);
+    if(parts.length > 1){
+      const className = isDateField
+        ? "is-list-v994a2 is-date-list-v994a2"
+        : "is-list-v994a2";
+      return {
+        html:parts.map(part =>
+          `<span class="detail-token-v994a2">${escapeHtml(part)}</span>`
+        ).join(""),
+        plain:parts.join(" · "),
+        className
+      };
+    }
+
+    const plain = String(value).trim();
+    return {
+      html:escapeHtml(plain),
+      plain,
+      className:""
+    };
+  }
+
   function renderDetailV99(row){
     activeDetailRowV99 = row;
     const title = document.getElementById("detailsTitleV99");
@@ -1007,13 +1102,12 @@
 
     if(content){
       content.innerHTML = orderedDetailFieldsV99(row).map(field => {
-        const value = row[field];
-        const empty = value === null || value === undefined || String(value).trim() === "";
+        const display = detailDisplayV994a2(field, row[field], row);
         return `
-          <div class="detail-field-v99">
+          <div class="detail-field-v99 detail-field-v994a2">
             <span>${escapeHtml(field)}</span>
-            <strong class="${empty ? "is-empty" : ""}" title="${escapeAttr(empty ? "Não informado" : value)}">
-              ${escapeHtml(empty ? "Não informado" : value)}
+            <strong class="${display.className}" title="${escapeAttr(display.plain)}">
+              ${display.html}
             </strong>
           </div>`;
       }).join("");
@@ -1025,6 +1119,7 @@
 
   async function openDetailsV99(rowId){
     try{
+      window.SecurityV994a?.assertOperationalAccess();
       setLoading(true);
       await prepareDetailNavigationV99();
       detailIndexV99 = detailRowsV99.findIndex(

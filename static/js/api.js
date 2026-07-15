@@ -1,209 +1,498 @@
+// V99.4A — carregamento separado, validação cruzada e cancelamento real.
+let __EXECUTIVE_DATA_V994A = null;
+let __OPERATIONAL_DATA_V994A = null;
+let __PUBLICATION_STATUS_V994A = null;
+let __STATIC_DATA_VERSION = "";
 
-// V97: carregamento estático confiável com detecção de nova versão e idade dinâmica.
-let __STATIC_DATA_VERSION = null;
-const STATIC_DATA_URL = '/static/data/dashboard-data.json';
-const VERSION_URL = '/static/data/version.json';
-let __STATIC_DATA = null;
-
-async function getDataVersion(){
-  try{
-    const response = await fetch(`${VERSION_URL}?ts=${Date.now()}`, {
-      cache: 'no-store',
-      headers: {
-        'Cache-Control': 'no-cache, no-store, must-revalidate',
-        'Pragma': 'no-cache'
-      }
-    });
-    if(!response.ok) return '';
-    const data = await response.json();
-    return String(data.v || '');
-  }catch(error){
-    console.warn('Não foi possível consultar a versão dos dados:', error);
-    return '';
+class DataNetworkError extends Error {
+  constructor(message, status=0){
+    super(message);
+    this.name = "DataNetworkError";
+    this.status = status;
   }
 }
 
+class DataTimeoutError extends Error {
+  constructor(message){
+    super(message);
+    this.name = "DataTimeoutError";
+  }
+}
+
+class DataSchemaError extends Error {
+  constructor(message){
+    super(message);
+    this.name = "DataSchemaError";
+  }
+}
+
+class DataVersionMismatchError extends Error {
+  constructor(message){
+    super(message);
+    this.name = "DataVersionMismatchError";
+  }
+}
+
+function appDataFilesV994a(){
+  const files = window.PCM_APP_CONFIG?.dataFiles || {};
+  return {
+    executive: files.executive || "/static/data/executive-data.json",
+    operational: files.operational || "/static/data/operational-data.json",
+    version: files.version || "/static/data/version.json",
+    publicationStatus:
+      files.publicationStatus || "/static/data/publication-status.json"
+  };
+}
+
+function requestTimeoutV994a(){
+  return Number(
+    window.PCM_APP_CONFIG?.runtime?.requestTimeoutMs || 30000
+  );
+}
+
+async function fetchJsonV994a(
+  url,
+  {
+    channel,
+    timeoutMs=requestTimeoutV994a(),
+    version="",
+    cacheMode="no-store"
+  }={}
+){
+  const request = window.beginRequestV994a(
+    channel || "executive",
+    timeoutMs
+  );
+  const separator = url.includes("?") ? "&" : "?";
+  const cacheBuster = version
+    ? `v=${encodeURIComponent(version)}`
+    : `ts=${Date.now()}`;
+
+  try{
+    const response = await fetch(
+      `${url}${separator}${cacheBuster}`,
+      {
+        cache: cacheMode,
+        credentials: "same-origin",
+        signal: request.signal,
+        headers: {
+          "Accept": "application/json",
+          "Cache-Control": "no-cache, no-store, must-revalidate",
+          "Pragma": "no-cache"
+        }
+      }
+    );
+
+    if(!response.ok){
+      throw new DataNetworkError(
+        `Não foi possível carregar ${url} (${response.status}).`,
+        response.status
+      );
+    }
+
+    try{
+      return await response.json();
+    }catch(error){
+      throw new DataSchemaError(
+        `O arquivo ${url} não contém JSON válido.`
+      );
+    }
+  }catch(error){
+    if(error?.name === "AbortError"){
+      const reason = request.signal.reason;
+      if(reason === "timeout"){
+        throw new DataTimeoutError(
+          `A consulta de ${url} excedeu ${Math.round(timeoutMs / 1000)} segundos.`
+        );
+      }
+      const cancelled = new DOMException(
+        "Requisição substituída por uma consulta mais recente.",
+        "AbortError"
+      );
+      throw cancelled;
+    }
+    throw error;
+  }finally{
+    request.release();
+  }
+}
+
+function validateVersionPayloadV994a(payload){
+  const version = String(payload?.v || "");
+  if(!version){
+    throw new DataSchemaError(
+      "version.json não contém uma versão válida."
+    );
+  }
+  return version;
+}
+
+function validateDataPayloadV994a(payload, expectedVersion, kind){
+  if(!payload || !Array.isArray(payload.rows)){
+    throw new DataSchemaError(
+      `${kind} não contém uma lista de registros.`
+    );
+  }
+
+  const version = String(payload.data_version || "");
+  if(!version){
+    throw new DataSchemaError(
+      `${kind} não informa data_version.`
+    );
+  }
+  if(expectedVersion && version !== String(expectedVersion)){
+    throw new DataVersionMismatchError(
+      `${kind} está na versão ${version}, mas version.json informa ${expectedVersion}.`
+    );
+  }
+  return payload;
+}
+
+function validatePublicationStatusV994a(payload, expectedVersion){
+  const version = String(payload?.data_version || "");
+  if(!version || version !== String(expectedVersion)){
+    throw new DataVersionMismatchError(
+      "publication-status.json não corresponde à versão publicada."
+    );
+  }
+  if(payload.status !== "valid"){
+    throw new DataSchemaError(
+      "A publicação atual não está marcada como válida."
+    );
+  }
+  return payload;
+}
+
+async function getDataVersion(){
+  const payload = await fetchJsonV994a(
+    appDataFilesV994a().version,
+    {channel:"version"}
+  );
+  return validateVersionPayloadV994a(payload);
+}
+
 function agingBaseIso(row){
-  const etapa = String(row.ETAPA || row._ETAPA || '').toUpperCase();
-  if(etapa === 'CONCLUÍDO' || etapa === 'CONCLUIDO') return '';
+  const etapa = String(row.ETAPA || row._ETAPA || "").toUpperCase();
+  if(etapa === "CONCLUÍDO" || etapa === "CONCLUIDO") return "";
   if(row._AGING_BASE_ISO) return String(row._AGING_BASE_ISO);
-  if(etapa === 'SEM NF'){
-    return String(row._DATA_PEDIDO_ISO || row._DATA_LANCAMENTO_ISO || row._DATA_RECEBIMENTO_ISO || '');
+  if(etapa === "SEM NF"){
+    return String(
+      row._DATA_PEDIDO_ISO
+      || row._DATA_LANCAMENTO_ISO
+      || row._DATA_RECEBIMENTO_ISO
+      || ""
+    );
   }
-  if(etapa === 'SEM PEDIDO'){
-    return String(row._DATA_LANCAMENTO_ISO || row._DATA_RECEBIMENTO_ISO || '');
+  if(etapa === "SEM PEDIDO"){
+    return String(
+      row._DATA_LANCAMENTO_ISO
+      || row._DATA_RECEBIMENTO_ISO
+      || ""
+    );
   }
-  return String(row._DATA_RECEBIMENTO_ISO || '');
+  return String(row._DATA_RECEBIMENTO_ISO || "");
 }
 
 function agingBand(days){
   const value = Math.max(0, Number(days || 0));
-  if(value > 30) return '30+ dias';
-  if(value > 15) return '15+ dias';
-  if(value > 7) return '8–15 dias';
-  return '0–7 dias';
+  const rules = window.BUSINESS_RULES?.aging || {};
+  const critical = Number(rules.critical || 30);
+  const high = Number(rules.high || 16);
+  const attention = Number(rules.attention || 8);
+  if(value > critical) return `${critical}+ dias`;
+  if(value >= high) return `${high}+ dias`;
+  if(value >= attention) return `${attention}–${Math.max(attention, high - 1)} dias`;
+  return `0–${Math.max(0, attention - 1)} dias`;
 }
 
 function dynamicSlaStatus(etapa, days){
-  const stage = String(etapa || '').toUpperCase();
+  const stage = String(etapa || "").toUpperCase();
   const value = Math.max(0, Number(days || 0));
-  if(stage === 'CONCLUÍDO' || stage === 'CONCLUIDO') return 'CONCLUÍDO';
-  if(value > 30) return 'CRÍTICO';
-  if(stage === 'SEM LANÇAMENTO'){
-    if(value >= 5) return 'CRÍTICO';
-    if(value >= 3) return 'ATENÇÃO';
-    return 'OK';
-  }
-  if(stage === 'SEM PEDIDO'){
-    if(value >= 8) return 'CRÍTICO';
-    if(value >= 5) return 'ATENÇÃO';
-    return 'OK';
-  }
-  if(stage === 'SEM NF'){
-    if(value >= 11) return 'CRÍTICO';
-    if(value >= 8) return 'ATENÇÃO';
-    return 'OK';
-  }
-  return 'OK';
+  if(stage === "CONCLUÍDO" || stage === "CONCLUIDO") return "CONCLUÍDO";
+
+  const stageRules = window.BUSINESS_RULES?.slaByStage?.[stage] || {};
+  const critical = Number(
+    stageRules.critical
+    || window.BUSINESS_RULES?.aging?.critical
+    || 30
+  );
+  const attention = Number(
+    stageRules.attention
+    || window.BUSINESS_RULES?.aging?.attention
+    || 8
+  );
+  if(value >= critical) return "CRÍTICO";
+  if(value >= attention) return "ATENÇÃO";
+  return "OK";
 }
 
 function refreshDynamicAging(rows){
   const today = new Date();
-  const todayUtc = Date.UTC(today.getFullYear(), today.getMonth(), today.getDate());
+  const todayUtc = Date.UTC(
+    today.getFullYear(),
+    today.getMonth(),
+    today.getDate()
+  );
+
   rows.forEach(row => {
-    const etapa = String(row.ETAPA || row._ETAPA || '').toUpperCase();
-    if(etapa === 'CONCLUÍDO' || etapa === 'CONCLUIDO'){
+    const etapa = String(row.ETAPA || row._ETAPA || "").toUpperCase();
+    if(etapa === "CONCLUÍDO" || etapa === "CONCLUIDO"){
       row._DIAS_PARADO = 0;
-      row['DIAS PARADO'] = 0;
-      row['FAIXA ATRASO'] = 'Concluído';
-      row['SLA STATUS'] = 'CONCLUÍDO';
-      row['SLA VENCIDO'] = false;
+      row["DIAS PARADO"] = 0;
+      row["FAIXA ATRASO"] = "Concluído";
+      row["SLA STATUS"] = "CONCLUÍDO";
+      row["SLA VENCIDO"] = false;
       return;
     }
+
     const baseIso = agingBaseIso(row);
     if(!/^\d{4}-\d{2}-\d{2}$/.test(baseIso)) return;
-    const [year, month, day] = baseIso.split('-').map(Number);
+
+    const [year, month, day] = baseIso.split("-").map(Number);
     const baseUtc = Date.UTC(year, month - 1, day);
-    const days = Math.max(0, Math.min(3650, Math.floor((todayUtc - baseUtc) / 86400000)));
+    const days = Math.max(
+      0,
+      Math.min(3650, Math.floor((todayUtc - baseUtc) / 86400000))
+    );
+
     row._DIAS_PARADO = days;
-    row['DIAS PARADO'] = days;
-    row['DIAS SEM MOVIMENTO'] = days;
-    row['FAIXA ATRASO'] = agingBand(days);
-    row['SLA STATUS'] = dynamicSlaStatus(etapa, days);
-    row['SLA VENCIDO'] = ['ATENÇÃO','CRÍTICO'].includes(row['SLA STATUS']);
+    row["DIAS PARADO"] = days;
+    row["DIAS SEM MOVIMENTO"] = days;
+    row["FAIXA ATRASO"] = agingBand(days);
+    row["SLA STATUS"] = dynamicSlaStatus(etapa, days);
+    row["SLA VENCIDO"] = ["ATENÇÃO", "CRÍTICO"].includes(
+      row["SLA STATUS"]
+    );
   });
 }
 
-async function loadStaticData(force=false){
-  if(__STATIC_DATA && !force){
-    refreshDynamicAging(__STATIC_DATA.rows || []);
-    return __STATIC_DATA;
-  }
-
-  const remoteVersion = await getDataVersion();
-
-  try{
-    const version = remoteVersion || __STATIC_DATA_VERSION || '';
-    const url = version
-      ? `${STATIC_DATA_URL}?v=${encodeURIComponent(version)}`
-      : `${STATIC_DATA_URL}?ts=${Date.now()}`;
-
-    const response = await fetch(url, {
-      cache: 'no-store',
-      headers: {
-        'Cache-Control': 'no-cache, no-store, must-revalidate',
-        'Pragma': 'no-cache',
-        'Expires': '0'
+async function fetchExecutiveBundleV994a(expectedVersion){
+  const files = appDataFilesV994a();
+  const [executive, publication] = await Promise.all([
+    fetchJsonV994a(
+      files.executive,
+      {
+        channel:"executive",
+        version:expectedVersion
       }
-    });
+    ),
+    fetchJsonV994a(
+      files.publicationStatus,
+      {
+        channel:"publication",
+        version:expectedVersion
+      }
+    )
+  ]);
 
-    if(!response.ok){
-      throw new Error(`Não consegui carregar a base do dashboard (${response.status}).`);
+  validateDataPayloadV994a(
+    executive,
+    expectedVersion,
+    "executive-data.json"
+  );
+  validatePublicationStatusV994a(publication, expectedVersion);
+  refreshDynamicAging(executive.rows);
+  return {executive, publication};
+}
+
+async function fetchOperationalPayloadV994a(expectedVersion){
+  window.SecurityV994a?.assertOperationalAccess();
+  const payload = await fetchJsonV994a(
+    appDataFilesV994a().operational,
+    {
+      channel:"operational",
+      version:expectedVersion
     }
+  );
+  validateDataPayloadV994a(
+    payload,
+    expectedVersion,
+    "operational-data.json"
+  );
 
-    const payload = await response.json();
-    if(!payload || !Array.isArray(payload.rows) || !payload.boot){
-      throw new Error('A base publicada está incompleta ou inválida.');
-    }
-
-    refreshDynamicAging(payload.rows);
-    __STATIC_DATA = payload;
-    __STATIC_DATA_VERSION = version;
-    state.dataVersion = version;
-    state.generatedAt = payload.generated_at || '';
-    state.lastSuccessfulRefresh = Date.now();
-
-    return __STATIC_DATA;
-  }catch(error){
-    console.error('Erro ao carregar dados estáticos:', error);
-    throw error;
+  const limit = Number(
+    window.PCM_APP_CONFIG?.runtime?.maxOperationalRowsInMemory || 25000
+  );
+  if(payload.rows.length > limit){
+    throw new DataSchemaError(
+      `A base possui ${payload.rows.length.toLocaleString("pt-BR")} registros e excede o limite de ${limit.toLocaleString("pt-BR")}.`
+    );
   }
+
+  refreshDynamicAging(payload.rows);
+  return payload;
+}
+
+function commitExecutiveBundleV994a(bundle, version){
+  __EXECUTIVE_DATA_V994A = bundle.executive;
+  __PUBLICATION_STATUS_V994A = bundle.publication;
+  __STATIC_DATA_VERSION = String(version);
+  state.dataVersion = String(version);
+  state.generatedAt = bundle.executive.generated_at || "";
+  state.publicationStatus = bundle.publication;
+  window.markDataSuccessV994a?.({
+    dataVersion:version,
+    generatedAt:state.generatedAt
+  });
+}
+
+function commitOperationalPayloadV994a(payload){
+  __OPERATIONAL_DATA_V994A = payload;
+}
+
+async function loadExecutiveDataV994a(force=false){
+  if(__EXECUTIVE_DATA_V994A && !force){
+    refreshDynamicAging(__EXECUTIVE_DATA_V994A.rows || []);
+    return __EXECUTIVE_DATA_V994A;
+  }
+
+  const version = await getDataVersion();
+  const bundle = await fetchExecutiveBundleV994a(version);
+  commitExecutiveBundleV994a(bundle, version);
+  return __EXECUTIVE_DATA_V994A;
+}
+
+async function loadOperationalDataV994a(force=false){
+  window.SecurityV994a?.assertOperationalAccess();
+
+  if(__OPERATIONAL_DATA_V994A && !force){
+    refreshDynamicAging(__OPERATIONAL_DATA_V994A.rows || []);
+    return __OPERATIONAL_DATA_V994A;
+  }
+
+  const version = __STATIC_DATA_VERSION || await getDataVersion();
+  const payload = await fetchOperationalPayloadV994a(version);
+  commitOperationalPayloadV994a(payload);
+  return __OPERATIONAL_DATA_V994A;
+}
+
+async function refreshPublishedDataV994a({
+  includeOperational=false
+}={}){
+  const version = await getDataVersion();
+  const bundlePromise = fetchExecutiveBundleV994a(version);
+  const operationalPromise = includeOperational
+    ? fetchOperationalPayloadV994a(version)
+    : Promise.resolve(null);
+
+  const [bundle, operational] = await Promise.all([
+    bundlePromise,
+    operationalPromise
+  ]);
+
+  commitExecutiveBundleV994a(bundle, version);
+  if(operational) commitOperationalPayloadV994a(operational);
+  else __OPERATIONAL_DATA_V994A = null;
+
+  cacheClear();
+  return {
+    version,
+    executive:bundle.executive,
+    operational,
+    publication:bundle.publication
+  };
+}
+
+function versionChangedV994a(currentVersion, remoteVersion){
+  const current = String(currentVersion || "");
+  const remote = String(remoteVersion || "");
+  return Boolean(current && remote && current !== remote);
 }
 
 async function checkForDataUpdates(){
   const remoteVersion = await getDataVersion();
-  if(!remoteVersion) return false;
   if(!__STATIC_DATA_VERSION){
     __STATIC_DATA_VERSION = remoteVersion;
     state.dataVersion = remoteVersion;
     return false;
   }
-  if(remoteVersion === __STATIC_DATA_VERSION) return false;
+  return versionChangedV994a(__STATIC_DATA_VERSION, remoteVersion);
+}
 
-  __STATIC_DATA_VERSION = remoteVersion;
-  state.dataVersion = remoteVersion;
-  __STATIC_DATA = null;
-  cacheClear();
-  return true;
+function assertOperationalAccessV994a(){
+  window.SecurityV994a?.assertOperationalAccess();
 }
 
 async function api(path, body=null, asBlob=false){
-  const force = path === '/api/refresh';
-  const db = await loadStaticData(force);
-
-  if(path === '/api/bootstrap'){
+  if(path === "/api/bootstrap"){
+    const db = await loadExecutiveDataV994a(false);
     return {
       ...db.boot,
-      generated_at: db.generated_at,
-      data_version: __STATIC_DATA_VERSION || ''
+      generated_at:db.generated_at,
+      data_version:__STATIC_DATA_VERSION,
+      publication_status:__PUBLICATION_STATUS_V994A
     };
   }
 
-  if(path === '/api/refresh'){
+  if(path === "/api/refresh"){
+    const includeOperational = Boolean(
+      __OPERATIONAL_DATA_V994A || state.activeTab === "base"
+    );
+    const refreshed = await refreshPublishedDataV994a({
+      includeOperational
+    });
     return {
       ok:true,
-      message:'Dados atualizados',
-      linhas:db.rows.length,
-      arquivo:db.boot?.metadata?.arquivo || 'base estática',
-      generated_at:db.generated_at || '',
-      data_version:__STATIC_DATA_VERSION || '',
-      metadata:db.boot?.metadata || {}
+      message:"Dados atualizados",
+      linhas:Number(refreshed.publication?.records || 0),
+      generated_at:refreshed.executive.generated_at || "",
+      data_version:refreshed.version,
+      metadata:refreshed.executive.boot?.metadata || {},
+      publication_status:refreshed.publication
     };
   }
 
-  if(path === '/api/options') return staticOptions(db.rows, body || {});
-  if(path === '/api/dashboard') return staticDashboard(db.rows, body || {});
-  if(path === '/api/rows') return staticRows(db.rows, body || {});
-  if(path === '/api/row') return staticRowDetail(db.rows, body || {});
+  if(path === "/api/options"){
+    const db = await loadExecutiveDataV994a(false);
+    return staticOptions(db.rows, body || {});
+  }
 
-  if(path.startsWith('/api/export/')){
-    const kind = path.split('/').pop();
-    if(!['csv','excel'].includes(kind)){
-      throw new Error('Formato de exportação não suportado.');
+  if(path === "/api/dashboard"){
+    const db = await loadExecutiveDataV994a(false);
+    return staticDashboard(db.rows, body || {});
+  }
+
+  if(path === "/api/rows"){
+    assertOperationalAccessV994a();
+    const db = await loadOperationalDataV994a(false);
+    return staticRows(db.rows, body || {});
+  }
+
+  if(path === "/api/row"){
+    assertOperationalAccessV994a();
+    const db = await loadOperationalDataV994a(false);
+    return staticRowDetail(db.rows, body || {});
+  }
+
+  if(path.startsWith("/api/export/")){
+    assertOperationalAccessV994a();
+    const kind = path.split("/").pop();
+    if(!["csv", "excel"].includes(kind)){
+      throw new Error("Formato de exportação não suportado.");
     }
-    const data = staticRows(db.rows, {...(body || {}), page:1, page_size:100000});
+    const db = await loadOperationalDataV994a(false);
+    const data = staticRows(
+      db.rows,
+      {...(body || {}), page:1, page_size:100000}
+    );
     const csv = toCsv(data.columns, data.rows);
-    return new Blob([csv], {type:'text/csv;charset=utf-8'});
+    return new Blob([csv], {type:"text/csv;charset=utf-8"});
   }
 
-  if(path === '/api/upload-workbook'){
-    throw new Error('A troca da base no Cloudflare Pages é feita por nova publicação.');
+  if(path === "/api/upload-workbook"){
+    throw new Error(
+      "A troca da base no Cloudflare Pages é feita por nova publicação."
+    );
   }
 
-  throw new Error('Rota estática não suportada: ' + path);
+  throw new Error("Rota estática não suportada: " + path);
 }
 
-
+window.versionChangedV994a = versionChangedV994a;
+window.fetchJsonV994a = fetchJsonV994a;
+window.refreshPublishedDataV994a = refreshPublishedDataV994a;
+window.getDataVersion = getDataVersion;
+window.checkForDataUpdates = checkForDataUpdates;
 
 function baseQuery(){
   return {

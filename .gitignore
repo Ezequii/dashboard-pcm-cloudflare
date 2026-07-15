@@ -9,3 +9,11 @@ __pycache__/
 *.pyc
 .venv/
 venv/
+
+
+# Estado local, backups e relatórios de publicação nunca devem ser enviados ao site
+/backups/
+/.publication-staging/
+/static/data/dashboard-data.json
+/reports/publication-report.json
+/reports/rollback-report.json

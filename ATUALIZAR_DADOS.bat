@@ -2,24 +2,18 @@
 setlocal EnableExtensions
 cd /d "%~dp0"
 
-title Atualizar Dashboard PCM
+title Atualizar Dashboard PCM V99.4A.2
 
 echo ======================================================
-echo   Atualizar Dashboard PCM - Cloudflare Pages
+echo   Atualizar Dashboard PCM - V99.4A.2 Hardening
 echo ======================================================
 echo.
-echo Pasta atual:
-echo %cd%
-echo.
-echo Verificando planilha...
+echo Verificando planilha oficial...
 
 if not exist "data\CONTROLE_DE_REQUISICOES_2026.xlsx" (
     echo.
-    echo ERRO: Nao encontrei a planilha neste caminho:
+    echo ERRO: planilha nao encontrada:
     echo data\CONTROLE_DE_REQUISICOES_2026.xlsx
-    echo.
-    echo Coloque a planilha dentro da pasta data com este nome exato:
-    echo CONTROLE_DE_REQUISICOES_2026.xlsx
     echo.
     pause
     exit /b 1
@@ -36,41 +30,49 @@ echo Instalando/verificando bibliotecas...
 %PY_CMD% -m pip install -r requirements_update.txt
 if %errorlevel% neq 0 (
     echo.
-    echo ERRO: Nao consegui instalar as bibliotecas.
-    echo Se aparecer que Python nao foi encontrado, instale Python 3 no Windows.
-    echo.
+    echo ERRO: falha ao preparar o Python.
     pause
     exit /b 1
 )
 
 echo.
-echo Gerando arquivo static\data\dashboard-data.json...
+echo Gerando 404.html seguro...
+%PY_CMD% tools\gerar_404.py
+if %errorlevel% neq 0 (
+    echo ERRO: falha ao gerar 404.html.
+    pause
+    exit /b 1
+)
+
+echo.
+echo Gerando payload executivo e operacional...
 %PY_CMD% tools\gerar_json_planilha.py
 if %errorlevel% neq 0 (
     echo.
-    echo ERRO: Nao consegui gerar o dashboard-data.json.
-    echo Confira se a planilha esta fechada no Excel e com o nome correto.
-    echo.
+    echo ERRO: a publicacao atomica foi cancelada.
+    echo A ultima versao valida foi preservada.
     pause
     exit /b 1
 )
 
 echo.
-echo Validando estrutura, dados e interface da V99.3...
-%PY_CMD% tools\validar_v993.py
+echo Validando V99.4A.2...
+%PY_CMD% tools\validar_v994a2.py
 if %errorlevel% neq 0 (
     echo.
-    echo ERRO: A validacao da V99.3 encontrou um problema.
-    echo Corrija o erro mostrado acima antes de publicar.
-    echo.
+    echo ERRO: a validacao da V99.4A.2 encontrou um problema.
+    echo Nao publique os arquivos.
     pause
     exit /b 1
 )
 
 echo.
 echo ======================================================
-echo   Pronto!
-echo   Agora abra o GitHub Desktop, faca Commit e Push.
+echo   VALIDACAO V99.4A.2: OK
+echo   BACKUP VALIDO: confirmado quando havia versao anterior
+echo   PAYLOAD SENSIVEL: campos proibidos removidos
 echo ======================================================
+echo.
+echo Agora faca Commit e Push no GitHub Desktop.
 echo.
 pause

@@ -317,7 +317,7 @@ function renderProcess(etapas, hostId=null){
     const crit = Number(e.criticas || 0);
     const prazoTexto = e.etapa === 'CONCLUÍDO' ? 'concluído' : stageReviewText(e.etapa, stageQty);
     return `
-    <button type="button" class="process-card ${cls} ${active ? 'active' : ''}" style="--stage:${e.cor};--stage-soft:${hexToRgba(e.cor, .10)}" data-etapa="${escapeAttr(e.etapa)}" aria-pressed="${active ? 'true' : 'false'}" title="Clique para filtrar: ${escapeAttr(e.etapa)} | Valor: ${escapeAttr(e.valor_completo || e.valor_formatado || '')}">
+    <button type="button" class="process-card ${cls} ${active ? 'active' : ''}" data-etapa="${escapeAttr(e.etapa)}" aria-pressed="${active ? 'true' : 'false'}" title="Clique para filtrar: ${escapeAttr(e.etapa)} | Valor: ${escapeAttr(e.valor_completo || e.valor_formatado || '')}">
       <div class="process-top">
         <span class="stage-dot" aria-hidden="true"></span>
         <span class="stage">${escapeHtml(e.etapa)}</span>
@@ -434,7 +434,7 @@ function renderRankingRows(host, items, dimension){
         <span class="ranking-content-v88">
           <strong>${escapeHtml(item.display_label || item.label || '')}</strong>
           <small>${qtd.toLocaleString('pt-BR')} RC${qtd !== 1 ? 's' : ''}</small>
-          <span class="ranking-track-v88"><i style="--ranking-width:${width.toFixed(2)}%"></i></span>
+          <span class="ranking-track-v88"><progress class="ranking-progress-v88" max="100" value="${width.toFixed(2)}"></progress></span>
         </span>
         <em>${escapeHtml(item.formatted || compactCurrency(value))}</em>
       </button>`;
@@ -522,7 +522,7 @@ function renderInsights(alerts){
   if(attention){
     const items = alerts?.atencao || [];
     attention.innerHTML = items.length ? items.map(x => `
-      <div class="attention-item" style="--tone:${toneColor(x.tone || x.label)}" title="${escapeAttr(x.full || x.detail || '')}">
+      <div class="attention-item tone-${escapeAttr(String(x.tone || x.label || "default").toLowerCase().replace(/[^a-z0-9]+/g, "-"))}" title="${escapeAttr(x.full || x.detail || '')}">
         <span>${escapeHtml(x.label)}</span>
         <strong>${escapeHtml(x.value || '0')}</strong>
         <small>${escapeHtml(x.detail || '')}</small>
@@ -531,7 +531,7 @@ function renderInsights(alerts){
   if(aging){
     const rows = alerts?.idade_pendencias || [];
     aging.innerHTML = rows.length ? rows.map(x => `
-      <div class="aging-row" style="--tone:${toneColor(x.tone || x.label)}" title="Mais antiga: ${escapeAttr(x.maximo || '')}">
+      <div class="aging-row tone-${escapeAttr(String(x.tone || x.label || "default").toLowerCase().replace(/[^a-z0-9]+/g, "-"))}" title="Mais antiga: ${escapeAttr(x.maximo || '')}">
         <div class="aging-stage">${escapeHtml(x.label)}</div>
         <div class="aging-metric"><span>Média</span><strong>${escapeHtml(x.media || '0 dias')}</strong></div>
         <div class="aging-metric"><span>Mais antiga</span><strong>${escapeHtml(x.maximo || '0 dias')}</strong></div>
@@ -551,7 +551,7 @@ function renderBars(id, items, tone){
     return `<div class="bar-row ${tone}" title="${escapeAttr(`${x.label} - ${x.full || x.formatted || x.value}`)}">
       <div class="bar-rank">${idx + 1}</div>
       <div class="bar-label-group"><div class="bar-label" title="${escapeAttr(x.label)}">${escapeHtml(x.label)}</div>${detail ? `<small>${escapeHtml(detail)}</small>` : ''}</div>
-      <div class="bar-track"><div class="bar-fill" style="--bar-w:${(w/100).toFixed(4)}"></div></div>
+      <div class="bar-track"><progress class="bar-progress-v994a ${escapeAttr(tone || "")}" max="100" value="${w.toFixed(2)}"></progress></div>
       <div class="bar-value">${escapeHtml(x.formatted || String(x.value))}</div>
     </div>`;
   }).join('');
@@ -614,7 +614,7 @@ function compactCurrency(value){
       )
     );
     const progress = document.getElementById("completionProgressV991");
-    if(progress) progress.style.width = `${percent}%`;
+    if(progress) progress.value = percent;
   }
 
   function renderFocusV991(data){
@@ -669,52 +669,134 @@ function compactCurrency(value){
     if(card) card.onclick = openCriticalV991;
   }
 
+  const FLOW_STAGE_ORDER_V994A2 = Object.freeze([
+    "SEM LANÇAMENTO",
+    "SEM PEDIDO",
+    "SEM NF",
+    "CONCLUÍDO"
+  ]);
+
+  function normalizeFlowStageV994a2(value){
+    return String(value || "")
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .trim()
+      .toUpperCase();
+  }
+
+  function buildFlowStagesV994a2(data){
+    const sourceStages = Array.isArray(data?.etapas) ? data.etapas : [];
+    const sourceByStage = new Map(
+      sourceStages.map(stage => [
+        normalizeFlowStageV994a2(stage.etapa),
+        stage
+      ])
+    );
+
+    return FLOW_STAGE_ORDER_V994A2.map(stageName => {
+      const source = sourceByStage.get(
+        normalizeFlowStageV994a2(stageName)
+      );
+      return {
+        etapa:stageName,
+        qtd:0,
+        valor:0,
+        valor_formatado:"R$ 0",
+        percentual:0,
+        max_dias:0,
+        idade_media:0,
+        fora_sla:0,
+        criticas:0,
+        ...(source || {}),
+        etapa:stageName,
+        canonical_stage:stageName
+      };
+    });
+  }
+
+  window.buildFlowStagesV994a2 = buildFlowStagesV994a2;
+
   function renderFlowV991(data){
     const host = document.getElementById("processCards");
     if(!host) return;
 
-    const stages = data?.etapas || [];
-    const selected = new Set(state.filters.ETAPA || []);
+    const stages = buildFlowStagesV994a2(data);
+    const selected = new Set(
+      (state.filters.ETAPA || []).map(normalizeFlowStageV994a2)
+    );
 
-    if(!stages.length){
-      host.innerHTML = '<div class="empty-state">Nenhuma etapa disponível</div>';
-      return;
-    }
+    const totalRecords = Math.max(
+      1,
+      stages.reduce((sum, stage) => sum + numberV991(stage.qtd), 0)
+    );
 
-    host.innerHTML = stages.map((stage) => {
-      const name = String(stage.etapa || "").toUpperCase();
-      const completed = name === "CONCLUÍDO";
+    host.innerHTML = stages.map((stage, index) => {
+      const displayName = stage.canonical_stage || FLOW_STAGE_ORDER_V994A2[index];
+      const iconKey = String(displayName || "").toUpperCase();
+      const name = normalizeFlowStageV994a2(displayName);
+      const completed = name === "CONCLUIDO";
+      const quantity = numberV991(stage.qtd);
       const outside = numberV991(stage.fora_sla);
-      const maxDays = numberV991(stage.max_dias);
-      const active = selected.has(stage.etapa);
+      const maxDays = completed ? 0 : numberV991(stage.max_dias);
+      const averageDays = completed ? 0 : numberV991(stage.idade_media);
+      const percentage = Number.isFinite(Number(stage.percentual))
+        ? numberV991(stage.percentual)
+        : quantity / totalRecords * 100;
+      const active = selected.has(name);
+
       const status = completed
-        ? "Concluído"
-        : outside
-          ? `${intV991(outside)} fora do prazo`
-          : "Dentro do prazo";
-      const time = completed
         ? "Fluxo concluído"
-        : `${intV991(maxDays)} dia${maxDays === 1 ? "" : "s"} máx.`;
+        : outside > 0
+          ? `${intV991(outside)} fora do prazo`
+          : quantity > 0
+            ? "Dentro do prazo"
+            : "Sem registros";
+
+      const statusClass = outside > 0 && !completed
+        ? "is-alert"
+        : completed
+          ? "is-complete"
+          : "";
+
+      const stageLabel = stage.etapa || displayName;
+      const aria = [
+        stageLabel,
+        `${intV991(quantity)} requisições`,
+        stage.valor_formatado || compactCurrency(stage.valor),
+        `${percentage.toFixed(1).replace(".", ",")}% da base`,
+        completed ? "etapa concluída" : `máximo de ${intV991(maxDays)} dias`,
+        status
+      ].join(". ");
 
       return `
         <button
           type="button"
-          class="flow-step-v991 ${active ? "is-active" : ""}"
-          style="--stage:${escapeAttr(stage.cor || "#0069C9")}"
-          data-etapa="${escapeAttr(stage.etapa || "")}"
-          aria-pressed="${active ? "true" : "false"}">
+          class="flow-step-v991 flow-step-v994a2 ${stageClass(stageLabel)} ${active ? "is-active" : ""}"
+          data-etapa="${escapeAttr(stageLabel)}"
+          aria-pressed="${active ? "true" : "false"}"
+          aria-label="${escapeAttr(aria)}">
+          <span class="flow-sequence-v994a2" aria-hidden="true">${index + 1}</span>
           <span class="flow-icon-v991" aria-hidden="true">
-            ${stageIconsV991[name] || stageIconsV991["SEM NF"]}
+            ${stageIconsV991[iconKey] || stageIconsV991[name] || stageIconsV991["SEM NF"]}
           </span>
-          <small>${escapeHtml(stage.etapa || "")}</small>
-          <strong>${intV991(stage.qtd)}</strong>
-          <em>${escapeHtml(stage.valor_formatado || compactCurrency(stage.valor))}</em>
-          <span>${time}</span>
-          <mark class="${outside && !completed ? "is-alert" : ""}">${status}</mark>
+          <small>${escapeHtml(stageLabel)}</small>
+          <span class="flow-main-metrics-v994a2">
+            <strong>${intV991(quantity)}</strong>
+            <em>${escapeHtml(stage.valor_formatado || compactCurrency(stage.valor))}</em>
+          </span>
+          <span class="flow-context-v994a2">
+            <b>${percentage.toFixed(1).replace(".", ",")}% da base</b>
+            <b>${completed ? "Concluído" : `${intV991(maxDays)} dias máx.`}</b>
+          </span>
+          <span class="flow-average-v994a2">
+            ${completed ? "Processo finalizado" : `Média: ${averageDays.toFixed(1).replace(".", ",")} dias`}
+          </span>
+          <mark class="${statusClass}">${status}</mark>
+          <span class="flow-open-v994a2">Abrir na base <b aria-hidden="true">→</b></span>
         </button>`;
     }).join("");
 
-    host.querySelectorAll(".flow-step-v991").forEach((button) => {
+    host.querySelectorAll(".flow-step-v994a2").forEach((button) => {
       button.onclick = () => toggleProcessFilter(button.dataset.etapa || "");
     });
   }
@@ -794,7 +876,7 @@ function compactCurrency(value){
           <span class="ranking-rank-v991">${index + 1}</span>
           <span class="ranking-name-v991">
             <strong title="${escapeAttr(item.label || label)}">${escapeHtml(label)}</strong>
-            <i style="--width:${percent}%"></i>
+            <progress class="ranking-progress-v991" max="100" value="${percent.toFixed(2)}"></progress>
           </span>
           <span class="ranking-qty-v991">
             ${intV991(item.qtd)} RC${numberV991(item.qtd) === 1 ? "" : "s"}
@@ -826,8 +908,7 @@ function compactCurrency(value){
     host.innerHTML = stages.map((stage) => `
       <button
         type="button"
-        class="base-stage-v991"
-        style="--stage:${escapeAttr(stage.cor || "#0069C9")}"
+        class="base-stage-v991 ${stageClass(stage.etapa)}"
         data-etapa="${escapeAttr(stage.etapa || "")}">
         <i aria-hidden="true"></i>
         <span class="base-stage-copy-v991">

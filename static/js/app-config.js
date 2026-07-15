@@ -16,7 +16,8 @@
     },
     targets: {
       completionPercent: 95,
-      maxPcmQueue: 40
+      maxPcmQueue: 40,
+      maxCriticalQueue: 10
     },
     priorityWeights: {
       stage: 0.60,
@@ -25,32 +26,43 @@
       quantity: 0.05
     },
     slaByStage: {
-      "SEM LANÇAMENTO": {
-        attention: 3,
-        critical: 5
-      },
-      "SEM PEDIDO": {
-        attention: 5,
-        critical: 8
-      },
-      "SEM NF": {
-        attention: 8,
-        critical: 11
-      }
+      "SEM LANÇAMENTO": { attention: 3, critical: 5 },
+      "SEM PEDIDO": { attention: 5, critical: 8 },
+      "SEM NF": { attention: 8, critical: 11 }
     }
   });
 
   const appConfig = deepFreeze({
     appName: "Controle de Requisições PCM",
-    version: "99.3",
-    assetVersion: "993",
-    dataVersionUrl: "/static/data/version.json",
-    dataUrl: "/static/data/dashboard-data.json",
-    updateCheckIntervalMs: 300000
+    version: "99.4A.2",
+    assetVersion: "9942",
+    dataFiles: {
+      executive: "/static/data/executive-data.json",
+      operational: "/static/data/operational-data.json",
+      version: "/static/data/version.json",
+      publicationStatus: "/static/data/publication-status.json"
+    },
+    configFiles: {
+      security: "/static/config/security-config.json",
+      businessRules: "/static/config/business-rules.json"
+    },
+    runtime: {
+      updateCheckIntervalMs: 300000,
+      requestTimeoutMs: 30000,
+      maxOperationalRowsInMemory: 25000,
+      preserveLastValidData: true
+    },
+    security: {
+      environment: "production",
+      accessRequired: true,
+      dataClassification: "interno",
+      allowedRoles: ["viewer", "leadership", "admin"],
+      defaultRole: "viewer",
+      showOriginalFilename: false,
+      failClosed: true
+    }
   });
 
-  // Propriedades do objeto global ficam disponíveis tanto como
-  // window.BUSINESS_RULES quanto como BUSINESS_RULES em scripts clássicos.
   if (!window.BUSINESS_RULES) window.BUSINESS_RULES = businessRules;
   if (!window.PCM_APP_CONFIG) window.PCM_APP_CONFIG = appConfig;
   window.PCM_APP_VERSION = appConfig.version;
@@ -74,6 +86,7 @@
       const banner = document.getElementById("dataStatusBanner");
       const title = document.getElementById("dataStatusTitle");
       const detail = document.getElementById("dataStatusMessage");
+      const errorTime = document.getElementById("dataErrorTimeV994a");
       const retry = document.getElementById("btnRetryData");
 
       if (banner) {
@@ -82,6 +95,9 @@
       }
       if (title) title.textContent = "Não foi possível iniciar o dashboard";
       if (detail) detail.textContent = message;
+      if (errorTime) {
+        errorTime.textContent = `Falha registrada em ${new Date().toLocaleString("pt-BR")}`;
+      }
       if (retry && retry.dataset.bootRecoveryBound !== "1") {
         retry.dataset.bootRecoveryBound = "1";
         retry.addEventListener("click", () => window.location.reload());
@@ -99,7 +115,10 @@
 
   window.addEventListener("error", (event) => {
     const filename = String(event.filename || "");
-    if (filename.includes("/static/js/") || /BUSINESS_RULES|PCM_APP_CONFIG/.test(String(event.message || ""))) {
+    if (
+      filename.includes("/static/js/")
+      || /BUSINESS_RULES|PCM_APP_CONFIG/.test(String(event.message || ""))
+    ) {
       renderRuntimeError(event.error || event.message);
     }
   });

@@ -1,0 +1,21 @@
+{
+  "version": "99.4A.2",
+  "assetVersion": "9942",
+  "flowStages": [
+    "SEM LANÇAMENTO",
+    "SEM PEDIDO",
+    "SEM NF",
+    "CONCLUÍDO"
+  ],
+  "validation": {
+    "total": 33,
+    "passed": 33,
+    "visualContract": "14/14",
+    "runtime": "7/7",
+    "productivity": "8/8"
+  },
+  "browserAutomation": {
+    "status": "environment_failure",
+    "reason": "Chromium GPU process unavailable"
+  }
+}

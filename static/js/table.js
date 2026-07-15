@@ -1,4 +1,8 @@
 async function loadRows(seq=null){
+  if(!window.SecurityV994a?.canViewOperationalData()){
+    window.renderOperationalAccessDeniedV994a?.();
+    return null;
+  }
   const requestSeq = seq || ++state.rowsSeq;
   const table = $('dataTable');
   if(!table) return;
@@ -31,13 +35,13 @@ async function loadRows(seq=null){
     window.__V99_CURRENT_COLUMNS = columns;
     window.__V99_CURRENT_TOTAL = Number(data.total || 0);
 
-    thead.innerHTML = '<tr>' + (window.renderSelectionHeaderV99?.(data.rows) || '') + columns.map(column => renderHeader(column)).join('') + '</tr>';
+    thead.innerHTML = '<tr>' + (window.renderSelectionHeaderV99?.(data.rows) || '') + columns.map((column, index) => renderHeader(column, index)).join('') + '</tr>';
 
     if(data.rows.length){
       tbody.innerHTML = data.rows.map(row =>
         `<tr class="${stageClass(row._ETAPA)}${window.isRowSelectedV99?.(row._ROW_ID) ? ' is-selected-v99' : ''}" data-row-id="${escapeAttr(row._ROW_ID || '')}" tabindex="0">` +
         (window.renderRowCheckboxV99?.(row) || '') +
-        columns.map(column => renderCell(column, row[column], row._ETAPA, row)).join('') +
+        columns.map((column, index) => renderCell(column, row[column], row._ETAPA, row, index)).join('') +
         '</tr>'
       ).join('');
     }else{
@@ -110,12 +114,19 @@ function headerInfo(col){
   return map[col] || [col, ''];
 }
 
-function renderHeader(col){
+function pinnedColumnClassV994a2(index){
+  return index >= 0 && index < 4
+    ? ` pin-col-v994a2 pin-col-v994a2-${index}`
+    : '';
+}
+
+function renderHeader(col, columnIndex=-1){
   const active = state.sortCol === col;
   const directionText = active ? (state.sortDir === 'asc' ? 'crescente' : 'decrescente') : 'sem ordenação';
   const ariaSort = active ? (state.sortDir === 'asc' ? 'ascending' : 'descending') : 'none';
   const [main, sub] = headerInfo(col);
-  return `<th class="sortable ${colClass(col)}${active ? ' active-sort' : ''}" data-col="${escapeAttr(col)}" aria-sort="${ariaSort}" title="Clique para ordenar por ${escapeAttr(col)} (${directionText})">
+  const pinClass = pinnedColumnClassV994a2(columnIndex);
+  return `<th class="sortable ${colClass(col)}${pinClass}${active ? ' active-sort' : ''}" data-col="${escapeAttr(col)}" data-column-index="${columnIndex}" aria-sort="${ariaSort}" title="Clique para ordenar por ${escapeAttr(col)} (${directionText})">
     <span class="th-label"><span class="th-main">${escapeHtml(main)}</span>${sub ? `<span class="th-sub">${escapeHtml(sub)}</span>` : ''}</span><span class="sort-icon">${sortMark(col)}</span>
   </th>`;
 }
@@ -137,9 +148,9 @@ function formatCurrencyBR(value){
   return parseCurrencyValue(value).toLocaleString('pt-BR',{style:'currency',currency:'BRL',minimumFractionDigits:2,maximumFractionDigits:2});
 }
 
-function renderCell(col, value, etapa, row={}){
+function renderCell(col, value, etapa, row={}, columnIndex=-1){
   const val = value || '';
-  const cls = colClass(col);
+  const cls = `${colClass(col)}${pinnedColumnClassV994a2(columnIndex)}`;
   const safeTitle = escapeAttr(val || '');
   if(col === 'ETAPA'){
     return `<td class="${cls}"><span class="tag-etapa ${stageClass(val || etapa)}">${escapeHtml(val || etapa || '')}</span></td>`;

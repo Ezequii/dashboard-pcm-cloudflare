@@ -1,4 +1,8 @@
-<!doctype html>
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parents[1]
+
+html = """<!doctype html>
 <html lang="pt-BR">
 <head>
   <meta charset="utf-8">
@@ -16,3 +20,7 @@
   </main>
 </body>
 </html>
+"""
+
+(ROOT / "404.html").write_text(html, encoding="utf-8")
+print("404.html gerado com segurança.")

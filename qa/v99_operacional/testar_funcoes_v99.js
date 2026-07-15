@@ -2,11 +2,16 @@
 
 const fs = require("fs");
 const path = require("path");
+const os = require("os");
 const vm = require("vm");
 
 const root = path.resolve(__dirname, "../..");
-const xlsxOutput = path.join(__dirname, "amostra_exportacao_v99.xlsx");
-const jsonOutput = path.join(__dirname, "resultados_funcoes_v99.json");
+const outputDir = process.env.PCM_TEST_OUTPUT_DIR
+  ? path.resolve(process.env.PCM_TEST_OUTPUT_DIR)
+  : path.join(os.tmpdir(), "pcm-v994a1-tests");
+fs.mkdirSync(outputDir, {recursive:true});
+const xlsxOutput = path.join(outputDir, "amostra_exportacao_v99.xlsx");
+const jsonOutput = path.join(outputDir, "resultados_funcoes_v99.json");
 
 global.window = global;
 global.localStorage = {
