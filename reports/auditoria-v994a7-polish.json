@@ -1,0 +1,30 @@
+{
+  "version": "V99.4A.7 Polish",
+  "base": "O QUE ESTA NO GITHUB.zip",
+  "tests": {
+    "phase1": "6/6",
+    "functional": "67/67",
+    "total": "73/73"
+  },
+  "integrity": {
+    "javascript_unchanged": true,
+    "published_data_unchanged": true,
+    "removed_files": []
+  },
+  "changed_files": [
+    "index.html",
+    "static/dashboard_phase1.css",
+    "tools/build_css_phase1.py"
+  ],
+  "added_files": [
+    "RELATORIO_V994A7_POLISH.md",
+    "static/styles_v994a7_polish.css"
+  ],
+  "css": {
+    "source": "static/styles_v994a7_polish.css",
+    "lines": 686,
+    "bytes": 14429,
+    "important_count": 0,
+    "active_stylesheets": 1
+  }
+}

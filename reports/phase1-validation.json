@@ -1,0 +1,18 @@
+{
+  "phase": "Fase 1 - estabilizacao",
+  "active_stylesheets_before": 11,
+  "active_stylesheets_after": 1,
+  "bundle_bytes": 341951,
+  "phase1_checks": "6/6",
+  "regression_checks": "66/66",
+  "files_added": [
+    "static/dashboard_phase1.css",
+    "static/tokens_phase1.css",
+    "tools/build_css_phase1.py",
+    "qa/phase1/test_phase1.py",
+    "README_PHASE1.md"
+  ],
+  "files_modified": [
+    "index.html"
+  ]
+}
