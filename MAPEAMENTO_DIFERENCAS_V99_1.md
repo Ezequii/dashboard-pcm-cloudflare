@@ -1,11 +1,11 @@
-# Mapeamento de diferenças — V99.1
+# Mapeamento de diferenças — V99.2
 
 ## Direção adotada
 
-A V99.1 não aplica apenas um tema sobre a V98.5. A tela executiva foi
+A V99.2 não aplica apenas um tema sobre a V98.5. A tela executiva foi
 reconstruída com a mesma arquitetura do mockup:
 
-| Região | Coordenadas de referência | Implementação V99.1 |
+| Região | Coordenadas de referência | Implementação V99.2 |
 |---|---:|---|
 | Cabeçalho e filtros | `0,0 — 1536×147` | Duas linhas, logo, título, abas, atualização, ações e quatro filtros |
 | Indicadores principais | `25,159 — 1486×136` | Quatro colunas: valor, RCs, conclusão e primeiro foco |
@@ -35,7 +35,7 @@ reconstruída com a mesma arquitetura do mockup:
 - versão única dos assets em `991`;
 - sintaxe dos nove scripts;
 - IDs essenciais sem duplicação;
-- renderizadores exclusivos da V99.1;
+- renderizadores exclusivos da V99.2;
 - arquitetura das sete regiões principais;
 - Base de Tratativa preservada;
 - compatibilidade do validador sem Node.js.

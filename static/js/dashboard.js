@@ -566,7 +566,7 @@ function compactCurrency(value){
 }
 
 /* ==========================================================================
-   V99.1 — renderização fiel ao mockup
+   V99.2 — renderização fiel ao mockup com polimento
    ========================================================================== */
 (() => {
   "use strict";
@@ -634,6 +634,10 @@ function compactCurrency(value){
 
     const quantity = numberV991(focus.qtd);
     setText("focusSupplierV991", focus.fornecedor || "Fornecedor não informado");
+    const focusSupplierNode = document.getElementById("focusSupplierV991");
+    if(focusSupplierNode){
+      focusSupplierNode.title = focus.fornecedor || "Fornecedor não informado";
+    }
     setText("focusActionV991", focus.action || "Tratar pendência");
     setText(
       "focusMetaV991",
@@ -737,7 +741,7 @@ function compactCurrency(value){
           data-owner="${escapeAttr(item.owner_filter || "")}">
           <span class="priority-rank-v991">${index + 1}</span>
           <span class="priority-main-v991">
-            <strong>${escapeHtml(item.fornecedor || "Fornecedor não informado")}</strong>
+            <strong title="${escapeAttr(item.fornecedor || "Fornecedor não informado")}">${escapeHtml(item.fornecedor || "Fornecedor não informado")}</strong>
             <small>${escapeHtml(item.action || "Tratar pendência")}</small>
           </span>
           <span class="priority-data-v991">
