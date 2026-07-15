@@ -868,58 +868,162 @@ function groupByStage(rows){
   }));
 }
 function topSum(rows, groupCol, count=8){
+  const criticalThreshold = Number(
+    window.BUSINESS_RULES?.aging?.critical || 30
+  );
   const map = new Map();
+
   rows.forEach(row => {
     const label = cleanStatic(row[groupCol]) || 'NÃO INFORMADO';
-    if(!map.has(label)) map.set(label, {label, value:0, qtd:0});
+    if(!map.has(label)){
+      map.set(label, {
+        label,
+        value:0,
+        qtd:0,
+        critical_count:0,
+        max_days:0,
+        total_days:0
+      });
+    }
+
     const item = map.get(label);
+    const days = n(row._DIAS_PARADO);
     item.value += n(row._VALOR_TOTAL);
     item.qtd += 1;
+    item.total_days += days;
+    item.max_days = Math.max(item.max_days, days);
+    if(days > criticalThreshold) item.critical_count += 1;
   });
+
   return Array.from(map.values())
-    .sort((a,b) => b.value - a.value || b.qtd - a.qtd)
+    .sort((a,b) =>
+      b.value - a.value
+      || b.critical_count - a.critical_count
+      || b.max_days - a.max_days
+      || b.qtd - a.qtd
+    )
     .slice(0, count)
-    .map(item => ({
-      label:String(item.label),
-      display_label:String(item.label).length > 80 ? `${String(item.label).slice(0,79)}…` : String(item.label),
-      value:item.value,
-      formatted:compactMoney(item.value),
-      full:brMoney(item.value),
-      qtd:item.qtd,
-      meta:`${item.qtd.toLocaleString('pt-BR')} RC${item.qtd !== 1 ? 's' : ''}`
-    }));
+    .map(item => {
+      const averageDays = item.qtd
+        ? item.total_days / item.qtd
+        : 0;
+      return {
+        label:String(item.label),
+        display_label:String(item.label).length > 80
+          ? `${String(item.label).slice(0,79)}…`
+          : String(item.label),
+        value:item.value,
+        formatted:compactMoney(item.value),
+        full:brMoney(item.value),
+        qtd:item.qtd,
+        critical_count:item.critical_count,
+        max_days:item.max_days,
+        average_days:averageDays,
+        meta:[
+          `${item.qtd.toLocaleString('pt-BR')} ${item.qtd === 1 ? 'ORC/OS' : 'ORCs/OSs'}`,
+          item.critical_count
+            ? `${item.critical_count.toLocaleString('pt-BR')} crítica${item.critical_count === 1 ? '' : 's'}`
+            : 'sem crítica > 30 dias',
+          `máx. ${item.max_days.toLocaleString('pt-BR')} dias`
+        ].join(' · ')
+      };
+    });
 }
 function topCount(rows, groupCol, count=8){
   const map = new Map(); rows.forEach(r=>{ const label=cleanStatic(r[groupCol]) || 'NÃO INFORMADO'; map.set(label,(map.get(label)||0)+1); });
   return Array.from(map.entries()).map(([label,value])=>({label:String(label).slice(0,80),value,formatted:brInt(value)})).sort((a,b)=>b.value-a.value).slice(0,count);
 }
+function splitDocumentCodesV994a5(value){
+  return String(value || '')
+    .split(/[|;,\n]+/)
+    .flatMap(item => item.split(/\s*\/\s*/))
+    .map(item => item.trim())
+    .filter(Boolean);
+}
+
+function firstDocumentCodeV994a5(value){
+  return splitDocumentCodesV994a5(value)[0] || '';
+}
+
 function oldestPending(rows){
-  const pend = pendingRows(rows).sort((a,b)=> n(b._DIAS_PARADO)-n(a._DIAS_PARADO) || n(b._VALOR_TOTAL)-n(a._VALOR_TOTAL));
-  if(!pend.length) return {dias:0,label:'Sem pendência',label_type:'',detail:'Tudo concluído',etapa:''};
-  const r = pend[0];
-  const references = [
-    ['Nº ORÇAMENTO FINAL','Orçamento'],
-    ['Nº REQUISIÇÃO','Requisição'],
-    ['Nº PEDIDO DE COMPRA','Pedido'],
-    ['Nº ORDEM SERVIÇO','OS'],
-    ['PREFIXO','Prefixo']
-  ];
-  let label = 'Sem código';
-  let labelType = 'Referência';
-  for(const [field, type] of references){
-    const value = cleanStatic(r[field]);
-    if(value){ label = value; labelType = type; break; }
+  const pend = pendingRows(rows).sort((a,b)=>
+    n(b._DIAS_PARADO) - n(a._DIAS_PARADO)
+    || n(b._VALOR_TOTAL) - n(a._VALOR_TOTAL)
+  );
+
+  if(!pend.length){
+    return {
+      dias:0,
+      label:'Sem pendência',
+      label_type:'',
+      detail:'Tudo concluído',
+      etapa:'',
+      orc:'',
+      os:'',
+      search_value:'',
+      search_scope:'DOCUMENTO'
+    };
   }
-  const forn = cleanStatic(r.FORNECEDOR) || 'Fornecedor não informado';
+
+  const row = pend[0];
+  const orc = firstDocumentCodeV994a5(
+    row['Nº ORÇAMENTO FINAL']
+  );
+  const os = firstDocumentCodeV994a5(
+    row['Nº ORDEM SERVIÇO']
+  );
+  const pedido = firstDocumentCodeV994a5(
+    row['Nº PEDIDO DE COMPRA']
+  );
+  const nf = firstDocumentCodeV994a5(
+    row['Nº NFS/DANFE']
+  );
+  const requisicao = firstDocumentCodeV994a5(
+    row['Nº REQUISIÇÃO']
+  );
+  const prefixo = firstDocumentCodeV994a5(
+    row.PREFIXO
+  );
+
+  const references = [
+    ['ORC', orc],
+    ['OS', os],
+    ['Pedido', pedido],
+    ['NF', nf],
+    ['Requisição', requisicao],
+    ['Prefixo', prefixo]
+  ].filter(([, value]) => value);
+
+  const [labelType, label] = references[0] || [
+    'Referência',
+    'Sem código'
+  ];
+  const supplier = cleanStatic(row.FORNECEDOR)
+    || 'Fornecedor não informado';
+
+  const displayReferences = [
+    orc ? `ORC ${orc}` : '',
+    os ? `OS ${os}` : ''
+  ].filter(Boolean);
+
   return {
-    dias:n(r._DIAS_PARADO),
+    dias:n(row._DIAS_PARADO),
     label,
     label_type:labelType,
-    detail:`${forn} · ${r.ETAPA || ''}`,
-    etapa:r.ETAPA || '',
-    fornecedor:forn,
-    valor:compactMoney(r._VALOR_TOTAL),
-    valor_full:brMoney(r._VALOR_TOTAL)
+    orc,
+    os,
+    pedido,
+    nf,
+    search_value:orc || os || pedido || nf || requisicao || prefixo,
+    search_scope:(orc || os || nf) ? 'DOCUMENTO' : 'ALL',
+    reference_text:displayReferences.length
+      ? displayReferences.join(' · ')
+      : `${labelType} ${label}`,
+    detail:`${supplier} · ${row.ETAPA || ''}`,
+    etapa:row.ETAPA || '',
+    fornecedor:supplier,
+    valor:compactMoney(row._VALOR_TOTAL),
+    valor_full:brMoney(row._VALOR_TOTAL)
   };
 }
 function farolRegional(rows){
@@ -1105,7 +1209,7 @@ function priorityRows(rows, count=5){
         5 * (group.qtd / maxQuantity);
       const action = stageActionTitle(group.etapa);
       const urgency = urgencyLabel(group.maxDias, group.valor, group.etapa);
-      const fallbackCode = group.codigos[0] || `${group.qtd} RC${group.qtd !== 1 ? 's' : ''}`;
+      const fallbackCode = group.codigos[0] || `${group.qtd} ${group.qtd === 1 ? 'ORC/OS' : 'ORCs/OSs'}`;
 
       return {
         codigo:action,
@@ -1123,10 +1227,10 @@ function priorityRows(rows, count=5){
         score,
         row_id:group.rows[0]?._ROW_ID,
         qtd:group.qtd,
-        qtd_fmt:`${brInt(group.qtd)} RC${group.qtd !== 1 ? 's' : ''}`,
+        qtd_fmt:`${brInt(group.qtd)} ${group.qtd === 1 ? 'ORC/OS' : 'ORCs/OSs'}`,
         action,
         urgency,
-        reason:`${urgency} · ${brInt(group.qtd)} RC${group.qtd !== 1 ? 's' : ''} · ${brInt(group.maxDias)} dias`,
+        reason:`${urgency} · ${brInt(group.qtd)} ORC${group.qtd === 1 ? '' : 's'}/OS · ${brInt(group.maxDias)} dias`,
         codigos:group.codigos.join(', ') || fallbackCode
       };
     })
@@ -1158,7 +1262,7 @@ function executiveActions(rows){
       kind:'lancamento',
       title:'Fila PCM',
       main:'Sem lançamento',
-      value:`${brInt(semLanc.qtd)} RCs`,
+      value:`${brInt(semLanc.qtd)} ORCs/OSs`,
       detail:`${compactMoney(semLanc.valor)} para lançar/conferir`,
       etapa:'SEM LANÇAMENTO',
       owner:'PCM'
@@ -1171,7 +1275,7 @@ function executiveActions(rows){
       kind:'pedido',
       title:'Acompanhar',
       main:'Sem pedido',
-      value:`${brInt(semPedido.qtd)} RCs`,
+      value:`${brInt(semPedido.qtd)} ORCs/OSs`,
       detail:`${compactMoney(semPedido.valor)} aguardando pedido`,
       etapa:'SEM PEDIDO',
       owner:'Compras'
@@ -1184,7 +1288,7 @@ function executiveActions(rows){
       kind:'nf',
       title:'Conferir NF',
       main:'Sem NF',
-      value:`${brInt(semNf.qtd)} RCs`,
+      value:`${brInt(semNf.qtd)} ORCs/OSs`,
       detail:`${compactMoney(semNf.valor)} aguardando NF`,
       etapa:'SEM NF',
       owner:'Fornecedor'
@@ -1221,7 +1325,7 @@ function executiveComment(rows){
   const semNf=stageSummary(rows,'SEM NF');
   const first=priorityRows(rows.filter(r=>r.ETAPA==='SEM LANÇAMENTO'),1)[0];
   const foco = semLanc.qtd
-    ? `Foco do PCM: conferir lançamento de ${brInt(semLanc.qtd)} RCs (${compactMoney(semLanc.valor)}).`
+    ? `Foco do PCM: conferir lançamento de ${brInt(semLanc.qtd)} ORCs/OSs (${compactMoney(semLanc.valor)}).`
     : 'Foco do PCM em dia; acompanhar pedido e NF.';
   const start = first ? ` Primeiro foco: ${first.fornecedor} · ${first.reason}.` : '';
   return `${pct} concluído. ${foco} Acompanhamento: ${brInt(semPedido.qtd)} sem pedido e ${brInt(semNf.qtd)} sem NF.${start}`;
@@ -1257,7 +1361,7 @@ function staticDashboard(rows, query){
     const criticalPending = pend.filter(r => n(r._DIAS_PARADO) > criticalThreshold);
     const criticalValue = criticalPending.reduce((sum, row) => sum + n(row._VALOR_TOTAL), 0);
     const farol=farolRegional(geral), old=oldestPending(geral), etapas=groupByStage(geral), owners=topOwnersCriticos(geral), top5=priorityRows(visaoFila.length ? visaoFila : geral,5);
-    const kpis={total_rcs:total,valor_total:brMoney(valorTotal),valor_total_compacto:compactMoney(valorTotal),valor_servicos:brMoney(serv),valor_servicos_compacto:compactMoney(serv),valor_pecas:brMoney(pecas),valor_pecas_compacto:compactMoney(pecas),ticket_medio:brMoney(total?valorTotal/total:0),ticket_medio_compacto:compactMoney(total?valorTotal/total:0),ticket_tempo_dias:`${average(geral.map(r=>r._DIAS_PARADO)).toFixed(1).replace('.',',')} dias`,ticket_tempo_dias_valor:average(geral.map(r=>r._DIAS_PARADO)),fornecedores:uniqueCount(geral,'FORNECEDOR'),equipamentos:uniqueCount(geral,'EQUIPAMENTO'),concluidas:concl.length,pendentes:pend.length,pct_concluido:brPct(total?concl.length/total*100:0),pct_pendente:brPct(total?pend.length/total*100:0),valor_pendente:brMoney(valorPend),valor_pendente_compacto:compactMoney(valorPend),valor_fora_sla:farol.valor_fora_sla,valor_fora_sla_compacto:farol.valor_fora_sla_compacto,valor_sem_lancamento:farol.valor_sem_lancamento,valor_sem_lancamento_compacto:farol.valor_sem_lancamento_compacto,rcs_fora_sla:farol.rcs_fora_sla,rcs_sem_lancamento:farol.rcs_sem_lancamento,rcs_criticas:farol.rcs_criticas,critical_pending:criticalPending.length,critical_pending_value:criticalValue,critical_pending_value_compacto:compactMoney(criticalValue),critical_threshold_days:criticalThreshold,pct_concluido_valor:total?concl.length/total*100:0,farol_status:farol.status,maior_atraso_dias:n(old.dias),maior_atraso_label:old.label,maior_atraso_label_tipo:old.label_type || '',maior_atraso_detail:old.detail,maior_atraso_etapa:old.etapa || '',maior_atraso_fornecedor:old.fornecedor || '',maior_atraso_valor:old.valor || '',maior_atraso_valor_full:old.valor_full || ''};
+    const kpis={total_rcs:total,valor_total:brMoney(valorTotal),valor_total_compacto:compactMoney(valorTotal),valor_servicos:brMoney(serv),valor_servicos_compacto:compactMoney(serv),valor_pecas:brMoney(pecas),valor_pecas_compacto:compactMoney(pecas),ticket_medio:brMoney(total?valorTotal/total:0),ticket_medio_compacto:compactMoney(total?valorTotal/total:0),ticket_tempo_dias:`${average(geral.map(r=>r._DIAS_PARADO)).toFixed(1).replace('.',',')} dias`,ticket_tempo_dias_valor:average(geral.map(r=>r._DIAS_PARADO)),fornecedores:uniqueCount(geral,'FORNECEDOR'),equipamentos:uniqueCount(geral,'EQUIPAMENTO'),concluidas:concl.length,pendentes:pend.length,pct_concluido:brPct(total?concl.length/total*100:0),pct_pendente:brPct(total?pend.length/total*100:0),valor_pendente:brMoney(valorPend),valor_pendente_compacto:compactMoney(valorPend),valor_fora_sla:farol.valor_fora_sla,valor_fora_sla_compacto:farol.valor_fora_sla_compacto,valor_sem_lancamento:farol.valor_sem_lancamento,valor_sem_lancamento_compacto:farol.valor_sem_lancamento_compacto,rcs_fora_sla:farol.rcs_fora_sla,rcs_sem_lancamento:farol.rcs_sem_lancamento,rcs_criticas:farol.rcs_criticas,critical_pending:criticalPending.length,critical_pending_value:criticalValue,critical_pending_value_compacto:compactMoney(criticalValue),critical_threshold_days:criticalThreshold,pct_concluido_valor:total?concl.length/total*100:0,farol_status:farol.status,maior_atraso_dias:n(old.dias),maior_atraso_label:old.label,maior_atraso_label_tipo:old.label_type || '',maior_atraso_orc:old.orc || '',maior_atraso_os:old.os || '',maior_atraso_pedido:old.pedido || '',maior_atraso_nf:old.nf || '',maior_atraso_search_value:old.search_value || '',maior_atraso_search_scope:old.search_scope || 'DOCUMENTO',maior_atraso_reference_text:old.reference_text || '',maior_atraso_detail:old.detail,maior_atraso_etapa:old.etapa || '',maior_atraso_fornecedor:old.fornecedor || '',maior_atraso_valor:old.valor || '',maior_atraso_valor_full:old.valor_full || ''};
     return {
       kpis,
       etapas,

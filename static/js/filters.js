@@ -287,17 +287,36 @@ function renderActiveFilters(){
   const countHost = $('activeFilterCount');
   const openButton = $('btnOpenFilters');
 
+  const globalCount = entries.filter(entry =>
+    !['ETAPA','SLA STATUS','FAIXA ATRASO'].includes(entry.key)
+    && entry.type !== 'search'
+    && entry.type !== 'advanced'
+  ).length;
+  const operationalCount = entries.filter(entry =>
+    ['ETAPA','SLA STATUS','FAIXA ATRASO'].includes(entry.key)
+  ).length;
+  const tableOnlyCount = entries.filter(entry =>
+    entry.type === 'search' || entry.type === 'advanced'
+  ).length;
+
   if(countHost) countHost.textContent = String(count);
   if(openButton){
     openButton.classList.toggle('has-filters', count > 0);
-    openButton.setAttribute('aria-label', count
-      ? `Abrir resumo de ${count} filtro${count === 1 ? '' : 's'} ativo${count === 1 ? '' : 's'}`
-      : 'Abrir resumo dos filtros');
+    openButton.setAttribute(
+      'aria-label',
+      count
+        ? `Abrir ${count} filtro${count === 1 ? '' : 's'} ativo${count === 1 ? '' : 's'}`
+        : 'Abrir resumo dos filtros'
+    );
   }
 
   if(drawerSummary){
     drawerSummary.innerHTML = count
-      ? entries.map(entry => `<span><b>${escapeHtml(entry.label)}:</b> ${escapeHtml(entry.text)}</span>`).join('')
+      ? entries.map(entry => `
+          <span>
+            <b>${escapeHtml(entry.label)}:</b>
+            ${escapeHtml(entry.text)}
+          </span>`).join('')
       : 'Nenhum filtro ativo.';
   }
 
@@ -313,31 +332,67 @@ function renderActiveFilters(){
   host.hidden = false;
   host.classList.add('has-context');
   const description = filterContextDescription(entries);
+  const scopeBadges = [
+    globalCount
+      ? `<span class="filter-scope-badge-v994a5 is-global">
+          Visão: ${globalCount} global${globalCount === 1 ? '' : 'is'}
+        </span>`
+      : `<span class="filter-scope-badge-v994a5 is-neutral">
+          Visão: contexto geral
+        </span>`,
+    operationalCount
+      ? `<span class="filter-scope-badge-v994a5 is-operational">
+          Fila: ${operationalCount} operacional${operationalCount === 1 ? '' : 'is'}
+        </span>`
+      : '',
+    tableOnlyCount
+      ? `<span class="filter-scope-badge-v994a5 is-table">
+          Base: ${tableOnlyCount} busca/limite${tableOnlyCount === 1 ? '' : 's'}
+        </span>`
+      : ''
+  ].filter(Boolean).join('');
 
   host.innerHTML = `
-    <div class="active-filters-copy-v97">
+    <div class="active-filters-copy-v97 active-filters-copy-v994a5">
       <span>Contexto aplicado</span>
-      <strong>${count} filtro${count === 1 ? '' : 's'} ativo${count === 1 ? '' : 's'}</strong>
+      <strong>
+        ${count} filtro${count === 1 ? '' : 's'} ativo${count === 1 ? '' : 's'}
+      </strong>
       <small>${escapeHtml(description)}</small>
+      <div class="filter-scope-badges-v994a5">
+        ${scopeBadges}
+      </div>
     </div>
-    <div class="active-filter-chips-v97">
-      ${entries.map(entry => `
-        <button
-          type="button"
-          class="active-filter-chip-v97"
-          data-filter-key="${escapeAttr(entry.key)}"
-          title="Remover ${escapeAttr(entry.label)}">
-          <span>${escapeHtml(entry.label)}</span>
-          <b>${escapeHtml(entry.text)}</b>
-          <i aria-hidden="true">×</i>
-        </button>`).join('')}
-      <button type="button" class="active-filter-clear-v97" data-clear-all="1">Limpar tudo</button>
+
+    <div class="active-filter-controls-v994a5">
+      <div class="active-filter-chips-v97 active-filter-chips-v994a5">
+        ${entries.map(entry => `
+          <button
+            type="button"
+            class="active-filter-chip-v97 active-filter-chip-v994a5"
+            data-filter-key="${escapeAttr(entry.key)}"
+            title="Remover ${escapeAttr(entry.label)}">
+            <span>${escapeHtml(entry.label)}</span>
+            <b>${escapeHtml(entry.text)}</b>
+            <i aria-hidden="true">×</i>
+          </button>`).join('')}
+      </div>
+      <button
+        type="button"
+        class="active-filter-clear-v97 active-filter-clear-v994a5"
+        data-clear-all="1">
+        Limpar tudo
+      </button>
     </div>`;
 
   host.querySelectorAll('[data-filter-key]').forEach(button => {
-    button.onclick = () => clearFilterEntry(button.dataset.filterKey || '');
+    button.onclick = () =>
+      clearFilterEntry(button.dataset.filterKey || '');
   });
-  host.querySelector('[data-clear-all]')?.addEventListener('click', clearAll);
+  host.querySelector('[data-clear-all]')?.addEventListener(
+    'click',
+    clearAll
+  );
 }
 
 function getFilterLabel(key){

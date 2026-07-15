@@ -117,18 +117,18 @@ function headerInfo(col){
     'FAIXA ATRASO': ['Tempo parado', 'faixa'],
     'DATA DE RECEBIMENTO': ['Recebido em', 'entrada no PCM'],
     'DATA LANÇAMENTO': ['Lançado em', 'lançamento no sistema'],
-    'Nº ORÇAMENTO FINAL': ['Orçamento', 'nº final'],
+    'Nº ORÇAMENTO FINAL': ['ORC', 'orçamento final'],
     'PREFIXO': ['Prefixo', 'ativo/centro'],
     'EQUIPAMENTO': ['Equipamento', 'descrição'],
     'FORNECEDOR': ['Fornecedor', 'empresa'],
     'VALOR TOTAL': ['Valor total', 'R$'],
     'SOLICITANTE': ['Solicitante', 'responsável'],
-    'Nº REQUISIÇÃO': ['Requisição', 'RC'],
+    'Nº REQUISIÇÃO': ['Requisição', 'identificador interno'],
     'Nº PEDIDO DE COMPRA': ['Pedido de compra', 'número'],
     'DATA DO PEDIDO': ['Pedido emitido em', 'data'],
     'Nº NFS/DANFE': ['NF / DANFE', 'documento'],
     'DATA LANÇAMENTO NFS': ['NF lançada em', 'data'],
-    'Nº ORDEM SERVIÇO': ['Ordem de serviço', 'OS']
+    'Nº ORDEM SERVIÇO': ['OS', 'ordem de serviço']
   };
   return map[col] || [col, ''];
 }

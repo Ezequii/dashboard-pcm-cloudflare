@@ -64,10 +64,10 @@ function renderDashboardData(data){
   setText('kPendencias', pend);
   setText('kPendenciasSub', `${semLancQtd.toLocaleString('pt-BR')} lançamento · ${semPedidoQtd.toLocaleString('pt-BR')} pedido · ${semNfQtd.toLocaleString('pt-BR')} NF`);
   setText('kPctConcluido', k.pct_concluido || '0%');
-  setText('kConcluidoSub', `${concluidas} de ${total} RCs`);
+  setText('kConcluidoSub', `${concluidas} de ${total} ORCs/OSs`);
   renderOldestPending(k);
   setText('kValorForaSla', k.valor_sem_lancamento_compacto || k.valor_fora_sla_compacto || k.valor_fora_sla || 'R$ 0', k.valor_sem_lancamento || k.valor_fora_sla || 'R$ 0');
-  setText('kValorForaSlaSub', `${semLancQtd.toLocaleString('pt-BR')} RCs · ${semLanc.percentual_formatado || '0%'} da base`);
+  setText('kValorForaSlaSub', `${semLancQtd.toLocaleString('pt-BR')} ORCs/OSs · ${semLanc.percentual_formatado || '0%'} da base`);
 
   bindSmartKpiActions();
 
@@ -77,7 +77,7 @@ function renderDashboardData(data){
   setText('kValorTotal', k.valor_total_compacto || k.valor_total, k.valor_total);
   setText('kTicketTempo', k.ticket_tempo_dias || '0 dias', k.ticket_tempo_dias || '0 dias');
   setText('kFornecedores', Number(k.fornecedores || 0).toLocaleString('pt-BR'));
-  setText('kTotalSub', `${total} RCs filtradas`);
+  setText('kTotalSub', `${total} registros filtrados`);
 
   window.renderExecutiveV991?.(data);
   window.renderBaseV991?.(data);
@@ -112,19 +112,71 @@ function stageDisplayName(etapa){
   return etapa ? 'Outra pendência' : '';
 }
 
+function resetOperationalContextForExactCaseV994a5(){
+  Object.keys(state.filters || {}).forEach(key => {
+    state.filters[key] = [];
+  });
+  state.search = '';
+  state.multiSearchTerms = [];
+  state.multiSearchMode = 'ANY';
+  state.dateFrom = '';
+  state.dateTo = '';
+  state.valueMin = '';
+  state.valueMax = '';
+  state.page = 1;
+}
+
 function renderOldestPending(k){
   const valueHost = $('kMaiorAtraso');
   const contextHost = $('kMaiorAtrasoSub');
   const card = $('kpiMaisParadoCard');
   if(!valueHost || !contextHost) return;
 
-  const dias = Number(k.maior_atraso_dias || 0);
-  const code = String(k.maior_atraso_label || '').trim();
-  const codeType = String(k.maior_atraso_label_tipo || 'Referência').trim();
-  const etapa = String(k.maior_atraso_etapa || '').trim();
-  const stageLabel = stageDisplayName(etapa);
-  const stageTone = stageClass(etapa);
-  const isEmpty = !dias || !code || code.toLowerCase().includes('sem pend');
+  const days = Math.max(
+    0,
+    Number(k.maior_atraso_dias || 0)
+  );
+  const stage = String(
+    k.maior_atraso_etapa || ''
+  ).trim();
+  const supplier = String(
+    k.maior_atraso_fornecedor || ''
+  ).trim();
+  const orc = String(
+    k.maior_atraso_orc || ''
+  ).trim();
+  const serviceOrder = String(
+    k.maior_atraso_os || ''
+  ).trim();
+  const fallbackCode = String(
+    k.maior_atraso_label || ''
+  ).trim();
+  const fallbackType = String(
+    k.maior_atraso_label_tipo || 'Referência'
+  ).trim();
+  const searchValue = String(
+    k.maior_atraso_search_value
+    || orc
+    || serviceOrder
+    || fallbackCode
+    || ''
+  ).trim();
+  const searchScope = String(
+    k.maior_atraso_search_scope
+    || 'DOCUMENTO'
+  ).trim().toUpperCase();
+  const stageLabel = stageDisplayName(stage);
+  const stageTone = stageClass(stage);
+  const references = [
+    orc ? `ORC ${orc}` : '',
+    serviceOrder ? `OS ${serviceOrder}` : ''
+  ].filter(Boolean);
+  const referenceText = references.length
+    ? references.join(' · ')
+    : [fallbackType, fallbackCode].filter(Boolean).join(' ');
+  const isEmpty = !days
+    || !searchValue
+    || fallbackCode.toLowerCase().includes('sem pend');
 
   if(card){
     card.classList.remove(
@@ -132,10 +184,9 @@ function renderOldestPending(k){
       'oldest-amber-v93',
       'oldest-blue-v93',
       'oldest-gray-v93',
-      'oldest-clickable-v93'
+      'oldest-clickable-v93',
+      'oldest-exact-v994a5'
     );
-    card.removeAttribute('role');
-    card.removeAttribute('tabindex');
     card.removeAttribute('aria-label');
     card.onclick = null;
     card.onkeydown = null;
@@ -143,67 +194,96 @@ function renderOldestPending(k){
 
   valueHost.className = 'oldest-value-v96';
   valueHost.innerHTML = `
-    <span class="oldest-days-number-v96">${Math.max(0, dias).toLocaleString('pt-BR')}</span>
+    <span class="oldest-days-number-v96">${days.toLocaleString('pt-BR')}</span>
     <span class="oldest-days-unit-v96">dias</span>`;
 
   if(isEmpty){
     contextHost.className = 'oldest-context-v96';
-    contextHost.innerHTML = '<span class="oldest-empty-v96">Sem pendência</span>';
-    contextHost.title = k.maior_atraso_detail || 'Tudo concluído';
+    contextHost.innerHTML = `
+      <span class="oldest-empty-v96">
+        Sem ORC ou OS identificada
+      </span>`;
+    contextHost.title = k.maior_atraso_detail
+      || 'Não foi possível localizar uma referência operacional.';
     if(card) card.classList.add('oldest-gray-v93');
     return;
   }
 
-  const cardTone = dias > 60
+  const cardTone = days > 60
     ? 'oldest-red-v93'
-    : dias >= 31
+    : days >= 31
       ? 'oldest-amber-v93'
       : 'oldest-blue-v93';
 
-  const referenceText = [codeType, code].filter(Boolean).join(' ');
-  contextHost.className = 'oldest-context-v96';
+  contextHost.className = 'oldest-context-v96 oldest-context-v994a5';
   contextHost.innerHTML = `
     <span class="oldest-stage-v96 ${stageTone}">
       <i aria-hidden="true"></i>
       <span>${escapeHtml(stageLabel || 'Outra pendência')}</span>
     </span>
-    <span class="oldest-separator-v96" aria-hidden="true">·</span>
-    <span class="oldest-reference-v96">${escapeHtml(referenceText)}</span>`;
+    <span class="oldest-reference-list-v994a5">
+      ${references.length
+        ? references.map(reference => `
+            <b class="oldest-reference-chip-v994a5">
+              ${escapeHtml(reference)}
+            </b>`).join('')
+        : `
+          <b class="oldest-reference-chip-v994a5">
+            ${escapeHtml(referenceText)}
+          </b>`}
+    </span>
+    <span class="oldest-open-v994a5">
+      Abrir caso <b aria-hidden="true">→</b>
+    </span>`;
 
-  const fullValue = k.maior_atraso_valor_full || k.maior_atraso_valor || '';
+  const fullValue = k.maior_atraso_valor_full
+    || k.maior_atraso_valor
+    || '';
   const details = [
-    `${dias.toLocaleString('pt-BR')} dias`,
+    `${days.toLocaleString('pt-BR')} dias`,
     stageLabel,
     referenceText,
-    k.maior_atraso_fornecedor,
+    supplier,
     fullValue
   ].filter(Boolean).join(' · ');
   contextHost.title = details;
 
   if(card){
-    card.classList.add(cardTone, 'oldest-clickable-v93');
-    card.setAttribute('role','button');
-    card.setAttribute('tabindex','0');
-    card.setAttribute('aria-label', `${details}. Clique para localizar na base.`);
+    card.classList.add(
+      cardTone,
+      'oldest-clickable-v93',
+      'oldest-exact-v994a5'
+    );
+    card.setAttribute(
+      'aria-label',
+      `${details}. Abrir exatamente este caso na Base de Tratativa.`
+    );
+
     const open = () => {
-      if(etapa){
-        state.filters.ETAPA = [etapa];
-        updateFilterUI();
-      }
-      state.search = code;
-      state.searchScope = 'ALL';
+      resetOperationalContextForExactCaseV994a5();
+
+      if(stage) state.filters.ETAPA = [stage];
+      if(supplier) state.filters.FORNECEDOR = [supplier];
+
+      state.search = searchValue;
+      state.searchScope = searchScope;
+
       const search = $('globalSearch');
       const scope = $('searchScope');
-      if(search) search.value = code;
-      if(scope) scope.value = 'ALL';
+      if(search) search.value = searchValue;
+      if(scope) scope.value = searchScope;
+
+      updateFilterUI?.();
       updateSearchUI?.();
-      state.page = 1;
+      hydrateAdvancedSearch?.();
+      savePreferences?.();
       switchTab('base');
     };
+
     card.onclick = open;
-    card.onkeydown = (ev) => {
-      if(ev.key === 'Enter' || ev.key === ' '){
-        ev.preventDefault();
+    card.onkeydown = event => {
+      if(event.key === 'Enter' || event.key === ' '){
+        event.preventDefault();
         open();
       }
     };
@@ -268,10 +348,10 @@ function makeKpiActionable(id, label, handler){
 
 function bindSmartKpiActions(){
   const pendingStages = ['SEM LANÇAMENTO','SEM PEDIDO','SEM NF'];
-  makeKpiActionable('kpiValorAndamentoCard', 'Abrir somente as RCs em andamento na Base de Tratativa', () => openBaseFromKpi(pendingStages));
-  makeKpiActionable('kpiPendenciasCard', 'Abrir somente as RCs em andamento na Base de Tratativa', () => openBaseFromKpi(pendingStages));
-  makeKpiActionable('kpiConcluidoCard', 'Abrir as RCs concluídas na Base de Tratativa', () => openBaseFromKpi('CONCLUÍDO'));
-  makeKpiActionable('kpiFocoPcmCard', 'Abrir as RCs sem lançamento, foco direto do PCM', () => openBaseFromKpi('SEM LANÇAMENTO'));
+  makeKpiActionable('kpiValorAndamentoCard', 'Abrir somente as ORCs e OSs em andamento na Base de Tratativa', () => openBaseFromKpi(pendingStages));
+  makeKpiActionable('kpiPendenciasCard', 'Abrir somente as ORCs e OSs em andamento na Base de Tratativa', () => openBaseFromKpi(pendingStages));
+  makeKpiActionable('kpiConcluidoCard', 'Abrir as ORCs e OSs concluídas na Base de Tratativa', () => openBaseFromKpi('CONCLUÍDO'));
+  makeKpiActionable('kpiFocoPcmCard', 'Abrir as ORCs e OSs sem lançamento, foco direto do PCM', () => openBaseFromKpi('SEM LANÇAMENTO'));
 }
 
 
@@ -433,7 +513,7 @@ function renderRankingRows(host, items, dimension){
         <span class="ranking-position-v88">${index + 1}</span>
         <span class="ranking-content-v88">
           <strong>${escapeHtml(item.display_label || item.label || '')}</strong>
-          <small>${qtd.toLocaleString('pt-BR')} RC${qtd !== 1 ? 's' : ''}</small>
+          <small>${qtd.toLocaleString('pt-BR')} ORC${qtd === 1 ? '' : 's'}/OS</small>
           <span class="ranking-track-v88"><progress class="ranking-progress-v88" max="100" value="${width.toFixed(2)}"></progress></span>
         </span>
         <em>${escapeHtml(item.formatted || compactCurrency(value))}</em>
@@ -547,7 +627,7 @@ function renderBars(id, items, tone){
   const max = Math.max(...rows.map(x => Number(x.value)||0), 1);
   el.innerHTML = rows.map((x, idx) => {
     const w = Math.max(3, (Number(x.value)||0) / max * 100);
-    const detail = x.meta || (x.qtd ? `${Number(x.qtd).toLocaleString('pt-BR')} RCs` : '');
+    const detail = x.meta || (x.qtd ? `${Number(x.qtd).toLocaleString('pt-BR')} ORCs/OSs` : '');
     return `<div class="bar-row ${tone}" title="${escapeAttr(`${x.label} - ${x.full || x.formatted || x.value}`)}">
       <div class="bar-rank">${idx + 1}</div>
       <div class="bar-label-group"><div class="bar-label" title="${escapeAttr(x.label)}">${escapeHtml(x.label)}</div>${detail ? `<small>${escapeHtml(detail)}</small>` : ''}</div>
@@ -641,7 +721,7 @@ function compactCurrency(value){
     setText("focusActionV991", focus.action || "Tratar pendência");
     setText(
       "focusMetaV991",
-      `${intV991(quantity)} RC${quantity === 1 ? "" : "s"} · ` +
+      `${intV991(quantity)} ${quantity === 1 ? "ORC/OS" : "ORCs/OSs"} · ` +
       `${focus.valor_fmt || compactCurrency(focus.valor)} · ` +
       `${intV991(focus.dias)} dias`
     );
@@ -827,7 +907,7 @@ function compactCurrency(value){
             <small>${escapeHtml(item.action || "Tratar pendência")}</small>
           </span>
           <span class="priority-data-v991">
-            ${intV991(quantity)} RC${quantity === 1 ? "" : "s"}
+            ${intV991(quantity)} ${quantity === 1 ? "ORC/OS" : "ORCs/OSs"}
             <b>·</b>
             ${escapeHtml(item.valor_fmt || compactCurrency(item.valor))}
             <b>·</b>
@@ -858,39 +938,68 @@ function compactCurrency(value){
 
     const maxValue = Math.max(
       1,
-      ...items.map((item) => numberV991(item.value))
+      ...items.map(item => numberV991(item.value))
     );
 
     host.innerHTML = items.map((item, index) => {
-      const label = item.display_label || item.label || "Não informado";
+      const label = item.display_label
+        || item.label
+        || 'Não informado';
+      const quantity = numberV991(item.qtd);
+      const critical = numberV991(item.critical_count);
+      const maxDays = numberV991(item.max_days);
       const percent = Math.max(
         3,
-        Math.min(100, numberV991(item.value) / maxValue * 100)
+        Math.min(
+          100,
+          numberV991(item.value) / maxValue * 100
+        )
       );
+      const operationalMeta = [
+        `${intV991(quantity)} ${quantity === 1 ? 'ORC/OS' : 'ORCs/OSs'}`,
+        critical
+          ? `${intV991(critical)} crítica${critical === 1 ? '' : 's'}`
+          : 'sem crítica > 30 dias',
+        `máx. ${intV991(maxDays)} dias`
+      ].join(' · ');
 
       return `
         <button
           type="button"
-          class="ranking-row-v991"
-          data-value="${escapeAttr(item.label || label)}">
+          class="ranking-row-v991 ranking-row-v994a5"
+          data-value="${escapeAttr(item.label || label)}"
+          aria-label="${escapeAttr(
+            `${label}. ${operationalMeta}. ${item.full || item.formatted || ''}. Abrir base filtrada.`
+          )}">
           <span class="ranking-rank-v991">${index + 1}</span>
-          <span class="ranking-name-v991">
-            <strong title="${escapeAttr(item.label || label)}">${escapeHtml(label)}</strong>
-            <progress class="ranking-progress-v991" max="100" value="${percent.toFixed(2)}"></progress>
+          <span class="ranking-name-v991 ranking-name-v994a5">
+            <strong title="${escapeAttr(item.label || label)}">
+              ${escapeHtml(label)}
+            </strong>
+            <small>${escapeHtml(operationalMeta)}</small>
+            <progress
+              class="ranking-progress-v991"
+              max="100"
+              value="${percent.toFixed(2)}">
+            </progress>
           </span>
-          <span class="ranking-qty-v991">
-            ${intV991(item.qtd)} RC${numberV991(item.qtd) === 1 ? "" : "s"}
+          <span class="ranking-qty-v991 ranking-qty-v994a5">
+            <b>${intV991(quantity)}</b>
+            <small>ORCs/OSs</small>
           </span>
-          <span class="ranking-value-v991" title="${escapeAttr(item.full || "")}">
-            ${escapeHtml(item.formatted || compactCurrency(item.value))}
+          <span
+            class="ranking-value-v991 ranking-value-v994a5"
+            title="${escapeAttr(item.full || '')}">
+            <strong>${escapeHtml(item.formatted || compactCurrency(item.value))}</strong>
+            <small>Abrir base →</small>
           </span>
         </button>`;
-    }).join("");
+    }).join('');
 
-    host.querySelectorAll(".ranking-row-v991").forEach((button) => {
+    host.querySelectorAll('.ranking-row-v994a5').forEach(button => {
       button.onclick = () => filterDimensionAndOpenBase(
         dimension,
-        button.dataset.value || ""
+        button.dataset.value || ''
       );
     });
   }

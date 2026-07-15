@@ -1090,11 +1090,20 @@
     const content = document.getElementById("detailsContentV99");
     const previous = document.getElementById("btnPreviousDetailV99");
     const next = document.getElementById("btnNextDetailV99");
+    const reference = documentReferenceV994a5(row);
+    const copyCodeButton = document.getElementById("btnCopyRowV99");
 
-    const requisition = row?.["Nº REQUISIÇÃO"] || row?._ROW_ID || "Registro";
-    if(title) title.textContent = `RC ${requisition}`;
+    if(title) title.textContent = reference.title;
+    if(copyCodeButton){
+      copyCodeButton.textContent = `Copiar ${reference.kind}`;
+      copyCodeButton.setAttribute(
+        "aria-label",
+        `Copiar identificação ${reference.text}`
+      );
+    }
     if(subtitle){
       subtitle.textContent = [
+        reference.subtitle,
         row?.ETAPA || row?._ETAPA,
         row?.FORNECEDOR,
       ].filter(Boolean).join(" · ");
@@ -1106,7 +1115,9 @@
         return `
           <div class="detail-field-v99 detail-field-v994a2">
             <span>${escapeHtml(field)}</span>
-            <strong class="${display.className}" title="${escapeAttr(display.plain)}">
+            <strong
+              class="${display.className}"
+              title="${escapeAttr(display.plain)}">
               ${display.html}
             </strong>
           </div>`;
@@ -1114,7 +1125,10 @@
     }
 
     if(previous) previous.disabled = detailIndexV99 <= 0;
-    if(next) next.disabled = detailIndexV99 < 0 || detailIndexV99 >= detailRowsV99.length - 1;
+    if(next){
+      next.disabled = detailIndexV99 < 0
+        || detailIndexV99 >= detailRowsV99.length - 1;
+    }
   }
 
   async function openDetailsV99(rowId){
@@ -1174,13 +1188,49 @@
     if(response.row) renderDetailV99(response.row);
   }
 
+  function documentReferenceV994a5(row){
+    const orc = String(
+      row?.["Nº ORÇAMENTO FINAL"] || ""
+    ).trim();
+    const serviceOrder = String(
+      row?.["Nº ORDEM SERVIÇO"] || ""
+    ).trim();
+    const requisition = String(
+      row?.["Nº REQUISIÇÃO"] || ""
+    ).trim();
+
+    const parts = [
+      orc ? `ORC ${orc}` : "",
+      serviceOrder ? `OS ${serviceOrder}` : ""
+    ].filter(Boolean);
+
+    if(parts.length){
+      return {
+        title:parts[0],
+        text:parts.join(" · "),
+        subtitle:parts.slice(1).join(" · "),
+        kind:orc && serviceOrder
+          ? "ORC/OS"
+          : orc
+            ? "ORC"
+            : "OS"
+      };
+    }
+
+    return {
+      title:requisition
+        ? `Requisição ${requisition}`
+        : "Registro operacional",
+      text:requisition || String(row?._ROW_ID || ""),
+      subtitle:"",
+      kind:requisition ? "requisição" : "registro"
+    };
+  }
+
   function currentRowCodeV99(){
-    return String(
-      activeDetailRowV99?.["Nº REQUISIÇÃO"] ||
-      activeDetailRowV99?.["Nº ORÇAMENTO FINAL"] ||
-      activeDetailRowV99?._ROW_ID ||
-      ""
-    );
+    return documentReferenceV994a5(
+      activeDetailRowV99
+    ).text;
   }
 
   async function shareCurrentViewV99(){
@@ -1286,7 +1336,7 @@
     );
     document.getElementById("btnCopyRowV99")?.addEventListener(
       "click",
-      () => copyTextV99(currentRowCodeV99(), "Código da RC copiado.")
+      () => copyTextV99(currentRowCodeV99(), "Código da ORC/OS copiado.")
     );
     document.getElementById("btnCopyRowSummaryV99")?.addEventListener(
       "click",
@@ -1294,9 +1344,9 @@
         if(!activeDetailRowV99) return;
         const summary = buildOperationalSummaryV99(
           [activeDetailRowV99],
-          `RC ${currentRowCodeV99()}`
+          currentRowCodeV99()
         );
-        copyTextV99(summary.text, "Resumo da RC copiado.");
+        copyTextV99(summary.text, "Resumo da ORC/OS copiado.");
       }
     );
 

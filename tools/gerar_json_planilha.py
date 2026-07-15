@@ -1,12 +1,21 @@
 from __future__ import annotations
 
 import json
+import warnings
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
 import pandas as pd
+
+
+warnings.filterwarnings(
+    "ignore",
+    message=r"Data Validation extension is not supported and will be removed",
+    category=UserWarning,
+    module=r"openpyxl\..*",
+)
 
 ROOT = Path(__file__).resolve().parents[1]
 TOOLS = ROOT / "tools"
@@ -190,7 +199,7 @@ def main() -> int:
         "generated_at": generated_at,
         "data_version": data_version,
         "classification": classification,
-        "contract": "executive-index-v994a1",
+        "contract": "executive-index-v994a5",
     }
     operational_payload = {
         "columns": OPERATIONAL_TABLE_COLUMNS,
@@ -208,7 +217,7 @@ def main() -> int:
         "last_valid_version": data_version,
         "classification": classification,
         "contracts": {
-            "executive": "executive-index-v994a1",
+            "executive": "executive-index-v994a5",
             "operational": "operational-v994a",
         },
     }

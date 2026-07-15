@@ -10,7 +10,7 @@ html = """<!doctype html>
   <meta http-equiv="refresh" content="0;url=/">
   <title>Página não encontrada — Controle de Requisições PCM</title>
   <link rel="icon" type="image/png" href="/static/favicon.png">
-  <link rel="stylesheet" href="/static/styles_404_v994a.css?v=9944">
+  <link rel="stylesheet" href="/static/styles_404_v994a.css?v=9945">
 </head>
 <body>
   <main>

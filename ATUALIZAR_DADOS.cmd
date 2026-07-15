@@ -2,10 +2,10 @@
 setlocal EnableExtensions
 cd /d "%~dp0"
 
-title Atualizar Dashboard PCM V99.4A.4
+title Atualizar Dashboard PCM V99.4A.5
 
 echo ======================================================
-echo   Atualizar Dashboard PCM - V99.4A.4 Hardening
+echo   Atualizar Dashboard PCM - V99.4A.5 Lapidacao Operacional
 echo ======================================================
 echo.
 echo Verificando planilha oficial...
@@ -45,6 +45,9 @@ if %errorlevel% neq 0 (
 )
 
 echo.
+echo Backups e temporarios ficarao fora do OneDrive.
+echo Local padrao: %LOCALAPPDATA%\AMAGGI\DashboardPCM
+echo.
 echo Gerando payload executivo e operacional...
 %PY_CMD% tools\gerar_json_planilha.py
 if %errorlevel% neq 0 (
@@ -56,11 +59,11 @@ if %errorlevel% neq 0 (
 )
 
 echo.
-echo Validando V99.4A.4...
-%PY_CMD% tools\validar_v994a4.py
+echo Validando V99.4A.5...
+%PY_CMD% tools\validar_v994a5.py
 if %errorlevel% neq 0 (
     echo.
-    echo ERRO: a validacao da V99.4A.4 encontrou um problema.
+    echo ERRO: a validacao da V99.4A.5 encontrou um problema.
     echo Nao publique os arquivos.
     pause
     exit /b 1
@@ -68,8 +71,8 @@ if %errorlevel% neq 0 (
 
 echo.
 echo ======================================================
-echo   VALIDACAO V99.4A.4: OK
-echo   BACKUP VALIDO: confirmado quando havia versao anterior
+echo   VALIDACAO V99.4A.5: OK
+echo   BACKUP VALIDO: snapshot imutavel fora do OneDrive
 echo   PAYLOAD SENSIVEL: campos proibidos removidos
 echo ======================================================
 echo.

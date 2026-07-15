@@ -25,6 +25,8 @@ EXECUTIVE_PUBLIC_FIELDS: tuple[str, ...] = (
     "FAIXA ATRASO",
     "PREFIXO",
     "EQUIPAMENTO",
+    "Nº ORÇAMENTO FINAL",
+    "Nº ORDEM SERVIÇO",
 )
 
 OPERATIONAL_PUBLIC_FIELDS: tuple[str, ...] = (

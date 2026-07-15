@@ -98,7 +98,7 @@ A Base de Tratativa carrega o arquivo operacional somente quando é aberta.
 - painel redundante passou a respeitar `hidden`;
 - erros deixaram de virar silenciosamente “zero registros”.
 
-### V99.4A.4
+### V99.4A.4.1
 
 - topo reorganizado;
 - acesso e atualização não sobrepõem mais as abas;
@@ -112,6 +112,17 @@ A Base de Tratativa carrega o arquivo operacional somente quando é aberta.
   maior idade → maior valor → requisição;
 - preferências antigas não substituem o novo padrão;
 - resumo duplicado de etapas foi removido.
+
+### V99.4A.5
+
+- topo lapidado com melhor hierarquia e legibilidade;
+- rankings de fornecedores e solicitantes enriquecidos;
+- identificação operacional padronizada como ORC / OS;
+- pendência mais antiga mostra ORC e OS quando disponíveis;
+- clique da pendência mais antiga limpa conflitos e abre o caso na Base;
+- mostrador de filtros diferencia visão, fila e Base;
+- whitelist executiva recebeu somente orçamento final e ordem de serviço;
+- hotfix de snapshots fora do OneDrive foi preservado.
 
 ## Ainda não pertence à V99.4A
 

@@ -15,11 +15,14 @@ from services.atomic_publish import (  # noqa: E402
     AtomicPublishError,
     cross_validate_versions,
     sha256_file,
+    resolve_last_valid_snapshot,
+    copy_file_atomically,
 )
 from services.local_state import local_state_root  # noqa: E402
 
 LOCAL_STATE = local_state_root(ROOT)
 BACKUP_DIR = LOCAL_STATE / "last-valid"
+SNAPSHOT_DIR: Path | None = None
 PRE_ROLLBACK_ROOT = LOCAL_STATE / "pre-rollback"
 REPORTS_DIR = LOCAL_STATE / "reports"
 
@@ -31,17 +34,25 @@ RELATIVE_FILES = [
 ]
 
 
-def load_manifest() -> dict:
-    path = BACKUP_DIR / "manifest.json"
+def load_manifest() -> tuple[dict, Path]:
+    snapshot_dir = resolve_last_valid_snapshot(BACKUP_DIR)
+    path = snapshot_dir / "manifest.json"
     if not path.exists():
-        raise AtomicPublishError("O backup não contém manifest.json.")
+        raise AtomicPublishError(
+            "O snapshot não contém manifest.json."
+        )
     payload = json.loads(path.read_text(encoding="utf-8"))
     if not isinstance(payload.get("files"), list):
-        raise AtomicPublishError("O manifesto do backup é inválido.")
-    return payload
+        raise AtomicPublishError(
+            "O manifesto do backup é inválido."
+        )
+    return payload, snapshot_dir
 
 
-def validate_backup(manifest: dict) -> str:
+def validate_backup(
+    manifest: dict,
+    snapshot_dir: Path,
+) -> str:
     expected = {
         item["path"]: item
         for item in manifest.get("files", [])
@@ -51,7 +62,7 @@ def validate_backup(manifest: dict) -> str:
     missing = [
         relative
         for relative in RELATIVE_FILES
-        if not (BACKUP_DIR / relative).exists()
+        if not (snapshot_dir / relative).exists()
     ]
     if missing:
         raise AtomicPublishError(
@@ -59,7 +70,7 @@ def validate_backup(manifest: dict) -> str:
         )
 
     for relative in RELATIVE_FILES:
-        path = BACKUP_DIR / relative
+        path = snapshot_dir / relative
         manifest_item = expected.get(relative)
         if manifest_item and manifest_item.get("sha256"):
             actual = sha256_file(path)
@@ -69,14 +80,19 @@ def validate_backup(manifest: dict) -> str:
                 )
 
     version_payload = json.loads(
-        (BACKUP_DIR / "static/data/version.json").read_text(encoding="utf-8")
+        (
+            snapshot_dir
+            / "static/data/version.json"
+        ).read_text(encoding="utf-8")
     )
     version = str(version_payload.get("v", ""))
     if not version:
-        raise AtomicPublishError("O backup não informa a versão.")
+        raise AtomicPublishError(
+            "O backup não informa a versão."
+        )
 
     files = {
-        relative: BACKUP_DIR / relative
+        relative: snapshot_dir / relative
         for relative in RELATIVE_FILES
     }
     cross_validate_versions(files, version)
@@ -102,7 +118,10 @@ def save_current_state() -> Path:
     return Path()
 
 
-def restore_backup(version: str) -> None:
+def restore_backup(
+    version: str,
+    snapshot_dir: Path,
+) -> None:
     ordered = [
         relative
         for relative in RELATIVE_FILES
@@ -110,14 +129,13 @@ def restore_backup(version: str) -> None:
     ] + ["static/data/version.json"]
 
     for relative in ordered:
-        source = BACKUP_DIR / relative
+        source = snapshot_dir / relative
         destination = ROOT / relative
-        destination.parent.mkdir(parents=True, exist_ok=True)
-        temporary = destination.with_suffix(
-            destination.suffix + ".rollback"
+        copy_file_atomically(
+            source,
+            destination,
+            suffix="rollback",
         )
-        shutil.copy2(source, temporary)
-        os.replace(temporary, destination)
 
     final_files = {
         relative: ROOT / relative
@@ -128,26 +146,25 @@ def restore_backup(version: str) -> None:
 
 def main() -> int:
     try:
-        manifest = load_manifest()
-        version = validate_backup(manifest)
+        manifest, snapshot_dir = load_manifest()
+        version = validate_backup(manifest, snapshot_dir)
         pre_rollback = save_current_state()
-        restore_backup(version)
+        restore_backup(version, snapshot_dir)
 
         REPORTS_DIR.mkdir(parents=True, exist_ok=True)
         report = {
             "status": "rollback-completed",
             "restored_version": version,
             "completed_at": datetime.now(timezone.utc).isoformat(),
-            "previous_state_backup": str(
-                pre_rollback
-            ) if pre_rollback else "",
+            "previous_state_backup": str(pre_rollback) if pre_rollback else "",
+            "source_snapshot": str(snapshot_dir),
         }
         (REPORTS_DIR / "rollback-report.json").write_text(
             json.dumps(report, ensure_ascii=False, indent=2),
             encoding="utf-8",
         )
 
-        print("ROLLBACK V99.4A.4: OK")
+        print("ROLLBACK V99.4A.5: OK")
         print(f"Versão restaurada: {version}")
         if pre_rollback:
             print(
@@ -156,7 +173,7 @@ def main() -> int:
             )
         return 0
     except Exception as exc:
-        print(f"ROLLBACK V99.4A.4: FALHOU — {exc}")
+        print(f"ROLLBACK V99.4A.5: FALHOU — {exc}")
         return 1
 
 

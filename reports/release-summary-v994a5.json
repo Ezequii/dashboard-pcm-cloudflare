@@ -1,0 +1,21 @@
+{
+  "version": "99.4A.5",
+  "assetVersion": "9945",
+  "baseVersion": "99.4A.4.1",
+  "features": [
+    "topo refinado",
+    "rankings operacionais enriquecidos",
+    "pendência mais antiga com ORC/OS e clique exato",
+    "terminologia ORC/OS",
+    "filtros ativos por escopo"
+  ],
+  "validation": {
+    "checks": "60/60",
+    "lapidacao": "16/16",
+    "topBaseFlow": "10/10",
+    "productivity": "8/8",
+    "runtime": "7/7",
+    "generatorIntegration": "passed"
+  },
+  "browserVisualValidation": "manual after deploy"
+}

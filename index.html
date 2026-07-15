@@ -5,17 +5,18 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Controle de Requisições PCM 2026</title>
   <link rel="icon" type="image/png" href="/static/favicon.png" />
-  <link rel="stylesheet" href="/static/styles_v50_corrigido.css?v=9944" />
-  <link rel="stylesheet" href="/static/styles_v991_faithful.css?v=9944" />
-  <link rel="stylesheet" href="/static/styles_v992_polished.css?v=9944" />
-  <link rel="stylesheet" href="/static/styles_v99_productivity.css?v=9944" />
-  <link rel="stylesheet" href="/static/styles_v994a_hardening.css?v=9944" />
-  <link rel="stylesheet" href="/static/styles_v994a2_audit.css?v=9944" />
-  <link rel="stylesheet" href="/static/styles_v994a2_visual.css?v=9944" />
-  <link rel="stylesheet" href="/static/styles_v994a3_operational_fix.css?v=9944" />
-  <link rel="stylesheet" href="/static/styles_v994a4_top_base_flow.css?v=9944" />
+  <link rel="stylesheet" href="/static/styles_v50_corrigido.css?v=9945" />
+  <link rel="stylesheet" href="/static/styles_v991_faithful.css?v=9945" />
+  <link rel="stylesheet" href="/static/styles_v992_polished.css?v=9945" />
+  <link rel="stylesheet" href="/static/styles_v99_productivity.css?v=9945" />
+  <link rel="stylesheet" href="/static/styles_v994a_hardening.css?v=9945" />
+  <link rel="stylesheet" href="/static/styles_v994a2_audit.css?v=9945" />
+  <link rel="stylesheet" href="/static/styles_v994a2_visual.css?v=9945" />
+  <link rel="stylesheet" href="/static/styles_v994a3_operational_fix.css?v=9945" />
+  <link rel="stylesheet" href="/static/styles_v994a4_top_base_flow.css?v=9945" />
+  <link rel="stylesheet" href="/static/styles_v994a5_lapidacao.css?v=9945" />
 </head>
-<body class="v86-table-lines v89-simple-filters-search-money v90-layout-safe v91-layout-final v95-header-kpi-polish v97-reliability-navigation v971-runtime-fix v991-faithful v992-polished v993-productivity v994a-hardening v994a2-audited v994a2-visual app-booting v994a3-operational-fix v994a4-top-base-flow">
+<body class="v86-table-lines v89-simple-filters-search-money v90-layout-safe v91-layout-final v95-header-kpi-polish v97-reliability-navigation v971-runtime-fix v991-faithful v992-polished v993-productivity v994a-hardening v994a2-audited v994a2-visual app-booting v994a3-operational-fix v994a4-top-base-flow v994a5-lapidacao">
   <a class="skip-link-v994a" href="#mainContent">Pular para o conteúdo</a>
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
   <div id="drawerBackdrop" class="drawer-backdrop no-print" hidden></div>
@@ -29,7 +30,7 @@
         <div class="brand-copy-v994a4">
           <div class="brand-title-line">
             <h1>Controle de Requisições PCM</h1>
-            <span class="version-pill-v34" aria-label="Versão atual">V99.4A.4</span>
+            <span class="version-pill-v34" aria-label="Versão atual">V99.4A.5</span>
           </div>
           <p class="subtitle-top">Controle de lançamento e acompanhamento — 2026</p>
         </div>
@@ -127,12 +128,12 @@
         </span>
       </button>
 
-      <button id="kpiPendenciasCard" type="button" class="hero-metric-v991 is-pending" aria-label="Abrir RCs em andamento na Base de Tratativa">
+      <button id="kpiPendenciasCard" type="button" class="hero-metric-v991 is-pending" aria-label="Abrir ORCs e OSs em andamento na Base de Tratativa">
         <span class="hero-icon-v991" aria-hidden="true">
           <svg viewBox="0 0 24 24"><path d="M7 3h8l4 4v14H7zM15 3v5h5M10 12h6M10 16h6"/></svg>
         </span>
         <span class="hero-copy-v991">
-          <small>RCs em andamento</small>
+          <small>ORCs/OSs em andamento</small>
           <strong id="kPendencias">—</strong>
           <em id="kPendenciasSub">Carregando composição…</em>
         </span>
@@ -238,7 +239,7 @@
           <span>Clique para abrir a base filtrada</span>
         </header>
         <div class="ranking-columns-v991" aria-hidden="true">
-          <span>#</span><span>Fornecedor</span><span>RCs</span><span>Valor</span>
+          <span>#</span><span>Fornecedor</span><span>ORCs/OSs</span><span>Valor</span>
         </div>
         <div id="actionNowList" class="ranking-list-v991" aria-live="polite">
           <div class="panel-loading-v971" role="status">Carregando fornecedores…</div>
@@ -257,7 +258,7 @@
           <span>Clique para abrir a base filtrada</span>
         </header>
         <div class="ranking-columns-v991" aria-hidden="true">
-          <span>#</span><span>Solicitante</span><span>RCs</span><span>Valor</span>
+          <span>#</span><span>Solicitante</span><span>ORCs/OSs</span><span>Valor</span>
         </div>
         <div id="ownersCriticos" class="ranking-list-v991" aria-live="polite">
           <div class="panel-loading-v971" role="status">Carregando solicitantes…</div>
@@ -294,7 +295,7 @@
               <span>Buscar por</span>
               <select id="searchScope" aria-label="Escolher onde pesquisar">
                 <option value="ALL">Geral — nomes e números</option>
-                <option value="REQUISICAO">RC / Requisição</option>
+                <option value="DOCUMENTO">ORC / OS / NF</option>
                 <option value="PEDIDO">Pedido</option>
                 <option value="FORNECEDOR">Fornecedor</option>
                 <option value="SOLICITANTE">Solicitante</option>
@@ -307,7 +308,7 @@
               <input id="globalSearch" type="search" autocomplete="off" placeholder="Digite um número, nome ou equipamento..." />
             </label>
             <button id="btnClearSearch" class="btn btn-small btn-soft search-clear-v89" type="button" hidden>Limpar</button>
-            <small id="searchHelp" class="search-help-v89">Escolha o tipo e digite o dado. Para RC, pedido, OS ou NF, prefira o número completo.</small>
+            <small id="searchHelp" class="search-help-v89">Escolha o tipo e digite o dado. Para ORC, OS, pedido ou NF, prefira o número completo.</small>
           </div>
           <button id="btnToggleAdvancedSearch" class="btn btn-small btn-soft advanced-toggle" type="button" aria-expanded="false">Filtros avançados</button>
           <div id="advancedSearchPanel" class="advanced-search no-print" aria-label="Busca avançada" hidden>
@@ -383,21 +384,21 @@
         <div>
           <small>Produtividade operacional</small>
           <h2>Busca múltipla</h2>
-          <p>Cole RCs, pedidos, orçamentos, fornecedores ou solicitantes.</p>
+          <p>Cole ORCs, OSs, pedidos, fornecedores ou solicitantes.</p>
         </div>
         <button class="modal-close-v99" value="cancel" aria-label="Fechar">×</button>
       </header>
       <div class="modal-body-v99">
         <label class="field-v99">
           <span>Itens para localizar</span>
-          <textarea id="multiSearchInputV99" rows="9" placeholder="Uma RC por linha, ou itens separados por vírgula e ponto e vírgula"></textarea>
+          <textarea id="multiSearchInputV99" rows="9" placeholder="Uma ORC ou OS por linha, ou itens separados por vírgula e ponto e vírgula"></textarea>
         </label>
         <div class="modal-grid-v99">
           <label class="field-v99">
             <span>Pesquisar em</span>
             <select id="multiSearchScopeV99">
               <option value="ALL">Geral — nomes e números</option>
-              <option value="REQUISICAO">RC / Requisição</option>
+              <option value="DOCUMENTO">ORC / OS / NF</option>
               <option value="PEDIDO">Pedido</option>
               <option value="FORNECEDOR">Fornecedor</option>
               <option value="SOLICITANTE">Solicitante</option>
@@ -467,10 +468,10 @@
   </dialog>
 
   <div id="detailsBackdropV99" class="details-backdrop-v99 no-print" hidden></div>
-  <aside id="detailsDrawerV99" class="details-drawer-v99 no-print" aria-hidden="true" aria-label="Detalhes da requisição">
+  <aside id="detailsDrawerV99" class="details-drawer-v99 no-print" aria-hidden="true" aria-label="Detalhes da ORC ou ordem de serviço">
     <header>
       <div>
-        <small>Detalhes da requisição</small>
+        <small>Detalhes da ORC / OS</small>
         <h2 id="detailsTitleV99">Registro</h2>
         <p id="detailsSubtitleV99">Dados completos da linha selecionada</p>
       </div>
@@ -479,23 +480,23 @@
     <div class="details-actions-v99">
       <button id="btnPreviousDetailV99" type="button">← Anterior</button>
       <button id="btnNextDetailV99" type="button">Próxima →</button>
-      <button id="btnCopyRowV99" type="button">Copiar RC</button>
+      <button id="btnCopyRowV99" type="button">Copiar ORC/OS</button>
       <button id="btnCopyRowSummaryV99" type="button">Copiar resumo</button>
     </div>
     <div id="detailsContentV99" class="details-content-v99"></div>
   </aside>
 
-  <script src="/static/js/app-config.js?v=9944"></script>
-  <script src="/static/js/state.js?v=9944"></script>
-  <script src="/static/js/utils.js?v=9944"></script>
-  <script src="/static/js/security-v994a.js?v=9944"></script>
-  <script src="/static/js/api.js?v=9944"></script>
-  <script src="/static/js/filters.js?v=9944"></script>
-  <script src="/static/js/dashboard.js?v=9944"></script>
-  <script src="/static/js/table.js?v=9944"></script>
-  <script src="/static/js/xlsx-v99.js?v=9944"></script>
-  <script src="/static/js/productivity-v99.js?v=9944"></script>
-  <script src="/static/js/core.js?v=9944"></script>
-  <script src="/static/js/main.js?v=9944"></script>
+  <script src="/static/js/app-config.js?v=9945"></script>
+  <script src="/static/js/state.js?v=9945"></script>
+  <script src="/static/js/utils.js?v=9945"></script>
+  <script src="/static/js/security-v994a.js?v=9945"></script>
+  <script src="/static/js/api.js?v=9945"></script>
+  <script src="/static/js/filters.js?v=9945"></script>
+  <script src="/static/js/dashboard.js?v=9945"></script>
+  <script src="/static/js/table.js?v=9945"></script>
+  <script src="/static/js/xlsx-v99.js?v=9945"></script>
+  <script src="/static/js/productivity-v99.js?v=9945"></script>
+  <script src="/static/js/core.js?v=9945"></script>
+  <script src="/static/js/main.js?v=9945"></script>
 </body>
 </html>

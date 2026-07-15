@@ -35,7 +35,7 @@
     const timer = setTimeout(() => controller.abort("timeout"), timeoutMs);
     try{
       const response = await fetch(
-        `${url}${url.includes("?") ? "&" : "?"}v=${encodeURIComponent(window.PCM_APP_CONFIG?.assetVersion || "9944")}`,
+        `${url}${url.includes("?") ? "&" : "?"}v=${encodeURIComponent(window.PCM_APP_CONFIG?.assetVersion || "9945")}`,
         {
           cache: "no-store",
           credentials: "same-origin",
