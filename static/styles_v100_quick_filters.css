@@ -67,7 +67,7 @@
 }
 
 .quick-filter-bar-v100 .quick-chip:focus-visible {
-  outline: 3px solid #93c5fd;
+  outline: 3px solid #1d4ed8;
   outline-offset: 2px;
 }
 
@@ -99,7 +99,9 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .quick-filter-bar-v100 .quick-chip {
-    scroll-behavior: auto;
+  .quick-filter-bar-v100 .quick-chip,
+  .quick-filter-bar-v100 .quick-chip:hover {
+    transition: none !important;
+    transform: none !important;
   }
 }
