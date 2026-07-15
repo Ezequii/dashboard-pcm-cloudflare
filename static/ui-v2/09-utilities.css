@@ -1,4 +1,0 @@
-body.ui-v2 .ui-v2-fade{animation:ui-v2-fade var(--ui-duration-normal) ease both}
-@keyframes ui-v2-fade{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
-body.ui-v2 .footer-credit{padding:1.5rem;text-align:center;color:var(--ui-color-ink-500);font-size:var(--ui-font-xs)}
-body.ui-v2 [hidden]{display:none!important}
