@@ -18,5 +18,5 @@ venv/
 /reports/publication-report.json
 /reports/rollback-report.json
 
-# Diretório publicável gerado por tools/build_dist.py
+# Diretório publicável gerado por tools/build-dist.cjs
 /dist/

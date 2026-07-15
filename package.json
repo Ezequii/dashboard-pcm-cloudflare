@@ -1,0 +1,17 @@
+{
+  "name": "dashboard-pcm-cloudflare",
+  "version": "994.0.2",
+  "private": true,
+  "scripts": {
+    "build": "node tools/build-dist.cjs",
+    "test": "node --test tests/*.test.cjs",
+    "test:python": "python -m pytest tools/tests -q",
+    "deploy": "npm run build && wrangler deploy"
+  },
+  "devDependencies": {
+    "wrangler": "^4.0.0"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

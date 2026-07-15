@@ -132,7 +132,7 @@
       );
 
       const localBypassEnabled = (
-      policy.environment !== "production"
+      policy.environment === "development"
       && policy.localDevelopmentAllowed === true
       && isLocalDevelopment()
     );
@@ -226,10 +226,12 @@
   }
 
   function canExport(){
-    return Boolean(
-      context.verified
-      && ["viewer", "leadership", "admin"].includes(context.role)
-    );
+    if(!context.verified) return false;
+
+    const exportRoles = values(policy?.exportRoles);
+    if(!exportRoles.length) return false;
+
+    return exportRoles.includes(context.role);
   }
 
   function canViewSensitiveFields(){

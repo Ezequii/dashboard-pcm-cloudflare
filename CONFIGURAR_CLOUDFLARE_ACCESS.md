@@ -50,16 +50,74 @@ rollback. Ela fica fora da raiz publicável por padrão.
 
 ## Build publicável obrigatório
 
-O Wrangler publica exclusivamente `dist/`. Antes de cada deploy:
+O projeto usa **Cloudflare Workers com Static Assets** e publica exclusivamente
+`dist/`. O build oficial foi convertido para Node.js porque Wrangler e Workers
+Builds já dependem de Node/npm; Python não é requisito de deploy.
+
+### Configuração no painel Cloudflare
+
+Em **Workers & Pages → seu Worker → Settings → Builds**, configure:
+
+```text
+Root directory: /
+Build command: npm run build
+Deploy command: npx wrangler deploy
+Non-production branch deploy command: npx wrangler versions upload
+```
+
+O fluxo resultante é:
+
+```text
+npm run build
+  └── node tools/build-dist.cjs
+      └── gera dist/ por allowlist
+
+npx wrangler deploy
+  └── publica somente ./dist
+```
+
+Workers Builds executa Build e Deploy como etapas separadas. Não deixe o campo
+**Build command** vazio: o deploy falhará porque `assets.directory = "./dist"`
+exige que a pasta exista antes do Wrangler iniciar.
+
+### Execução local ou CI externo
 
 ```bash
-python tools/build_dist.py
+npm install
+npm run build
 npx wrangler deploy
 ```
 
-Nunca altere `wrangler.toml` para publicar a raiz do repositório. A pasta
-`dist/` é reconstruída por allowlist e rejeita scripts, planilhas, documentos,
-arquivos de rollback e relatórios internos.
+Também está disponível:
+
+```bash
+npm run deploy
+```
+
+O `wrangler.toml` contém `[build] command = "npm run build"` para execuções
+diretas locais de Wrangler. No Workers Builds, mantenha o **Build command** no
+painel, pois esse ambiente não utiliza o custom build do Wrangler.
+
+### Cloudflare Pages
+
+Este repositório está configurado para **Workers Static Assets**, não para
+Pages. Caso o projeto real seja Pages, não use `npx wrangler deploy`; configure:
+
+```text
+Build command: npm run build
+Build output directory: dist
+```
+
+Ou, para Direct Upload:
+
+```bash
+npm run build
+npx wrangler pages deploy dist
+```
+
+Não altere `wrangler.toml` para publicar a raiz do repositório. A pasta `dist/`
+é reconstruída por allowlist e rejeita scripts, planilhas, documentos, arquivos
+de rollback e relatórios internos.
 
 ## Verificação automatizada pós-deploy
 
