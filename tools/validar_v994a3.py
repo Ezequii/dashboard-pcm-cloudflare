@@ -102,14 +102,14 @@ productivity_js = (ROOT / "static/js/productivity-v99.js").read_text(encoding="u
 xlsx_js = (ROOT / "static/js/xlsx-v99.js").read_text(encoding="utf-8")
 
 check(
-    "versionamento_9942",
-    'version: "99.4A.2"' in config_js
-    and 'assetVersion: "9942"' in config_js
-    and 'String(config.assetVersion || "") !== "9942"' in core_js
-    and "?v=9942" in index
+    "versionamento_9943",
+    'version: "99.4A.3"' in config_js
+    and 'assetVersion: "9943"' in config_js
+    and 'String(config.assetVersion || "") !== "9943"' in core_js
+    and "?v=9943" in index
     and not re.search(r"\?v=994(?:[\"&]|$)", index)
     and not re.search(r"\?v=993(?:[\"&]|$)", index),
-    "HTML, configuração e runtime usam 9942",
+    "HTML, configuração e runtime usam 9943",
 )
 
 scripts = [
@@ -126,7 +126,7 @@ scripts = [
     "core.js",
     "main.js",
 ]
-positions = [index.find(f"/static/js/{name}?v=9942") for name in scripts]
+positions = [index.find(f"/static/js/{name}?v=9943") for name in scripts]
 check(
     "ordem_scripts",
     all(position >= 0 for position in positions)
@@ -421,7 +421,7 @@ with tempfile.TemporaryDirectory(prefix="pcm-v994a1-tests-") as temporary:
             environment=environment,
         )
         check(
-            "testes_visuais_v994a2",
+            "testes_visuais_v994a3",
             visual_result.returncode == 0,
             visual_result.stdout.strip()
             or visual_result.stderr.strip(),
@@ -519,7 +519,56 @@ check(
     "rótulos críticos ampliados",
 )
 
-print("VALIDAÇÃO V99.4A.2 — FLUXO COMPLETO E CORREÇÕES VISUAIS")
+
+api_source_v994a3 = (ROOT / "static/js/api.js").read_text(encoding="utf-8")
+index_source_v994a3 = (ROOT / "index.html").read_text(encoding="utf-8")
+fix_css_v994a3 = (ROOT / "static/styles_v994a3_operational_fix.css").read_text(encoding="utf-8")
+
+check(
+    "tabela_fonte_operacional",
+    "resolveStaticColumnsV994a3" in api_source_v994a3
+    and "__OPERATIONAL_DATA_V994A?.columns" in api_source_v994a3
+    and "__STATIC_DATA?.boot?.table_columns" not in api_source_v994a3,
+    "staticRows usa o contrato operacional atual",
+)
+
+check(
+    "tabela_sem_falha_silenciosa",
+    "throw err;" in api_source_v994a3
+    and "Erro em staticRows" in api_source_v994a3,
+    "erros chegam ao banner permanente",
+)
+
+check(
+    "hidden_respeitado",
+    "#processCardsBase[hidden]" in fix_css_v994a3
+    and "display:none!important" in fix_css_v994a3,
+    "painel redundante não aparece fora da Base",
+)
+
+check(
+    "modal_colunas_inteiro",
+    "#columnsDialogV99.modal-v99" in fix_css_v994a3
+    and "width:min(780px,calc(100vw - 32px))" in fix_css_v994a3
+    and "#columnsDialogV99 .modal-card-v99.is-wide" in fix_css_v994a3,
+    "dialog e formulário usam a mesma largura",
+)
+
+check(
+    "legibilidade_v994a3",
+    "font-size:12px!important" in fix_css_v994a3
+    and "font-size:11px!important" in fix_css_v994a3,
+    "textos operacionais ampliados",
+)
+
+check(
+    "camada_v994a3_carregada",
+    "styles_v994a3_operational_fix.css?v=9943" in index_source_v994a3
+    and "v994a3-operational-fix" in index_source_v994a3,
+    "CSS corretivo é a última camada",
+)
+
+print("VALIDAÇÃO V99.4A.3 — FLUXO COMPLETO E CORREÇÕES VISUAIS")
 print("=" * 82)
 for result in results:
     print(

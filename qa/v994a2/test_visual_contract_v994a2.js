@@ -171,20 +171,20 @@ check(
 
 check(
   "css_carregado_por_ultimo",
-  indexHtml.lastIndexOf("styles_v994a2_visual.css?v=9942")
-    > indexHtml.lastIndexOf("styles_v994a2_audit.css?v=9942"),
+  indexHtml.lastIndexOf("styles_v994a3_operational_fix.css?v=9943")
+    > indexHtml.lastIndexOf("styles_v994a2_visual.css?v=9943"),
   "ordem dos estilos"
 );
 
 check(
-  "body_da_revisao",
+  "body_da_revisao_base",
   /<body[^>]*class="[^"]*v994a2-visual/.test(indexHtml),
   "classe v994a2-visual"
 );
 
 check(
   "sem_cache_antigo",
-  !indexHtml.includes("?v=" + "994" + "1"),
+  !indexHtml.includes("?v=9942"),
   "somente 9942"
 );
 

@@ -5,14 +5,14 @@
     "detail": "todos presentes"
   },
   {
-    "name": "versionamento_9942",
+    "name": "versionamento_9943",
     "passed": true,
-    "detail": "HTML, configuração e runtime usam 9942"
+    "detail": "HTML, configuração e runtime usam 9943"
   },
   {
     "name": "ordem_scripts",
     "passed": true,
-    "detail": "{'app-config.js': 23918, 'state.js': 23976, 'utils.js': 24029, 'security-v994a.js': 24082, 'api.js': 24144, 'filters.js': 24195, 'dashboard.js': 24250, 'table.js': 24307, 'xlsx-v99.js': 24360, 'productivity-v99.js': 24416, 'core.js': 24480, 'main.js': 24532}"
+    "detail": "{'app-config.js': 24025, 'state.js': 24083, 'utils.js': 24136, 'security-v994a.js': 24189, 'api.js': 24251, 'filters.js': 24302, 'dashboard.js': 24357, 'table.js': 24414, 'xlsx-v99.js': 24467, 'productivity-v99.js': 24523, 'core.js': 24587, 'main.js': 24639}"
   },
   {
     "name": "ids_unicos",
@@ -107,12 +107,12 @@
   {
     "name": "dados_publicados_validos",
     "passed": true,
-    "detail": "versão 20260715123626"
+    "detail": "versão 20260715132436"
   },
   {
     "name": "pacote_sem_legado_executavel",
-    "passed": false,
-    "detail": "tools\\validar_v97.py, tools\\validar_v971.py, tools\\validar_v982.py, tools\\validar_v985.py, tools\\validar_v991.py, tools\\validar_v992.py, tools\\validar_v993.py, qa\\v99_operacional\\amostra_exportacao_v99.xlsx"
+    "passed": true,
+    "detail": "nenhum"
   },
   {
     "name": "node_disponivel",
@@ -148,5 +148,35 @@
     "name": "legibilidade_visual",
     "passed": true,
     "detail": "rótulos críticos ampliados"
+  },
+  {
+    "name": "tabela_fonte_operacional",
+    "passed": true,
+    "detail": "staticRows usa o contrato operacional atual"
+  },
+  {
+    "name": "tabela_sem_falha_silenciosa",
+    "passed": true,
+    "detail": "erros chegam ao banner permanente"
+  },
+  {
+    "name": "hidden_respeitado",
+    "passed": true,
+    "detail": "painel redundante não aparece fora da Base"
+  },
+  {
+    "name": "modal_colunas_inteiro",
+    "passed": true,
+    "detail": "dialog e formulário usam a mesma largura"
+  },
+  {
+    "name": "legibilidade_v994a3",
+    "passed": true,
+    "detail": "textos operacionais ampliados"
+  },
+  {
+    "name": "camada_v994a3_carregada",
+    "passed": true,
+    "detail": "CSS corretivo é a última camada"
   }
 ]

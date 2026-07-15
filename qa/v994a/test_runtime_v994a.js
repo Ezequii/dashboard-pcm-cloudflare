@@ -77,8 +77,8 @@ vm.runInThisContext(
 (async () => {
   check(
     "versionamento_runtime",
-    PCM_APP_CONFIG.version === "99.4A.2"
-      && PCM_APP_CONFIG.assetVersion === "9942",
+    PCM_APP_CONFIG.version === "99.4A.3"
+      && PCM_APP_CONFIG.assetVersion === "9943",
     `${PCM_APP_CONFIG.version}/${PCM_APP_CONFIG.assetVersion}`
   );
 

@@ -147,7 +147,7 @@ def main() -> int:
             encoding="utf-8",
         )
 
-        print("ROLLBACK V99.4A.2: OK")
+        print("ROLLBACK V99.4A.3: OK")
         print(f"Versão restaurada: {version}")
         if pre_rollback:
             print(
@@ -156,7 +156,7 @@ def main() -> int:
             )
         return 0
     except Exception as exc:
-        print(f"ROLLBACK V99.4A.2: FALHOU — {exc}")
+        print(f"ROLLBACK V99.4A.3: FALHOU — {exc}")
         return 1
 
 

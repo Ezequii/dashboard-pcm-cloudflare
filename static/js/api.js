@@ -489,6 +489,7 @@ async function api(path, body=null, asBlob=false){
 }
 
 window.versionChangedV994a = versionChangedV994a;
+window.resolveStaticColumnsV994a3 = resolveStaticColumnsV994a3;
 window.fetchJsonV994a = fetchJsonV994a;
 window.refreshPublishedDataV994a = refreshPublishedDataV994a;
 window.getDataVersion = getDataVersion;
@@ -757,10 +758,18 @@ function staticOptions(rows, query){
   }
 }
 
+function resolveStaticColumnsV994a3(){
+  return (
+    __OPERATIONAL_DATA_V994A?.columns
+    || __EXECUTIVE_DATA_V994A?.boot?.table_columns
+    || []
+  ).filter(Boolean);
+}
+
 function staticRows(rows, query){
   try{
     const out = applyStaticQuery(rows, query);
-    const columns = (__STATIC_DATA?.boot?.table_columns || []).filter(Boolean);
+    const columns = resolveStaticColumnsV994a3();
     const total = out.length;
     const pageSize = Math.max(10, Math.min(Number(query.page_size || 50), 100000));
     const pages = Math.max(1, Math.ceil(total / pageSize));
@@ -781,7 +790,7 @@ function staticRows(rows, query){
     return {columns, rows:pageRows, total, page, page_size:pageSize, pages, from: total ? start+1 : 0, to:end};
   }catch(err){
     console.error('Erro em staticRows:', err);
-    return {columns:[], rows:[], total:0, page:1, page_size:50, pages:1, from:0, to:0};
+    throw err;
   }
 }
 

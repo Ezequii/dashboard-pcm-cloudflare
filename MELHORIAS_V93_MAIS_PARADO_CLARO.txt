@@ -1,9 +1,0 @@
-V93 — Mais parado mais claro e acionável
-
-- O card agora mostra etapa e tipo de referência de forma legível.
-- Exemplo: Sem NF • Orçamento 8712.
-- A cor lateral acompanha a etapa: lançamento, pedido, NF ou outra pendência.
-- Ao clicar no card, a Base de Tratativa abre filtrada na etapa e procurando a referência.
-- Tooltip informa dias, etapa, referência, fornecedor e valor.
-- A legenda da Base foi simplificada de “Prioridade / acompanhar” para “Prioridade”.
-- Nenhum cálculo, STATUS, KPI, filtro, dado ou arquivo JSON foi alterado.
