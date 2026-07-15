@@ -1,0 +1,21 @@
+{
+  "version": "99.4A.6",
+  "assetVersion": "9946",
+  "baseVersion": "99.4A.5",
+  "features": [
+    "topo translúcido e compacto",
+    "acesso visual oculto",
+    "metadados de atualização reduzidos",
+    "rankings gerais por padrão",
+    "seletor Geral e Em andamento",
+    "top 3 sem recorte"
+  ],
+  "validation": {
+    "checks": "66/66",
+    "specific": "15/15",
+    "lapidacaoRegression": "16/16",
+    "topBaseFlow": "10/10",
+    "productivity": "8/8",
+    "runtime": "7/7"
+  }
+}

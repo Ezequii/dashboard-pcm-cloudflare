@@ -236,8 +236,8 @@ check(
 
 check(
   "css_carregado_por_ultimo",
-  index.lastIndexOf("styles_v994a5_lapidacao.css?v=9945")
-    > index.lastIndexOf("styles_v994a4_top_base_flow.css?v=9945"),
+  index.lastIndexOf("styles_v994a5_lapidacao.css?v=9946")
+    > index.lastIndexOf("styles_v994a4_top_base_flow.css?v=9946"),
   "ordem dos estilos"
 );
 

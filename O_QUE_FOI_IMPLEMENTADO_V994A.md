@@ -113,7 +113,7 @@ A Base de Tratativa carrega o arquivo operacional somente quando é aberta.
 - preferências antigas não substituem o novo padrão;
 - resumo duplicado de etapas foi removido.
 
-### V99.4A.5
+### V99.4A.6
 
 - topo lapidado com melhor hierarquia e legibilidade;
 - rankings de fornecedores e solicitantes enriquecidos;

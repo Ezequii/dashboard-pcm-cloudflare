@@ -2,7 +2,7 @@
 setlocal EnableExtensions
 cd /d "%~dp0"
 
-title Rollback Dashboard PCM V99.4A.5
+title Rollback Dashboard PCM V99.4A.6
 
 where py >nul 2>nul
 if %errorlevel%==0 (
@@ -12,7 +12,7 @@ if %errorlevel%==0 (
 )
 
 echo ======================================================
-echo   Rollback dos dados - Dashboard PCM V99.4A.5
+echo   Rollback dos dados - Dashboard PCM V99.4A.6
 echo ======================================================
 echo.
 echo Esta operacao restaura a ultima publicacao valida.

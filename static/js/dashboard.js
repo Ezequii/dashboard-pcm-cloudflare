@@ -486,11 +486,23 @@ function validValueRanking(items){
   });
 }
 
-function filterDimensionAndOpenBase(column, value){
+function filterDimensionAndOpenBase(column, value, scope="all"){
   const label = String(value || '').trim();
   if(!label) return;
+
   clearKpiNavigationState();
   state.filters[column] = [label];
+
+  if(scope === "pending"){
+    state.filters.ETAPA = [
+      "SEM LANÇAMENTO",
+      "SEM PEDIDO",
+      "SEM NF"
+    ];
+  }else{
+    state.filters.ETAPA = [];
+  }
+
   state.page = 1;
   updateFilterUI();
   savePreferences();
@@ -650,6 +662,9 @@ function compactCurrency(value){
    ========================================================================== */
 (() => {
   "use strict";
+
+  let rankingScopeV994a6 = "all";
+  let latestExecutiveDataV994a6 = null;
 
   const numberV991 = (value) => Number(value || 0);
   const intV991 = (value) => numberV991(value).toLocaleString("pt-BR");
@@ -955,13 +970,21 @@ function compactCurrency(value){
           numberV991(item.value) / maxValue * 100
         )
       );
-      const operationalMeta = [
-        `${intV991(quantity)} ${quantity === 1 ? 'ORC/OS' : 'ORCs/OSs'}`,
-        critical
-          ? `${intV991(critical)} crítica${critical === 1 ? '' : 's'}`
-          : 'sem crítica > 30 dias',
-        `máx. ${intV991(maxDays)} dias`
-      ].join(' · ');
+      const operationalMeta = rankingScopeV994a6 === "pending"
+        ? [
+            `${intV991(quantity)} em andamento`,
+            critical
+              ? `${intV991(critical)} crítica${critical === 1 ? '' : 's'}`
+              : 'sem crítica > 30 dias',
+            `máx. ${intV991(maxDays)} dias`
+          ].join(' · ')
+        : [
+            `${intV991(quantity)} registros`,
+            critical
+              ? `${intV991(critical)} crítica${critical === 1 ? '' : 's'}`
+              : 'sem crítica > 30 dias',
+            `máx. ${intV991(maxDays)} dias`
+          ].join(' · ');
 
       return `
         <button
@@ -985,7 +1008,7 @@ function compactCurrency(value){
           </span>
           <span class="ranking-qty-v991 ranking-qty-v994a5">
             <b>${intV991(quantity)}</b>
-            <small>ORCs/OSs</small>
+            <small>${rankingScopeV994a6 === "pending" ? "em andamento" : "registros"}</small>
           </span>
           <span
             class="ranking-value-v991 ranking-value-v994a5"
@@ -999,9 +1022,91 @@ function compactCurrency(value){
     host.querySelectorAll('.ranking-row-v994a5').forEach(button => {
       button.onclick = () => filterDimensionAndOpenBase(
         dimension,
-        button.dataset.value || ''
+        button.dataset.value || '',
+        rankingScopeV994a6
       );
     });
+  }
+
+  function rankingRowsV994a6(data, dimension){
+    const charts = data?.charts || {};
+    const pending = rankingScopeV994a6 === "pending";
+
+    if(dimension === "FORNECEDOR"){
+      return pending
+        ? (charts.top_fornecedores_pendentes || [])
+        : (charts.top_fornecedores || []);
+    }
+
+    return pending
+      ? (charts.solicitantes_pendentes || [])
+      : (charts.custo_solicitante || []);
+  }
+
+  function updateRankingScopeUIV994a6(){
+    const description = document.getElementById(
+      "rankingScopeDescriptionV994a6"
+    );
+    const supplierTitle = document.getElementById(
+      "supplierRankingTitleV994a6"
+    );
+    const requesterTitle = document.getElementById(
+      "requesterRankingTitleV994a6"
+    );
+    const pending = rankingScopeV994a6 === "pending";
+
+    if(description){
+      description.textContent = pending
+        ? "Somente registros ainda em andamento."
+        : "Visão geral de todos os registros.";
+    }
+    if(supplierTitle){
+      supplierTitle.textContent = pending
+        ? "Fornecedores com maior valor em andamento"
+        : "Fornecedores com maior valor geral";
+    }
+    if(requesterTitle){
+      requesterTitle.textContent = pending
+        ? "Solicitantes com maior valor em andamento"
+        : "Solicitantes com maior valor geral";
+    }
+
+    document
+      .querySelectorAll("[data-ranking-scope]")
+      .forEach(button => {
+        const active = button.dataset.rankingScope === rankingScopeV994a6;
+        button.classList.toggle("is-active", active);
+        button.setAttribute("aria-pressed", active ? "true" : "false");
+      });
+  }
+
+  function renderRankingsV994a6(data){
+    latestExecutiveDataV994a6 = data || {};
+    updateRankingScopeUIV994a6();
+
+    renderRankingV991(
+      "actionNowList",
+      rankingRowsV994a6(data, "FORNECEDOR"),
+      "FORNECEDOR"
+    );
+    renderRankingV991(
+      "ownersCriticos",
+      rankingRowsV994a6(data, "SOLICITANTE"),
+      "SOLICITANTE"
+    );
+  }
+
+  function bindRankingScopeV994a6(){
+    document
+      .querySelectorAll("[data-ranking-scope]")
+      .forEach(button => {
+        button.onclick = () => {
+          const nextScope = button.dataset.rankingScope;
+          if(!["all", "pending"].includes(nextScope)) return;
+          rankingScopeV994a6 = nextScope;
+          renderRankingsV994a6(latestExecutiveDataV994a6 || {});
+        };
+      });
   }
 
   function renderBaseStagesV991(data){
@@ -1035,6 +1140,23 @@ function compactCurrency(value){
     });
   }
 
+  function openRankingContextV994a6(){
+    clearKpiNavigationState();
+    if(rankingScopeV994a6 === "pending"){
+      state.filters.ETAPA = [
+        "SEM LANÇAMENTO",
+        "SEM PEDIDO",
+        "SEM NF"
+      ];
+    }else{
+      state.filters.ETAPA = [];
+    }
+    state.page = 1;
+    updateFilterUI();
+    savePreferences();
+    switchTab("base");
+  }
+
   function bindFooterActionsV991(){
     const allPriorities = document.getElementById("openAllPrioritiesV991");
     const allSuppliers = document.getElementById("openAllSuppliersV991");
@@ -1043,8 +1165,8 @@ function compactCurrency(value){
     if(allPriorities) allPriorities.onclick = () => openBaseFromKpi(
       ["SEM LANÇAMENTO", "SEM PEDIDO", "SEM NF"]
     );
-    if(allSuppliers) allSuppliers.onclick = () => switchTab("base");
-    if(allRequesters) allRequesters.onclick = () => switchTab("base");
+    if(allSuppliers) allSuppliers.onclick = openRankingContextV994a6;
+    if(allRequesters) allRequesters.onclick = openRankingContextV994a6;
   }
 
   window.renderExecutiveV991 = function renderExecutiveV991(data){
@@ -1053,20 +1175,8 @@ function compactCurrency(value){
     renderCriticalV991(data);
     renderFlowV991(data);
     renderPrioritiesV991(data);
-    renderRankingV991(
-      "actionNowList",
-      data?.charts?.top_fornecedores_pendentes ||
-      data?.charts?.top_fornecedores ||
-      [],
-      "FORNECEDOR"
-    );
-    renderRankingV991(
-      "ownersCriticos",
-      data?.charts?.solicitantes_pendentes ||
-      data?.charts?.custo_solicitante ||
-      [],
-      "SOLICITANTE"
-    );
+    renderRankingsV994a6(data);
+    bindRankingScopeV994a6();
     bindFooterActionsV991();
   };
 

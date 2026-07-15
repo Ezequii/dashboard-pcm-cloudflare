@@ -2,10 +2,10 @@
 setlocal EnableExtensions
 cd /d "%~dp0"
 
-title Atualizar Dashboard PCM V99.4A.5
+title Atualizar Dashboard PCM V99.4A.6
 
 echo ======================================================
-echo   Atualizar Dashboard PCM - V99.4A.5 Lapidacao Operacional
+echo   Atualizar Dashboard PCM - V99.4A.6 Topo Clean e Rankings Gerais
 echo ======================================================
 echo.
 echo Verificando planilha oficial...
@@ -59,11 +59,11 @@ if %errorlevel% neq 0 (
 )
 
 echo.
-echo Validando V99.4A.5...
-%PY_CMD% tools\validar_v994a5.py
+echo Validando V99.4A.6...
+%PY_CMD% tools\validar_v994a6.py
 if %errorlevel% neq 0 (
     echo.
-    echo ERRO: a validacao da V99.4A.5 encontrou um problema.
+    echo ERRO: a validacao da V99.4A.6 encontrou um problema.
     echo Nao publique os arquivos.
     pause
     exit /b 1
@@ -71,7 +71,7 @@ if %errorlevel% neq 0 (
 
 echo.
 echo ======================================================
-echo   VALIDACAO V99.4A.5: OK
+echo   VALIDACAO V99.4A.6: OK
 echo   BACKUP VALIDO: snapshot imutavel fora do OneDrive
 echo   PAYLOAD SENSIVEL: campos proibidos removidos
 echo ======================================================

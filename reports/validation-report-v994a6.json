@@ -1,0 +1,332 @@
+[
+  {
+    "name": "arquivos_obrigatorios",
+    "passed": true,
+    "detail": "todos presentes"
+  },
+  {
+    "name": "versionamento_9946",
+    "passed": true,
+    "detail": "HTML, configuração e runtime usam 9946"
+  },
+  {
+    "name": "ordem_scripts",
+    "passed": true,
+    "detail": "{'app-config.js': 25382, 'state.js': 25440, 'utils.js': 25493, 'security-v994a.js': 25546, 'api.js': 25608, 'filters.js': 25659, 'dashboard.js': 25714, 'table.js': 25771, 'xlsx-v99.js': 25824, 'productivity-v99.js': 25880, 'core.js': 25944, 'main.js': 25996}"
+  },
+  {
+    "name": "ids_unicos",
+    "passed": true,
+    "detail": "{'mainContent': 1, 'securityContextV994a': 1, 'securityRoleV994a': 1, 'securityClassificationV994a': 1, 'dataErrorTimeV994a': 1, 'lastValidVersionV994a': 1, 'lastSuccessTimeV994a': 1, 'btnOpenMultiSearchV99': 1, 'selectionBarV99': 1, 'detailsDrawerV99': 1, 'completionProgressV991': 1}"
+  },
+  {
+    "name": "csp_sem_inline",
+    "passed": true,
+    "detail": "scripts e estilos inline bloqueados"
+  },
+  {
+    "name": "ui_sem_estilo_inline",
+    "passed": true,
+    "detail": "{'index.html': False, '404.html': False, 'dashboard.js': False, 'productivity-v99.js': False}"
+  },
+  {
+    "name": "abort_controller",
+    "passed": true,
+    "detail": "implementado"
+  },
+  {
+    "name": "payload_separado",
+    "passed": true,
+    "detail": "implementado"
+  },
+  {
+    "name": "validacao_cruzada",
+    "passed": true,
+    "detail": "implementado"
+  },
+  {
+    "name": "fail_closed",
+    "passed": true,
+    "detail": "implementado"
+  },
+  {
+    "name": "ultima_versao_valida",
+    "passed": true,
+    "detail": "implementado"
+  },
+  {
+    "name": "rollback",
+    "passed": true,
+    "detail": "implementado"
+  },
+  {
+    "name": "produtividade_preservada",
+    "passed": true,
+    "detail": "implementado"
+  },
+  {
+    "name": "xlsx_real",
+    "passed": true,
+    "detail": "implementado"
+  },
+  {
+    "name": "progressos_csp_safe",
+    "passed": true,
+    "detail": "implementado"
+  },
+  {
+    "name": "indice_executivo_minimizado",
+    "passed": true,
+    "detail": "implementado"
+  },
+  {
+    "name": "politica_seguranca",
+    "passed": true,
+    "detail": "environment=production, failClosed=True"
+  },
+  {
+    "name": "headers_seguranca",
+    "passed": true,
+    "detail": "HSTS, CSP, DENY, COOP, CORP e no-store"
+  },
+  {
+    "name": "404_minimo",
+    "passed": true,
+    "detail": "redirecionamento sem cópia do dashboard"
+  },
+  {
+    "name": "payload_legado_ausente",
+    "passed": true,
+    "detail": "dashboard-data.json não está publicado"
+  },
+  {
+    "name": "pacote_sem_fixture",
+    "passed": true,
+    "detail": "dados serão gerados pela planilha oficial"
+  },
+  {
+    "name": "pacote_sem_legado_executavel",
+    "passed": true,
+    "detail": "nenhum"
+  },
+  {
+    "name": "node_disponivel",
+    "passed": true,
+    "detail": "/opt/nvm/versions/node/v22.16.0/bin/node"
+  },
+  {
+    "name": "sintaxe_javascript",
+    "passed": true,
+    "detail": "todos válidos"
+  },
+  {
+    "name": "testes_runtime",
+    "passed": true,
+    "detail": "OK versionamento_runtime — 99.4A.6/9946\nOK decisao_versao_igual — false\nOK decisao_versao_nova — true\nOK versao_vazia_nao_dispara — false\nOK requisicao_antiga_cancelada — AbortError\nOK requisicao_nova_concluida — {\"url\":\"/fast?ts=1784138060642\",\"ok\":true}\nOK cancelamento_explicito — test\nRESULTADO: 7/7 testes aprovados."
+  },
+  {
+    "name": "testes_produtividade",
+    "passed": true,
+    "detail": "OK busca_multipla_codigos — [\"14031\",\"36657\",\"26730\"]\nOK busca_multipla_nomes — [\"CAMPO ERE\",\"ASTER MÁQUINAS\",\"RZK AGRO\"]\nOK resumo_quantidade — 3\nOK resumo_valor — 90176.70999999999\nOK resumo_etapas — {\"SEM LANÇAMENTO\":{\"count\":1,\"value\":10003.95},\"SEM NF\":{\"count\":2,\"value\":80172.76}}\nOK resumo_texto — Resumo PCM — Teste automatizado\n3 registros · R$ 90.176,71\nMaior tempo parado: 42 dias\n\nEtapas:\n• SEM NF: 2 · R$ 80.172,76\n• SEM LANÇAMENTO: 1 · R$ 10.003,95\n\nPrincipais fornecedores:\n1. ASTER MÁQUINAS: 2 · R$ 80.172,76\n2. CAMPO ERE: 1 · R$ 10.003,95\nOK xlsx_assinatura_zip — 80,75\nOK xlsx_tamanho — 15151\nRESULTADO: 8/8 testes aprovados."
+  },
+  {
+    "name": "testes_lapidacao_v994a5",
+    "passed": true,
+    "detail": "OK funcoes_api_extraidas — 3976\nOK mais_antigo_orc — {\"dias\":96,\"label\":\"14031\",\"label_type\":\"ORC\",\"orc\":\"14031\",\"os\":\"8712\",\"pedido\":\"\",\"nf\":\"\",\"search_value\":\"14031\",\"search_scope\":\"DOCUMENTO\",\"reference_text\":\"ORC 14031 · OS 8712\",\"detail\":\"CAMPO ERE · SEM PEDIDO\",\"etapa\":\"SEM PEDIDO\",\"fornecedor\":\"CAMPO ERE\",\"valor\":\"R$ 260000\",\"valor_full\":\"R$ 260000.00\"}\nOK mais_antigo_os — {\"dias\":96,\"label\":\"14031\",\"label_type\":\"ORC\",\"orc\":\"14031\",\"os\":\"8712\",\"pedido\":\"\",\"nf\":\"\",\"search_value\":\"14031\",\"search_scope\":\"DOCUMENTO\",\"reference_text\":\"ORC 14031 · OS 8712\",\"detail\":\"CAMPO ERE · SEM PEDIDO\",\"etapa\":\"SEM PEDIDO\",\"fornecedor\":\"CAMPO ERE\",\"valor\":\"R$ 260000\",\"valor_full\":\"R$ 260000.00\"}\nOK mais_antigo_busca_documento — {\"dias\":96,\"label\":\"14031\",\"label_type\":\"ORC\",\"orc\":\"14031\",\"os\":\"8712\",\"pedido\":\"\",\"nf\":\"\",\"search_value\":\"14031\",\"search_scope\":\"DOCUMENTO\",\"reference_text\":\"ORC 14031 · OS 8712\",\"detail\":\"CAMPO ERE · SEM PEDIDO\",\"etapa\":\"SEM PEDIDO\",\"fornecedor\":\"CAMPO ERE\",\"valor\":\"R$ 260000\",\"valor_full\":\"R$ 260000.00\"}\nOK mais_antigo_texto_duplo — ORC 14031 · OS 8712\nOK ranking_dias_maximos — {\"label\":\"CAMPO ERE\",\"display_label\":\"CAMPO ERE\",\"value\":360000,\"formatted\":\"R$ 360000\",\"full\":\"R$ 360000.00\",\"qtd\":2,\"critical_count\":2,\"max_days\":96,\"average_days\":65.5,\"meta\":\"2 ORCs/OSs · 2 críticas · máx. 96 dias\"}\nOK ranking_criticas — {\"label\":\"CAMPO ERE\",\"display_label\":\"CAMPO ERE\",\"value\":360000,\"formatted\":\"R$ 360000\",\"full\":\"R$ 360000.00\",\"qtd\":2,\"critical_count\":2,\"max_days\":96,\"average_days\":65.5,\"meta\":\"2 ORCs/OSs · 2 críticas · máx. 96 dias\"}\nOK ranking_meta_operacional — 2 ORCs/OSs · 2 críticas · máx. 96 dias\nOK payload_executivo_tem_orc_os — whitelist executiva\nOK clique_mais_antigo_limpa_conflitos — contexto exato\nOK filtros_ativos_enriquecidos — escopos e chips\nOK gaveta_orc_os — título e cópia\nOK topo_lapidado — layout do topo\nOK rankings_lapidados — layout do ranking\nOK css_carregado_por_ultimo — ordem dos estilos\nOK sem_rotulo_rcs_em_andamento — semântica executiva\nRESULTADO: 16/16 testes aprovados."
+  },
+  {
+    "name": "testes_topo_rankings_v994a6",
+    "passed": true,
+    "detail": "OK versionamento_9946 — configuração, runtime e HTML\nOK camada_css_final — CSS V99.4A.6 carregado por último\nOK classe_body_v994a6 — classe de escopo presente\nOK acesso_visual_oculto — segurança permanece no runtime, sem cartão visual\nOK status_compacto_transparente — topo e atualização compactos\nOK seletor_ranking_acessivel — Geral e Em andamento\nOK ranking_geral_padrao — geral usa todos os registros\nOK ranking_pendente_selecionavel — em andamento usa somente pendentes\nOK ranking_reage_a_selecao — troca sem recarregar a página\nOK clique_respeita_contexto — linha e rodapé aplicam o contexto selecionado\nOK titulos_gerais_padrao — sem pendente no estado padrão\nOK top_tres — três linhas completas\nOK painel_sem_corte — terceira linha e rodapé visíveis\nOK dados_gerais_disponiveis — payload contém geral e em andamento\nOK responsividade_rankings — rankings empilham em telas menores\nRESULTADO: 15/15 testes aprovados."
+  },
+  {
+    "name": "testes_topo_base_fluxo_v994a4",
+    "passed": true,
+    "detail": "OK topo_em_tres_zonas — marca, navegação e status/ações separados\nOK css_novo_por_ultimo — camada V99.4A.6 é a última\nOK sem_resumo_duplicado — painel duplicado removido do HTML\nOK default_fluxo — ETAPA asc e armazenamento novo\nOK sem_colunas_fixas — classes de pin desativadas e CSS estático\nOK colunas_seguem_fluxo — 'ETAPA' → 'DATA DE RECEBIMENTO' → 'DATA LANÇAMENTO' → 'Nº PEDIDO DE COMPRA' → 'DATA DO PEDIDO' → 'Nº NFS/DANFE' → 'DATA LANÇAMENTO NFS'\nOK gerador_segue_fluxo — contrato operacional cronológico\nOK linhas_seguem_fluxo — [\"SEM LANÇAMENTO\",\"SEM LANÇAMENTO\",\"SEM PEDIDO\",\"SEM NF\",\"CONCLUÍDO\"]\nOK maior_idade_primeiro_na_etapa — [\"5\",\"1\"]\nOK tipografia_minima — topo, filtros e tabela ampliados\nRESULTADO: 10/10 testes aprovados."
+  },
+  {
+    "name": "testes_python",
+    "passed": true,
+    "detail": ""
+  },
+  {
+    "name": "xlsx_ooxml",
+    "passed": true,
+    "detail": "ausentes=[]"
+  },
+  {
+    "name": "fluxo_quatro_etapas",
+    "passed": true,
+    "detail": "quatro etapas canônicas e grade de quatro colunas"
+  },
+  {
+    "name": "tabela_sem_colunas_fixas",
+    "passed": true,
+    "detail": "rolagem horizontal natural, sem colunas presas"
+  },
+  {
+    "name": "gaveta_formatada",
+    "passed": true,
+    "detail": "moeda, dias, datas e documentos formatados"
+  },
+  {
+    "name": "legibilidade_visual",
+    "passed": true,
+    "detail": "rótulos críticos ampliados"
+  },
+  {
+    "name": "tabela_fonte_operacional",
+    "passed": true,
+    "detail": "staticRows usa o contrato operacional atual"
+  },
+  {
+    "name": "tabela_sem_falha_silenciosa",
+    "passed": true,
+    "detail": "erros chegam ao banner permanente"
+  },
+  {
+    "name": "hidden_respeitado",
+    "passed": true,
+    "detail": "painel redundante não aparece fora da Base"
+  },
+  {
+    "name": "modal_colunas_inteiro",
+    "passed": true,
+    "detail": "dialog e formulário usam a mesma largura"
+  },
+  {
+    "name": "legibilidade_v994a3",
+    "passed": true,
+    "detail": "textos operacionais ampliados"
+  },
+  {
+    "name": "camada_v994a3_carregada",
+    "passed": true,
+    "detail": "camada corretiva V99.4A.3 preservada antes da V99.4A.6"
+  },
+  {
+    "name": "topo_reorganizado_v994a4",
+    "passed": true,
+    "detail": "marca, navegação e status/ações usam zonas independentes"
+  },
+  {
+    "name": "camada_v994a4_por_ultimo",
+    "passed": true,
+    "detail": "CSS V99.4A.6 é a camada final"
+  },
+  {
+    "name": "resumo_etapas_duplicado_removido",
+    "passed": true,
+    "detail": "somente o fluxo executivo permanece"
+  },
+  {
+    "name": "ordenacao_padrao_fluxo",
+    "passed": true,
+    "detail": "lançamento → pedido → NF → concluído"
+  },
+  {
+    "name": "preferencias_novas_v994a4",
+    "passed": true,
+    "detail": "preferências antigas não sobrescrevem o novo padrão"
+  },
+  {
+    "name": "colunas_padrao_cronologicas",
+    "passed": true,
+    "detail": "colunas acompanham o ciclo da requisição"
+  },
+  {
+    "name": "sem_colunas_fixadas",
+    "passed": true,
+    "detail": "nenhuma coluna fica presa horizontalmente"
+  },
+  {
+    "name": "legibilidade_v994a4",
+    "passed": true,
+    "detail": "topo, busca, filtros e tabela ampliados"
+  },
+  {
+    "name": "hotfix_onedrive_sem_rmtree_last_valid",
+    "passed": true,
+    "detail": "backup imutável por snapshot; pasta last-valid não é apagada"
+  },
+  {
+    "name": "estado_local_fora_onedrive",
+    "passed": true,
+    "detail": "Windows usa LOCALAPPDATA com override opcional"
+  },
+  {
+    "name": "rollback_por_snapshot",
+    "passed": true,
+    "detail": "rollback resolve o snapshot apontado e usa replace com retry"
+  },
+  {
+    "name": "retry_bloqueio_temporario",
+    "passed": true,
+    "detail": "substituição de arquivos tolera bloqueios temporários"
+  },
+  {
+    "name": "aviso_openpyxl_controlado",
+    "passed": true,
+    "detail": "aviso inofensivo de leitura não polui o atualizador"
+  },
+  {
+    "name": "camada_v994a6_final",
+    "passed": true,
+    "detail": "CSS V99.4A.6 carregado por último"
+  },
+  {
+    "name": "semantica_orc_os",
+    "passed": true,
+    "detail": "interface usa ORC/OS nos pontos operacionais"
+  },
+  {
+    "name": "mais_antigo_exato",
+    "passed": true,
+    "detail": "caso mais antigo inclui ORC/OS e abre com contexto exato"
+  },
+  {
+    "name": "payload_executivo_orc_os",
+    "passed": true,
+    "detail": "índice executivo recebe referências mínimas para o caso mais antigo"
+  },
+  {
+    "name": "rankings_operacionais",
+    "passed": true,
+    "detail": "fornecedores e solicitantes mostram valor, quantidade, críticas e idade"
+  },
+  {
+    "name": "mostrador_filtros_v994a5",
+    "passed": true,
+    "detail": "barra de contexto diferencia visão, fila e base"
+  },
+  {
+    "name": "topo_v994a5",
+    "passed": true,
+    "detail": "topo reorganizado com status, ações e filtros legíveis"
+  },
+  {
+    "name": "topo_clean_v994a6",
+    "passed": true,
+    "detail": "acesso visual removido; atualização menor e translúcida"
+  },
+  {
+    "name": "ranking_geral_padrao_v994a6",
+    "passed": true,
+    "detail": "Geral é o contexto inicial dos dois rankings"
+  },
+  {
+    "name": "ranking_seletor_v994a6",
+    "passed": true,
+    "detail": "seletor alterna Geral e Em andamento"
+  },
+  {
+    "name": "top_tres_sem_corte_v994a6",
+    "passed": true,
+    "detail": "três linhas e rodapé permanecem visíveis"
+  },
+  {
+    "name": "ranking_clique_contextual_v994a6",
+    "passed": true,
+    "detail": "linha e rodapé respeitam o contexto selecionado"
+  }
+]

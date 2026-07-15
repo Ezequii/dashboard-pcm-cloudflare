@@ -67,9 +67,9 @@ check(
 
 check(
   "css_novo_por_ultimo",
-  index.lastIndexOf("styles_v994a4_top_base_flow.css?v=9945")
-    > index.lastIndexOf("styles_v994a3_operational_fix.css?v=9945"),
-  "camada V99.4A.5 é a última"
+  index.lastIndexOf("styles_v994a4_top_base_flow.css?v=9946")
+    > index.lastIndexOf("styles_v994a3_operational_fix.css?v=9946"),
+  "camada V99.4A.6 é a última"
 );
 
 check(
