@@ -277,6 +277,7 @@ function updateFilterUI(){
   });
 
   renderActiveFilters();
+  window.syncQuickChips?.();
 }
 
 function renderActiveFilters(){

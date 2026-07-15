@@ -237,6 +237,7 @@ function bindEvents(){
 
   $('btnClear').onclick = clearAll;
   bindFilterDrawer();
+  bindQuickChips();
   $('btnRefresh').onclick = refreshData;
   bindWorkbookUpload();
   $('btnExportCsv')?.addEventListener('click', () => {
@@ -445,46 +446,101 @@ function closeFilterDrawer(){
 
 function bindQuickChips(){
   document.querySelectorAll('#quickChips .quick-chip').forEach(btn => {
+    if(btn.dataset.quickBound === '1') return;
+    btn.dataset.quickBound = '1';
     btn.addEventListener('click', () => applyQuickFilter(btn.dataset.quick || 'TODAS'));
   });
 }
 
 function applyQuickFilter(kind){
-  // Mantém filtros principais de solicitante/fornecedor/mês e só altera os filtros rápidos.
+  const allowedKinds = new Set([
+    'TODAS',
+    'FORA_SLA',
+    'CRITICO',
+    'SEM_LANCAMENTO',
+    'SEM_PEDIDO',
+    'SEM_NF'
+  ]);
+  const selectedKind = allowedKinds.has(kind) ? kind : 'TODAS';
+
+  // Presets exclusivos: preservam solicitante, fornecedor e mês,
+  // mas substituem o contexto operacional de etapa/SLA.
   state.filters['SLA STATUS'] = [];
   state.filters['FAIXA ATRASO'] = [];
-  if(!['SEM_NF','SEM_LANCAMENTO','SEM_PEDIDO'].includes(kind)) state.filters['ETAPA'] = [];
-  if(kind === 'FORA_SLA') state.filters['SLA STATUS'] = ['ATENÇÃO','CRÍTICO'];
-  if(kind === 'CRITICO') state.filters['SLA STATUS'] = ['CRÍTICO'];
-  if(kind === '15_DIAS') state.filters['FAIXA ATRASO'] = ['15+ dias','30+ dias'];
-  if(kind === '30_DIAS') state.filters['FAIXA ATRASO'] = ['30+ dias'];
-  if(kind === 'SEM_NF') state.filters['ETAPA'] = ['SEM NF'];
-  if(kind === 'SEM_LANCAMENTO') state.filters['ETAPA'] = ['SEM LANÇAMENTO'];
-  if(kind === 'SEM_PEDIDO') state.filters['ETAPA'] = ['SEM PEDIDO'];
-  if(kind === 'TODAS'){
-    state.filters['SLA STATUS'] = [];
-    state.filters['FAIXA ATRASO'] = [];
-    state.filters['ETAPA'] = [];
+  state.filters['ETAPA'] = [];
+
+  if(selectedKind === 'FORA_SLA'){
+    state.filters['SLA STATUS'] = ['ATENÇÃO', 'CRÍTICO'];
+  }else if(selectedKind === 'CRITICO'){
+    state.filters['SLA STATUS'] = ['CRÍTICO'];
+  }else if(selectedKind === 'SEM_LANCAMENTO'){
+    state.filters['ETAPA'] = ['SEM LANÇAMENTO'];
+  }else if(selectedKind === 'SEM_PEDIDO'){
+    state.filters['ETAPA'] = ['SEM PEDIDO'];
+  }else if(selectedKind === 'SEM_NF'){
+    state.filters['ETAPA'] = ['SEM NF'];
   }
+
   state.page = 1;
-  syncQuickChips(kind);
   updateFilterUI();
   scheduleDashboard();
 }
 
-function syncQuickChips(activeKind=null){
-  let kind = activeKind || 'TODAS';
-  const sla = state.filters['SLA STATUS'] || [];
-  const faixa = state.filters['FAIXA ATRASO'] || [];
-  const etapa = state.filters['ETAPA'] || [];
-  if(etapa.includes('SEM LANÇAMENTO')) kind = 'SEM_LANCAMENTO';
-  else if(etapa.includes('SEM PEDIDO')) kind = 'SEM_PEDIDO';
-  else if(etapa.includes('SEM NF')) kind = 'SEM_NF';
-  else if(sla.length === 1 && sla.includes('CRÍTICO')) kind = 'CRITICO';
-  else if(sla.includes('ATENÇÃO') && sla.includes('CRÍTICO')) kind = 'FORA_SLA';
-  else if(faixa.includes('30+ dias') && faixa.includes('15+ dias')) kind = '15_DIAS';
-  else if(faixa.length === 1 && faixa.includes('30+ dias')) kind = '30_DIAS';
-  document.querySelectorAll('#quickChips .quick-chip').forEach(btn => btn.classList.toggle('active', btn.dataset.quick === kind));
+function quickFilterKindFromState(){
+  const sla = Array.isArray(state.filters['SLA STATUS'])
+    ? state.filters['SLA STATUS']
+    : [];
+  const faixa = Array.isArray(state.filters['FAIXA ATRASO'])
+    ? state.filters['FAIXA ATRASO']
+    : [];
+  const etapa = Array.isArray(state.filters['ETAPA'])
+    ? state.filters['ETAPA']
+    : [];
+
+  if(!sla.length && !faixa.length && !etapa.length) return 'TODAS';
+  if(
+    etapa.length === 1
+    && etapa[0] === 'SEM LANÇAMENTO'
+    && !sla.length
+    && !faixa.length
+  ) return 'SEM_LANCAMENTO';
+  if(
+    etapa.length === 1
+    && etapa[0] === 'SEM PEDIDO'
+    && !sla.length
+    && !faixa.length
+  ) return 'SEM_PEDIDO';
+  if(
+    etapa.length === 1
+    && etapa[0] === 'SEM NF'
+    && !sla.length
+    && !faixa.length
+  ) return 'SEM_NF';
+  if(
+    !etapa.length
+    && !faixa.length
+    && sla.length === 1
+    && sla[0] === 'CRÍTICO'
+  ) return 'CRITICO';
+  if(
+    !etapa.length
+    && !faixa.length
+    && sla.length === 2
+    && sla.includes('ATENÇÃO')
+    && sla.includes('CRÍTICO')
+  ) return 'FORA_SLA';
+
+  return null;
+}
+
+function syncQuickChips(){
+  const activeKind = quickFilterKindFromState();
+
+  document.querySelectorAll('#quickChips .quick-chip').forEach(btn => {
+    const active = Boolean(activeKind && btn.dataset.quick === activeKind);
+    btn.classList.toggle('active', active);
+    btn.setAttribute('aria-pressed', active ? 'true' : 'false');
+  });
 }
 
 function switchTab(tab, options={}){
@@ -533,7 +589,7 @@ function clearAll(){
   updateSearchUI();
   hydrateAdvancedSearch();
   updateFilterUI();
-  syncQuickChips('TODAS');
+  syncQuickChips();
   closeAllPopovers();
   closeFilterDrawer();
   savePreferences();
@@ -643,4 +699,6 @@ function setLoading(on){
 }
 
 
+window.syncQuickChips = syncQuickChips;
+window.applyQuickFilter = applyQuickFilter;
 window.init = init;
