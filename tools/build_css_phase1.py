@@ -2,7 +2,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 STATIC = ROOT / "static"
-SOURCES = ['styles_v50_corrigido.css', 'styles_v991_faithful.css', 'styles_v992_polished.css', 'styles_v99_productivity.css', 'styles_v994a_hardening.css', 'styles_v994a2_audit.css', 'styles_v994a2_visual.css', 'styles_v994a3_operational_fix.css', 'styles_v994a4_top_base_flow.css', 'styles_v994a5_lapidacao.css', 'styles_v994a6_clean_rankings.css', 'styles_v994a7_polish.css', 'styles_v994a7_1.css']
+SOURCES = ['styles_v50_corrigido.css', 'styles_v991_faithful.css', 'styles_v992_polished.css', 'styles_v99_productivity.css', 'styles_v994a_hardening.css', 'styles_v994a2_audit.css', 'styles_v994a2_visual.css', 'styles_v994a3_operational_fix.css', 'styles_v994a4_top_base_flow.css', 'styles_v994a5_lapidacao.css', 'styles_v994a6_clean_rankings.css', 'styles_v994a7_polish.css', 'styles_v994a7_1.css', 'styles_v994a7_1a.css']
 
 header = """/* Dashboard PCM — bundle consolidado da Fase 1
  * Gerado por tools/build_css_phase1.py.
