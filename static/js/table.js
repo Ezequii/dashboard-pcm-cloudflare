@@ -19,9 +19,24 @@ async function loadRows(seq=null){
     state.page = data.page;
 
     const preferredOrder = [
-      'ETAPA','DIAS PARADO','SLA STATUS','DONO DA AÇÃO',
-      'DATA DE RECEBIMENTO','DATA LANÇAMENTO','Nº ORÇAMENTO FINAL','VALOR TOTAL',
-      'FORNECEDOR','SOLICITANTE','PREFIXO','EQUIPAMENTO','Nº REQUISIÇÃO','Nº PEDIDO DE COMPRA',
+      'ETAPA',
+      'DATA DE RECEBIMENTO',
+      'DATA LANÇAMENTO',
+      'Nº PEDIDO DE COMPRA',
+      'DATA DO PEDIDO',
+      'Nº NFS/DANFE',
+      'DATA LANÇAMENTO NFS',
+      'DIAS PARADO',
+      'SLA STATUS',
+      'DONO DA AÇÃO',
+      'Nº REQUISIÇÃO',
+      'Nº ORÇAMENTO FINAL',
+      'VALOR TOTAL',
+      'FORNECEDOR',
+      'SOLICITANTE',
+      'PREFIXO',
+      'EQUIPAMENTO',
+      'Nº ORDEM SERVIÇO',
       'FAIXA ATRASO'
     ];
 
@@ -109,15 +124,17 @@ function headerInfo(col){
     'VALOR TOTAL': ['Valor total', 'R$'],
     'SOLICITANTE': ['Solicitante', 'responsável'],
     'Nº REQUISIÇÃO': ['Requisição', 'RC'],
-    'Nº PEDIDO DE COMPRA': ['Pedido de compra', 'PC']
+    'Nº PEDIDO DE COMPRA': ['Pedido de compra', 'número'],
+    'DATA DO PEDIDO': ['Pedido emitido em', 'data'],
+    'Nº NFS/DANFE': ['NF / DANFE', 'documento'],
+    'DATA LANÇAMENTO NFS': ['NF lançada em', 'data'],
+    'Nº ORDEM SERVIÇO': ['Ordem de serviço', 'OS']
   };
   return map[col] || [col, ''];
 }
 
 function pinnedColumnClassV994a2(index){
-  return index >= 0 && index < 4
-    ? ` pin-col-v994a2 pin-col-v994a2-${index}`
-    : '';
+  return '';
 }
 
 function renderHeader(col, columnIndex=-1){

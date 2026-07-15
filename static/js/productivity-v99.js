@@ -6,7 +6,7 @@
   "use strict";
 
   const SAVED_VIEWS_KEY_V99 = "pcm-dashboard-saved-views-v99";
-  const COLUMNS_KEY_V99 = "pcm-dashboard-columns-v99";
+  const COLUMNS_KEY_V99 = "pcm-dashboard-columns-v994a4-flow";
   const URL_STATE_KEY_V99 = "view";
   const MAX_SAVED_VIEWS_V99 = 30;
   const MAX_MULTI_TERMS_V99 = 500;
@@ -115,7 +115,7 @@
       dateTo: String(state.dateTo || ""),
       valueMin: String(state.valueMin || ""),
       valueMax: String(state.valueMax || ""),
-      sortCol: String(state.sortCol || "DIAS PARADO"),
+      sortCol: String(state.sortCol || "ETAPA"),
       sortDir: state.sortDir === "asc" ? "asc" : "desc",
       pageSize: Math.max(10, Math.min(Number(state.pageSize || 200), 300)),
       columns: {
@@ -152,7 +152,7 @@
         : "",
       valueMin: String(view.valueMin || "").slice(0, 30),
       valueMax: String(view.valueMax || "").slice(0, 30),
-      sortCol: String(view.sortCol || "DIAS PARADO").slice(0, 100),
+      sortCol: String(view.sortCol || "ETAPA").slice(0, 100),
       sortDir: view.sortDir === "asc" ? "asc" : "desc",
       pageSize: [50, 100, 200, 300].includes(Number(view.pageSize))
         ? Number(view.pageSize)

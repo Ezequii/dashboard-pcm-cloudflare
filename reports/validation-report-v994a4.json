@@ -5,14 +5,14 @@
     "detail": "todos presentes"
   },
   {
-    "name": "versionamento_9943",
+    "name": "versionamento_9944",
     "passed": true,
-    "detail": "HTML, configuração e runtime usam 9943"
+    "detail": "HTML, configuração e runtime usam 9944"
   },
   {
     "name": "ordem_scripts",
     "passed": true,
-    "detail": "{'app-config.js': 24025, 'state.js': 24083, 'utils.js': 24136, 'security-v994a.js': 24189, 'api.js': 24251, 'filters.js': 24302, 'dashboard.js': 24357, 'table.js': 24414, 'xlsx-v99.js': 24467, 'productivity-v99.js': 24523, 'core.js': 24587, 'main.js': 24639}"
+    "detail": "{'app-config.js': 24409, 'state.js': 24467, 'utils.js': 24520, 'security-v994a.js': 24573, 'api.js': 24635, 'filters.js': 24686, 'dashboard.js': 24741, 'table.js': 24798, 'xlsx-v99.js': 24851, 'productivity-v99.js': 24907, 'core.js': 24971, 'main.js': 25023}"
   },
   {
     "name": "ids_unicos",
@@ -122,7 +122,7 @@
   {
     "name": "testes_runtime",
     "passed": true,
-    "detail": "OK versionamento_runtime — 99.4A.3/9943\nOK decisao_versao_igual — false\nOK decisao_versao_nova — true\nOK versao_vazia_nao_dispara — false\nOK requisicao_antiga_cancelada — AbortError\nOK requisicao_nova_concluida — {\"url\":\"/fast?ts=1784121614741\",\"ok\":true}\nOK cancelamento_explicito — test\nRESULTADO: 7/7 testes aprovados."
+    "detail": "OK versionamento_runtime — 99.4A.4/9944\nOK decisao_versao_igual — false\nOK decisao_versao_nova — true\nOK versao_vazia_nao_dispara — false\nOK requisicao_antiga_cancelada — AbortError\nOK requisicao_nova_concluida — {\"url\":\"/fast?ts=1784124375746\",\"ok\":true}\nOK cancelamento_explicito — test\nRESULTADO: 7/7 testes aprovados."
   },
   {
     "name": "testes_produtividade",
@@ -130,9 +130,9 @@
     "detail": "OK busca_multipla_codigos — [\"14031\",\"36657\",\"26730\"]\nOK busca_multipla_nomes — [\"CAMPO ERE\",\"ASTER MÁQUINAS\",\"RZK AGRO\"]\nOK resumo_quantidade — 3\nOK resumo_valor — 90176.70999999999\nOK resumo_etapas — {\"SEM LANÇAMENTO\":{\"count\":1,\"value\":10003.95},\"SEM NF\":{\"count\":2,\"value\":80172.76}}\nOK resumo_texto — Resumo PCM — Teste automatizado\n3 registros · R$ 90.176,71\nMaior tempo parado: 42 dias\n\nEtapas:\n• SEM NF: 2 · R$ 80.172,76\n• SEM LANÇAMENTO: 1 · R$ 10.003,95\n\nPrincipais fornecedores:\n1. ASTER MÁQUINAS: 2 · R$ 80.172,76\n2. CAMPO ERE: 1 · R$ 10.003,95\nOK xlsx_assinatura_zip — 80,75\nOK xlsx_tamanho — 15151\nRESULTADO: 8/8 testes aprovados."
   },
   {
-    "name": "testes_visuais_v994a3",
+    "name": "testes_topo_base_fluxo_v994a4",
     "passed": true,
-    "detail": "OK bloco_fluxo_extraido — encontrado\nOK sempre_quatro_etapas — [\"SEM LANÇAMENTO\",\"SEM PEDIDO\",\"SEM NF\",\"CONCLUÍDO\"]\nOK ordem_oficial — [\"SEM LANÇAMENTO\",\"SEM PEDIDO\",\"SEM NF\",\"CONCLUÍDO\"]\nOK etapa_existente_preservada — {\"etapa\":\"SEM NF\",\"qtd\":92,\"valor\":806000,\"valor_formatado\":\"R$ 0\",\"percentual\":0,\"max_dias\":69,\"idade_media\":0,\"fora_sla\":17,\"criticas\":0,\"canonical_stage\":\"SEM NF\"}\nOK etapas_ausentes_viram_zero — [0,0,92,0]\nOK bloco_gaveta_extraido — encontrado\nOK moeda_formatada — R$ 5.225,00\nOK documentos_separados — 41779605 · 41779606\nOK datas_separadas — 27/01/2026 · 02/03/2026\nOK grade_desktop_quatro_colunas — seletor de alta especificidade\nOK quatro_colunas_fixadas_sem_sobrepor — seleção + offsets das quatro primeiras colunas\nOK css_carregado_por_ultimo — ordem dos estilos\nOK body_da_revisao_base — classe v994a2-visual\nOK sem_cache_antigo — somente 9942\nRESULTADO: 14/14 testes aprovados."
+    "detail": "OK topo_em_tres_zonas — marca, navegação e status/ações separados\nOK css_novo_por_ultimo — camada V99.4A.4 é a última\nOK sem_resumo_duplicado — painel duplicado removido do HTML\nOK default_fluxo — ETAPA asc e armazenamento novo\nOK sem_colunas_fixas — classes de pin desativadas e CSS estático\nOK colunas_seguem_fluxo — 'ETAPA' → 'DATA DE RECEBIMENTO' → 'DATA LANÇAMENTO' → 'Nº PEDIDO DE COMPRA' → 'DATA DO PEDIDO' → 'Nº NFS/DANFE' → 'DATA LANÇAMENTO NFS'\nOK gerador_segue_fluxo — contrato operacional cronológico\nOK linhas_seguem_fluxo — [\"SEM LANÇAMENTO\",\"SEM LANÇAMENTO\",\"SEM PEDIDO\",\"SEM NF\",\"CONCLUÍDO\"]\nOK maior_idade_primeiro_na_etapa — [\"5\",\"1\"]\nOK tipografia_minima — topo, filtros e tabela ampliados\nRESULTADO: 10/10 testes aprovados."
   },
   {
     "name": "testes_python",
@@ -150,9 +150,9 @@
     "detail": "quatro etapas canônicas e grade de quatro colunas"
   },
   {
-    "name": "tabela_sem_sobreposicao",
+    "name": "tabela_sem_colunas_fixas",
     "passed": true,
-    "detail": "seleção e quatro primeiras colunas com offsets próprios"
+    "detail": "rolagem horizontal natural, sem colunas presas"
   },
   {
     "name": "gaveta_formatada",
@@ -192,6 +192,46 @@
   {
     "name": "camada_v994a3_carregada",
     "passed": true,
-    "detail": "CSS corretivo é a última camada"
+    "detail": "camada corretiva V99.4A.3 preservada antes da V99.4A.4"
+  },
+  {
+    "name": "topo_reorganizado_v994a4",
+    "passed": true,
+    "detail": "marca, navegação e status/ações usam zonas independentes"
+  },
+  {
+    "name": "camada_v994a4_por_ultimo",
+    "passed": true,
+    "detail": "CSS V99.4A.4 é a camada final"
+  },
+  {
+    "name": "resumo_etapas_duplicado_removido",
+    "passed": true,
+    "detail": "somente o fluxo executivo permanece"
+  },
+  {
+    "name": "ordenacao_padrao_fluxo",
+    "passed": true,
+    "detail": "lançamento → pedido → NF → concluído"
+  },
+  {
+    "name": "preferencias_novas_v994a4",
+    "passed": true,
+    "detail": "preferências antigas não sobrescrevem o novo padrão"
+  },
+  {
+    "name": "colunas_padrao_cronologicas",
+    "passed": true,
+    "detail": "colunas acompanham o ciclo da requisição"
+  },
+  {
+    "name": "sem_colunas_fixadas",
+    "passed": true,
+    "detail": "nenhuma coluna fica presa horizontalmente"
+  },
+  {
+    "name": "legibilidade_v994a4",
+    "passed": true,
+    "detail": "topo, busca, filtros e tabela ampliados"
   }
 ]

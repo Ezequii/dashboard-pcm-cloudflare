@@ -968,7 +968,8 @@ function compactCurrency(value){
     if(hint){
       hint.textContent =
         `${intV991(kpis.pendentes)} pendentes · ` +
-        `${kpis.valor_pendente_compacto || kpis.valor_pendente || "R$ 0"} em andamento`;
+        `${kpis.valor_pendente_compacto || kpis.valor_pendente || "R$ 0"} em andamento · ` +
+        `ordem: lançamento → pedido → NF → concluído`;
     }
   };
 })();

@@ -2,10 +2,10 @@
 setlocal EnableExtensions
 cd /d "%~dp0"
 
-title Atualizar Dashboard PCM V99.4A.3
+title Atualizar Dashboard PCM V99.4A.4
 
 echo ======================================================
-echo   Atualizar Dashboard PCM - V99.4A.3 Hardening
+echo   Atualizar Dashboard PCM - V99.4A.4 Hardening
 echo ======================================================
 echo.
 echo Verificando planilha oficial...
@@ -56,11 +56,11 @@ if %errorlevel% neq 0 (
 )
 
 echo.
-echo Validando V99.4A.3...
-%PY_CMD% tools\validar_v994a3.py
+echo Validando V99.4A.4...
+%PY_CMD% tools\validar_v994a4.py
 if %errorlevel% neq 0 (
     echo.
-    echo ERRO: a validacao da V99.4A.3 encontrou um problema.
+    echo ERRO: a validacao da V99.4A.4 encontrou um problema.
     echo Nao publique os arquivos.
     pause
     exit /b 1
@@ -68,7 +68,7 @@ if %errorlevel% neq 0 (
 
 echo.
 echo ======================================================
-echo   VALIDACAO V99.4A.3: OK
+echo   VALIDACAO V99.4A.4: OK
 echo   BACKUP VALIDO: confirmado quando havia versao anterior
 echo   PAYLOAD SENSIVEL: campos proibidos removidos
 echo ======================================================

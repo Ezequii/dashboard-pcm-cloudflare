@@ -171,8 +171,8 @@ check(
 
 check(
   "css_carregado_por_ultimo",
-  indexHtml.lastIndexOf("styles_v994a3_operational_fix.css?v=9943")
-    > indexHtml.lastIndexOf("styles_v994a2_visual.css?v=9943"),
+  indexHtml.lastIndexOf("styles_v994a3_operational_fix.css?v=9944")
+    > indexHtml.lastIndexOf("styles_v994a2_visual.css?v=9944"),
   "ordem dos estilos"
 );
 

@@ -8,8 +8,8 @@ const state = {
   multiSearchMode: 'ANY',
   page: 1,
   pageSize: 200,
-  sortCol: 'DIAS PARADO',
-  sortDir: 'desc',
+  sortCol: 'ETAPA',
+  sortDir: 'asc',
   stageColors: {},
   dashboardSeq: 0,
   rowsSeq: 0,
@@ -45,7 +45,7 @@ const DESC_FIRST_COLUMNS = new Set([
 ]);
 
 const $ = (id) => document.getElementById(id);
-const STORAGE_KEY = 'pcm-dashboard-preferences-v994a-hardening';
+const STORAGE_KEY = 'pcm-dashboard-preferences-v994a4-flow-default';
 const LEGACY_STORAGE_KEYS = [
   'pcm-dashboard-preferences-v97-cloudflare',
   'pcm-dashboard-preferences-v89-cloudflare',

@@ -700,10 +700,10 @@ function applyStaticQuery(rows, query={}){
       const max = n(query.value_max);
       if(Number.isFinite(max)) out = out.filter(r => n(r._VALOR_TOTAL) <= max);
     }
-    return sortStaticRows(out, query.sort_col || 'DIAS PARADO', String(query.sort_dir || 'desc').toLowerCase());
+    return sortStaticRows(out, query.sort_col || 'ETAPA', String(query.sort_dir || 'asc').toLowerCase());
   }catch(err){
     console.error('Erro em applyStaticQuery:', err);
-    return sortStaticRows(rows.slice(), 'DIAS PARADO', 'desc');
+    return sortStaticRows(rows.slice(), 'ETAPA', 'asc');
   }
 }
 
@@ -717,21 +717,49 @@ function sortValue(row, col){
   return String(row[col] ?? '');
 }
 function etapaRank(row){
-  const ordem = {'SEM LANÇAMENTO':0,'SEM PEDIDO':1,'SEM NF':2,'CONCLUÍDO':3};
-  return ordem[String(row.ETAPA || row._ETAPA || '').toUpperCase()] ?? 9;
+  const ordem = {
+    'SEM LANCAMENTO':0,
+    'SEM PEDIDO':1,
+    'SEM NF':2,
+    'CONCLUIDO':3
+  };
+  return ordem[normalizeText(row.ETAPA || row._ETAPA || '')] ?? 9;
 }
+function compareStaticValuesV994a4(a, b, col){
+  const av = sortValue(a, col);
+  const bv = sortValue(b, col);
+  if(typeof av === 'number' && typeof bv === 'number') return av - bv;
+  return String(av).localeCompare(
+    String(bv),
+    'pt-BR',
+    {numeric:true, sensitivity:'base'}
+  );
+}
+
+function compareWithinStageV994a4(a, b){
+  const ageCmp = n(b._DIAS_PARADO) - n(a._DIAS_PARADO);
+  if(ageCmp) return ageCmp;
+
+  const valueCmp = n(b._VALOR_TOTAL) - n(a._VALOR_TOTAL);
+  if(valueCmp) return valueCmp;
+
+  return String(a['Nº REQUISIÇÃO'] || a._ROW_ID || '').localeCompare(
+    String(b['Nº REQUISIÇÃO'] || b._ROW_ID || ''),
+    'pt-BR',
+    {numeric:true, sensitivity:'base'}
+  );
+}
+
 function sortStaticRows(rows, col, dir){
   const desc = dir === 'desc';
   return rows.slice().sort((a,b)=>{
-    // A base abre na lógica operacional do PCM: primeiro o que falta lançar, depois acompanhar pedido/NF.
-    if(col === 'DIAS PARADO'){
-      const etapaCmp = etapaRank(a) - etapaRank(b);
-      if(etapaCmp) return etapaCmp;
+    if(col === 'ETAPA'){
+      const stageCmp = etapaRank(a) - etapaRank(b);
+      if(stageCmp) return desc ? -stageCmp : stageCmp;
+      return compareWithinStageV994a4(a, b);
     }
-    const av=sortValue(a,col), bv=sortValue(b,col);
-    let cmp = 0;
-    if(typeof av === 'number' && typeof bv === 'number') cmp = av - bv;
-    else cmp = String(av).localeCompare(String(bv), 'pt-BR', {numeric:true, sensitivity:'base'});
+
+    const cmp = compareStaticValuesV994a4(a, b, col);
     return desc ? -cmp : cmp;
   });
 }

@@ -5,55 +5,76 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Controle de Requisições PCM 2026</title>
   <link rel="icon" type="image/png" href="/static/favicon.png" />
-  <link rel="stylesheet" href="/static/styles_v50_corrigido.css?v=9943" />
-  <link rel="stylesheet" href="/static/styles_v991_faithful.css?v=9943" />
-  <link rel="stylesheet" href="/static/styles_v992_polished.css?v=9943" />
-  <link rel="stylesheet" href="/static/styles_v99_productivity.css?v=9943" />
-  <link rel="stylesheet" href="/static/styles_v994a_hardening.css?v=9943" />
-  <link rel="stylesheet" href="/static/styles_v994a2_audit.css?v=9943" />
-  <link rel="stylesheet" href="/static/styles_v994a2_visual.css?v=9943" />
-  <link rel="stylesheet" href="/static/styles_v994a3_operational_fix.css?v=9943" />
+  <link rel="stylesheet" href="/static/styles_v50_corrigido.css?v=9944" />
+  <link rel="stylesheet" href="/static/styles_v991_faithful.css?v=9944" />
+  <link rel="stylesheet" href="/static/styles_v992_polished.css?v=9944" />
+  <link rel="stylesheet" href="/static/styles_v99_productivity.css?v=9944" />
+  <link rel="stylesheet" href="/static/styles_v994a_hardening.css?v=9944" />
+  <link rel="stylesheet" href="/static/styles_v994a2_audit.css?v=9944" />
+  <link rel="stylesheet" href="/static/styles_v994a2_visual.css?v=9944" />
+  <link rel="stylesheet" href="/static/styles_v994a3_operational_fix.css?v=9944" />
+  <link rel="stylesheet" href="/static/styles_v994a4_top_base_flow.css?v=9944" />
 </head>
-<body class="v86-table-lines v89-simple-filters-search-money v90-layout-safe v91-layout-final v95-header-kpi-polish v97-reliability-navigation v971-runtime-fix v991-faithful v992-polished v993-productivity v994a-hardening v994a2-audited v994a2-visual app-booting v994a3-operational-fix">
+<body class="v86-table-lines v89-simple-filters-search-money v90-layout-safe v91-layout-final v95-header-kpi-polish v97-reliability-navigation v971-runtime-fix v991-faithful v992-polished v993-productivity v994a-hardening v994a2-audited v994a2-visual app-booting v994a3-operational-fix v994a4-top-base-flow">
   <a class="skip-link-v994a" href="#mainContent">Pular para o conteúdo</a>
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
   <div id="drawerBackdrop" class="drawer-backdrop no-print" hidden></div>
 
-  <header class="topbar executive-topbar topbar-v33 topbar-v34 topbar-v35 topbar-v36 topbar-v38 topbar-v39 topbar-v40 topbar-v41">
-    <div class="topbar-row topbar-row-main">
-      <div class="brand brand-amaggi brand-panel">
-        <div class="brand-logo-box"><img src="/static/logo_amaggi.png" alt="AMAGGI" /></div>
-        <div class="brand-copy-wrap">
-          <div>
-            <div class="brand-title-line"><h1>Controle de Requisições PCM</h1>        <span class="version-pill-v34" aria-label="Versão visual premium">V99.4A.3</span></div>
-            <p class="subtitle-top">Controle de lançamento e acompanhamento — 2026</p>
+  <header class="topbar executive-topbar topbar-v33 topbar-v34 topbar-v35 topbar-v36 topbar-v38 topbar-v39 topbar-v40 topbar-v41 topbar-v994a4">
+    <div class="topbar-row topbar-row-main topbar-main-v994a4">
+      <div class="brand brand-amaggi brand-panel brand-v994a4">
+        <div class="brand-logo-box">
+          <img src="/static/logo_amaggi.png" alt="AMAGGI" />
+        </div>
+        <div class="brand-copy-v994a4">
+          <div class="brand-title-line">
+            <h1>Controle de Requisições PCM</h1>
+            <span class="version-pill-v34" aria-label="Versão atual">V99.4A.4</span>
           </div>
-          <nav class="dashboard-tabs no-print prominent-tabs inline-tabs" role="tablist" aria-label="Navegação do dashboard">
-            <button class="tab-btn active" role="tab" aria-selected="true" data-tab="visao"><span>Visão Executiva</span><small>visão gerencial</small></button>
-            <button class="tab-btn" role="tab" aria-selected="false" data-tab="base"><span>Base de Tratativa</span><small>base operacional</small></button>
-          </nav>
+          <p class="subtitle-top">Controle de lançamento e acompanhamento — 2026</p>
         </div>
       </div>
-      <div class="top-actions no-print">
-        <div id="securityContextV994a" class="security-context-v994a" aria-live="polite">
-          <span id="securityRoleV994a">Acesso: verificando</span>
-          <small id="securityClassificationV994a">Dados internos</small>
+
+      <nav class="dashboard-tabs no-print prominent-tabs inline-tabs tabs-v994a4" role="tablist" aria-label="Navegação do dashboard">
+        <button class="tab-btn active" role="tab" aria-selected="true" data-tab="visao">
+          <span>Visão Executiva</span>
+          <small>decisão e prioridade</small>
+        </button>
+        <button class="tab-btn" role="tab" aria-selected="false" data-tab="base">
+          <span>Base de Tratativa</span>
+          <small>registros operacionais</small>
+        </button>
+      </nav>
+
+      <div class="top-actions no-print top-actions-v994a4">
+        <div class="status-cluster-v994a4">
+          <div id="securityContextV994a" class="security-context-v994a" aria-live="polite">
+            <span id="securityRoleV994a">Acesso: verificando</span>
+            <small id="securityClassificationV994a">Dados internos</small>
+          </div>
+          <div class="data-status-group-v994a4">
+            <span id="meta" class="meta-inline-v95" aria-label="Última atualização da base">Carregando...</span>
+            <span id="dataFreshness" class="data-freshness-v97 is-loading" aria-live="polite" title="Situação da atualização da base">
+              <i aria-hidden="true"></i><span>Verificando base...</span>
+            </span>
+          </div>
+          <span id="clock" class="clock clock-v994a4" aria-label="Relógio do sistema"></span>
         </div>
-        <span id="clock" class="clock" aria-label="Relógio do sistema"></span>
-        <span id="meta" class="meta-inline-v95" aria-label="Última atualização da base">Carregando...</span>
-        <span id="dataFreshness" class="data-freshness-v97 is-loading" aria-live="polite" title="Situação da atualização da base"><i aria-hidden="true"></i><span>Verificando base...</span></span>
-        <button id="btnRefresh" class="btn btn-primary" aria-label="Recarregar dados da planilha">Recarregar</button>
-        
-        <div id="exportMenu" class="export-menu">
-          <button id="btnExportMenu" class="btn btn-soft" type="button" aria-label="Abrir opções de exportação" aria-expanded="false">Exportar</button>
-          <div id="exportDropdown" class="export-dropdown" hidden>
-            <button id="btnExportExcelV99" class="export-item" type="button">Exportar Excel real (.xlsx)</button>
-            <button id="btnExportCsv" class="export-item" type="button">Exportar CSV da visão atual</button>
+
+        <div class="action-cluster-v994a4">
+          <button id="btnRefresh" class="btn btn-primary" aria-label="Recarregar dados da planilha">Recarregar</button>
+          <div id="exportMenu" class="export-menu">
+            <button id="btnExportMenu" class="btn btn-soft" type="button" aria-label="Abrir opções de exportação" aria-expanded="false">Exportar</button>
+            <div id="exportDropdown" class="export-dropdown" hidden>
+              <button id="btnExportExcelV99" class="export-item" type="button">Exportar Excel real (.xlsx)</button>
+              <button id="btnExportCsv" class="export-item" type="button">Exportar CSV da visão atual</button>
+            </div>
           </div>
         </div>
       </div>
     </div>
-    <div class="topbar-row topbar-row-filters-v40 no-print">
+
+    <div class="topbar-row topbar-row-filters-v40 no-print filters-row-v994a4">
       <div class="smart-filter-row executive-filter-row top-inline-filters top-filters-v40" id="mainFilters" aria-label="Filtros principais"></div>
       <button id="btnOpenFilters" class="btn btn-soft btn-compact filters-summary-button-v97" type="button" aria-label="Abrir resumo dos filtros" aria-expanded="false">
         <span>Filtros</span><b id="activeFilterCount">0</b>
@@ -260,10 +281,6 @@
       </div>
     </section>
 
-    <section id="processCardsBase" class="base-stage-strip-v991" data-panel="base" hidden>
-      <div class="panel-loading-v971" role="status">Carregando etapas…</div>
-    </section>
-
 <section class="table-card table-card-compact" data-panel="base" hidden>
       <div class="table-head">
         <div>
@@ -352,7 +369,7 @@
       <div class="table-wrap table-wrap-compact">
         <table id="dataTable"><thead></thead><tbody></tbody></table>
       </div>
-      <p class="table-hint no-print">Ordem da leitura: etapa → dias parado → ação → valor. As primeiras colunas permanecem visíveis ao rolar.</p>
+      <p class="table-hint no-print">Ordem padrão: sem lançamento → sem pedido → sem NF → concluído. Dentro de cada etapa: maior idade e maior valor primeiro. Nenhuma coluna fica presa ao rolar.</p>
     </section>
 
     <footer class="footer-credit">
@@ -468,17 +485,17 @@
     <div id="detailsContentV99" class="details-content-v99"></div>
   </aside>
 
-  <script src="/static/js/app-config.js?v=9943"></script>
-  <script src="/static/js/state.js?v=9943"></script>
-  <script src="/static/js/utils.js?v=9943"></script>
-  <script src="/static/js/security-v994a.js?v=9943"></script>
-  <script src="/static/js/api.js?v=9943"></script>
-  <script src="/static/js/filters.js?v=9943"></script>
-  <script src="/static/js/dashboard.js?v=9943"></script>
-  <script src="/static/js/table.js?v=9943"></script>
-  <script src="/static/js/xlsx-v99.js?v=9943"></script>
-  <script src="/static/js/productivity-v99.js?v=9943"></script>
-  <script src="/static/js/core.js?v=9943"></script>
-  <script src="/static/js/main.js?v=9943"></script>
+  <script src="/static/js/app-config.js?v=9944"></script>
+  <script src="/static/js/state.js?v=9944"></script>
+  <script src="/static/js/utils.js?v=9944"></script>
+  <script src="/static/js/security-v994a.js?v=9944"></script>
+  <script src="/static/js/api.js?v=9944"></script>
+  <script src="/static/js/filters.js?v=9944"></script>
+  <script src="/static/js/dashboard.js?v=9944"></script>
+  <script src="/static/js/table.js?v=9944"></script>
+  <script src="/static/js/xlsx-v99.js?v=9944"></script>
+  <script src="/static/js/productivity-v99.js?v=9944"></script>
+  <script src="/static/js/core.js?v=9944"></script>
+  <script src="/static/js/main.js?v=9944"></script>
 </body>
 </html>

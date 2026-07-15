@@ -1,0 +1,52 @@
+[
+  {
+    "name": "topo_em_tres_zonas",
+    "passed": true,
+    "detail": "marca, navegação e status/ações separados"
+  },
+  {
+    "name": "css_novo_por_ultimo",
+    "passed": true,
+    "detail": "camada V99.4A.4 é a última"
+  },
+  {
+    "name": "sem_resumo_duplicado",
+    "passed": true,
+    "detail": "painel duplicado removido do HTML"
+  },
+  {
+    "name": "default_fluxo",
+    "passed": true,
+    "detail": "ETAPA asc e armazenamento novo"
+  },
+  {
+    "name": "sem_colunas_fixas",
+    "passed": true,
+    "detail": "classes de pin desativadas e CSS estático"
+  },
+  {
+    "name": "colunas_seguem_fluxo",
+    "passed": true,
+    "detail": "'ETAPA' → 'DATA DE RECEBIMENTO' → 'DATA LANÇAMENTO' → 'Nº PEDIDO DE COMPRA' → 'DATA DO PEDIDO' → 'Nº NFS/DANFE' → 'DATA LANÇAMENTO NFS'"
+  },
+  {
+    "name": "gerador_segue_fluxo",
+    "passed": true,
+    "detail": "contrato operacional cronológico"
+  },
+  {
+    "name": "linhas_seguem_fluxo",
+    "passed": true,
+    "detail": "[\"SEM LANÇAMENTO\",\"SEM LANÇAMENTO\",\"SEM PEDIDO\",\"SEM NF\",\"CONCLUÍDO\"]"
+  },
+  {
+    "name": "maior_idade_primeiro_na_etapa",
+    "passed": true,
+    "detail": "[\"5\",\"1\"]"
+  },
+  {
+    "name": "tipografia_minima",
+    "passed": true,
+    "detail": "topo, filtros e tabela ampliados"
+  }
+]
