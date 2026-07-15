@@ -100,9 +100,14 @@
     "detail": "dashboard-data.json não está publicado"
   },
   {
-    "name": "pacote_sem_fixture",
+    "name": "conjunto_dados_completo",
     "passed": true,
-    "detail": "dados serão gerados pela planilha oficial"
+    "detail": "4/4 arquivos"
+  },
+  {
+    "name": "dados_publicados_validos",
+    "passed": true,
+    "detail": "versão 20260715190745"
   },
   {
     "name": "pacote_sem_legado_executavel",
@@ -111,38 +116,8 @@
   },
   {
     "name": "node_disponivel",
-    "passed": true,
-    "detail": "/opt/nvm/versions/node/v22.16.0/bin/node"
-  },
-  {
-    "name": "sintaxe_javascript",
-    "passed": true,
-    "detail": "todos válidos"
-  },
-  {
-    "name": "testes_runtime",
-    "passed": true,
-    "detail": "OK versionamento_runtime — 99.4A.6/9946\nOK decisao_versao_igual — false\nOK decisao_versao_nova — true\nOK versao_vazia_nao_dispara — false\nOK requisicao_antiga_cancelada — AbortError\nOK requisicao_nova_concluida — {\"url\":\"/fast?ts=1784138060642\",\"ok\":true}\nOK cancelamento_explicito — test\nRESULTADO: 7/7 testes aprovados."
-  },
-  {
-    "name": "testes_produtividade",
-    "passed": true,
-    "detail": "OK busca_multipla_codigos — [\"14031\",\"36657\",\"26730\"]\nOK busca_multipla_nomes — [\"CAMPO ERE\",\"ASTER MÁQUINAS\",\"RZK AGRO\"]\nOK resumo_quantidade — 3\nOK resumo_valor — 90176.70999999999\nOK resumo_etapas — {\"SEM LANÇAMENTO\":{\"count\":1,\"value\":10003.95},\"SEM NF\":{\"count\":2,\"value\":80172.76}}\nOK resumo_texto — Resumo PCM — Teste automatizado\n3 registros · R$ 90.176,71\nMaior tempo parado: 42 dias\n\nEtapas:\n• SEM NF: 2 · R$ 80.172,76\n• SEM LANÇAMENTO: 1 · R$ 10.003,95\n\nPrincipais fornecedores:\n1. ASTER MÁQUINAS: 2 · R$ 80.172,76\n2. CAMPO ERE: 1 · R$ 10.003,95\nOK xlsx_assinatura_zip — 80,75\nOK xlsx_tamanho — 15151\nRESULTADO: 8/8 testes aprovados."
-  },
-  {
-    "name": "testes_lapidacao_v994a5",
-    "passed": true,
-    "detail": "OK funcoes_api_extraidas — 3976\nOK mais_antigo_orc — {\"dias\":96,\"label\":\"14031\",\"label_type\":\"ORC\",\"orc\":\"14031\",\"os\":\"8712\",\"pedido\":\"\",\"nf\":\"\",\"search_value\":\"14031\",\"search_scope\":\"DOCUMENTO\",\"reference_text\":\"ORC 14031 · OS 8712\",\"detail\":\"CAMPO ERE · SEM PEDIDO\",\"etapa\":\"SEM PEDIDO\",\"fornecedor\":\"CAMPO ERE\",\"valor\":\"R$ 260000\",\"valor_full\":\"R$ 260000.00\"}\nOK mais_antigo_os — {\"dias\":96,\"label\":\"14031\",\"label_type\":\"ORC\",\"orc\":\"14031\",\"os\":\"8712\",\"pedido\":\"\",\"nf\":\"\",\"search_value\":\"14031\",\"search_scope\":\"DOCUMENTO\",\"reference_text\":\"ORC 14031 · OS 8712\",\"detail\":\"CAMPO ERE · SEM PEDIDO\",\"etapa\":\"SEM PEDIDO\",\"fornecedor\":\"CAMPO ERE\",\"valor\":\"R$ 260000\",\"valor_full\":\"R$ 260000.00\"}\nOK mais_antigo_busca_documento — {\"dias\":96,\"label\":\"14031\",\"label_type\":\"ORC\",\"orc\":\"14031\",\"os\":\"8712\",\"pedido\":\"\",\"nf\":\"\",\"search_value\":\"14031\",\"search_scope\":\"DOCUMENTO\",\"reference_text\":\"ORC 14031 · OS 8712\",\"detail\":\"CAMPO ERE · SEM PEDIDO\",\"etapa\":\"SEM PEDIDO\",\"fornecedor\":\"CAMPO ERE\",\"valor\":\"R$ 260000\",\"valor_full\":\"R$ 260000.00\"}\nOK mais_antigo_texto_duplo — ORC 14031 · OS 8712\nOK ranking_dias_maximos — {\"label\":\"CAMPO ERE\",\"display_label\":\"CAMPO ERE\",\"value\":360000,\"formatted\":\"R$ 360000\",\"full\":\"R$ 360000.00\",\"qtd\":2,\"critical_count\":2,\"max_days\":96,\"average_days\":65.5,\"meta\":\"2 ORCs/OSs · 2 críticas · máx. 96 dias\"}\nOK ranking_criticas — {\"label\":\"CAMPO ERE\",\"display_label\":\"CAMPO ERE\",\"value\":360000,\"formatted\":\"R$ 360000\",\"full\":\"R$ 360000.00\",\"qtd\":2,\"critical_count\":2,\"max_days\":96,\"average_days\":65.5,\"meta\":\"2 ORCs/OSs · 2 críticas · máx. 96 dias\"}\nOK ranking_meta_operacional — 2 ORCs/OSs · 2 críticas · máx. 96 dias\nOK payload_executivo_tem_orc_os — whitelist executiva\nOK clique_mais_antigo_limpa_conflitos — contexto exato\nOK filtros_ativos_enriquecidos — escopos e chips\nOK gaveta_orc_os — título e cópia\nOK topo_lapidado — layout do topo\nOK rankings_lapidados — layout do ranking\nOK css_carregado_por_ultimo — ordem dos estilos\nOK sem_rotulo_rcs_em_andamento — semântica executiva\nRESULTADO: 16/16 testes aprovados."
-  },
-  {
-    "name": "testes_topo_rankings_v994a6",
-    "passed": true,
-    "detail": "OK versionamento_9946 — configuração, runtime e HTML\nOK camada_css_final — CSS V99.4A.6 carregado por último\nOK classe_body_v994a6 — classe de escopo presente\nOK acesso_visual_oculto — segurança permanece no runtime, sem cartão visual\nOK status_compacto_transparente — topo e atualização compactos\nOK seletor_ranking_acessivel — Geral e Em andamento\nOK ranking_geral_padrao — geral usa todos os registros\nOK ranking_pendente_selecionavel — em andamento usa somente pendentes\nOK ranking_reage_a_selecao — troca sem recarregar a página\nOK clique_respeita_contexto — linha e rodapé aplicam o contexto selecionado\nOK titulos_gerais_padrao — sem pendente no estado padrão\nOK top_tres — três linhas completas\nOK painel_sem_corte — terceira linha e rodapé visíveis\nOK dados_gerais_disponiveis — payload contém geral e em andamento\nOK responsividade_rankings — rankings empilham em telas menores\nRESULTADO: 15/15 testes aprovados."
-  },
-  {
-    "name": "testes_topo_base_fluxo_v994a4",
-    "passed": true,
-    "detail": "OK topo_em_tres_zonas — marca, navegação e status/ações separados\nOK css_novo_por_ultimo — camada V99.4A.6 é a última\nOK sem_resumo_duplicado — painel duplicado removido do HTML\nOK default_fluxo — ETAPA asc e armazenamento novo\nOK sem_colunas_fixas — classes de pin desativadas e CSS estático\nOK colunas_seguem_fluxo — 'ETAPA' → 'DATA DE RECEBIMENTO' → 'DATA LANÇAMENTO' → 'Nº PEDIDO DE COMPRA' → 'DATA DO PEDIDO' → 'Nº NFS/DANFE' → 'DATA LANÇAMENTO NFS'\nOK gerador_segue_fluxo — contrato operacional cronológico\nOK linhas_seguem_fluxo — [\"SEM LANÇAMENTO\",\"SEM LANÇAMENTO\",\"SEM PEDIDO\",\"SEM NF\",\"CONCLUÍDO\"]\nOK maior_idade_primeiro_na_etapa — [\"5\",\"1\"]\nOK tipografia_minima — topo, filtros e tabela ampliados\nRESULTADO: 10/10 testes aprovados."
+    "passed": false,
+    "detail": "não encontrado"
   },
   {
     "name": "testes_python",
@@ -151,8 +126,8 @@
   },
   {
     "name": "xlsx_ooxml",
-    "passed": true,
-    "detail": "ausentes=[]"
+    "passed": false,
+    "detail": "amostra temporária não criada"
   },
   {
     "name": "fluxo_quatro_etapas",
