@@ -1,0 +1,19 @@
+{
+  "version": "V994A7.1",
+  "status": "aprovada",
+  "tests": {
+    "phase1": "6/6",
+    "functional": "67/67",
+    "v994a7_1": "10/10",
+    "total": "83/83"
+  },
+  "functional_js_changed": false,
+  "published_data_changed": false,
+  "api_contracts_changed": false,
+  "new_dependencies": false,
+  "css": {
+    "file": "static/styles_v994a7_1.css",
+    "lines": 185,
+    "important_count": 0
+  }
+}
