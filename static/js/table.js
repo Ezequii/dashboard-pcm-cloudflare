@@ -22,23 +22,28 @@ async function loadRows(seq=null){
     ];
 
     const sourceColumns = Array.isArray(data.columns) ? data.columns : [];
-    const columns = [
+    const defaultColumns = [
       ...preferredOrder.filter(column => sourceColumns.includes(column)),
       ...sourceColumns.filter(column => !preferredOrder.includes(column))
     ];
+    const columns = window.resolveColumnsV99?.(defaultColumns, sourceColumns) || defaultColumns;
+    window.__V99_CURRENT_PAGE_ROWS = data.rows;
+    window.__V99_CURRENT_COLUMNS = columns;
+    window.__V99_CURRENT_TOTAL = Number(data.total || 0);
 
-    thead.innerHTML = '<tr>' + columns.map(column => renderHeader(column)).join('') + '</tr>';
+    thead.innerHTML = '<tr>' + (window.renderSelectionHeaderV99?.(data.rows) || '') + columns.map(column => renderHeader(column)).join('') + '</tr>';
 
     if(data.rows.length){
       tbody.innerHTML = data.rows.map(row =>
-        `<tr class="${stageClass(row._ETAPA)}">` +
+        `<tr class="${stageClass(row._ETAPA)}${window.isRowSelectedV99?.(row._ROW_ID) ? ' is-selected-v99' : ''}" data-row-id="${escapeAttr(row._ROW_ID || '')}" tabindex="0">` +
+        (window.renderRowCheckboxV99?.(row) || '') +
         columns.map(column => renderCell(column, row[column], row._ETAPA, row)).join('') +
         '</tr>'
       ).join('');
     }else{
       tbody.innerHTML = `
         <tr class="table-empty-row-v97">
-          <td colspan="${Math.max(1, columns.length)}">
+          <td colspan="${Math.max(1, columns.length + 1)}">
             <strong>Nenhum registro encontrado</strong>
             <span>Revise os filtros ou limpe a busca para ampliar os resultados.</span>
           </td>
@@ -48,6 +53,7 @@ async function loadRows(seq=null){
     thead.querySelectorAll('th.sortable').forEach(header => {
       header.onclick = () => sortBy(header.dataset.col);
     });
+    window.afterTableRenderV99?.(data, columns, tbody, thead);
 
     const counter = $('tableCounter');
     if(counter){

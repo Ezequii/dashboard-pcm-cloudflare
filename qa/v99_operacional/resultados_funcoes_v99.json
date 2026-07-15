@@ -1,0 +1,42 @@
+[
+  {
+    "name": "busca_multipla_codigos",
+    "passed": true,
+    "detail": "[\"14031\",\"36657\",\"26730\"]"
+  },
+  {
+    "name": "busca_multipla_nomes",
+    "passed": true,
+    "detail": "[\"CAMPO ERE\",\"ASTER MÁQUINAS\",\"RZK AGRO\"]"
+  },
+  {
+    "name": "resumo_quantidade",
+    "passed": true,
+    "detail": "3"
+  },
+  {
+    "name": "resumo_valor",
+    "passed": true,
+    "detail": "90176.70999999999"
+  },
+  {
+    "name": "resumo_etapas",
+    "passed": true,
+    "detail": "{\"SEM LANÇAMENTO\":{\"count\":1,\"value\":10003.95},\"SEM NF\":{\"count\":2,\"value\":80172.76}}"
+  },
+  {
+    "name": "resumo_texto",
+    "passed": true,
+    "detail": "Resumo PCM — Teste automatizado\n3 registros · R$ 90.176,71\nMaior tempo parado: 42 dias\n\nEtapas:\n• SEM NF: 2 · R$ 80.172,76\n• SEM LANÇAMENTO: 1 · R$ 10.003,95\n\nPrincipais fornecedores:\n1. ASTER MÁQUINAS: 2 · R$ 80.172,76\n2. CAMPO ERE: 1 · R$ 10.003,95"
+  },
+  {
+    "name": "xlsx_assinatura_zip",
+    "passed": true,
+    "detail": "80,75"
+  },
+  {
+    "name": "xlsx_tamanho",
+    "passed": true,
+    "detail": "14304"
+  }
+]

@@ -184,6 +184,7 @@ async function api(path, body=null, asBlob=false){
   if(path === '/api/options') return staticOptions(db.rows, body || {});
   if(path === '/api/dashboard') return staticDashboard(db.rows, body || {});
   if(path === '/api/rows') return staticRows(db.rows, body || {});
+  if(path === '/api/row') return staticRowDetail(db.rows, body || {});
 
   if(path.startsWith('/api/export/')){
     const kind = path.split('/').pop();
@@ -209,6 +210,8 @@ function baseQuery(){
     filters: state.filters,
     search: '',
     search_scope: state.searchScope || 'ALL',
+    multi_search_terms: Array.isArray(state.multiSearchTerms) ? state.multiSearchTerms : [],
+    multi_search_mode: state.multiSearchMode || 'ANY',
     page: state.page,
     page_size: state.pageSize,
     sort_col: state.sortCol,
@@ -330,6 +333,45 @@ function smartSearchRows(rows, rawSearch, scope='ALL'){
   });
 }
 
+function normalizeMultiSearchTerms(values){
+  const source = Array.isArray(values) ? values : [values];
+  const terms = [];
+  source.forEach(value => {
+    String(value ?? '')
+      .split(/[\n,;|]+/)
+      .map(item => item.trim())
+      .filter(Boolean)
+      .forEach(item => {
+        const normalized = normalizeSearchValue(item).slice(0, 160);
+        if(normalized && !terms.includes(normalized)) terms.push(normalized);
+      });
+  });
+  return terms.slice(0, 500);
+}
+
+function multiSearchRows(rows, rawTerms, scope='ALL', mode='ANY'){
+  const terms = normalizeMultiSearchTerms(rawTerms);
+  if(!terms.length) return rows;
+
+  const fields = SEARCH_SCOPE_FIELDS[scope] || SEARCH_SCOPE_FIELDS.ALL;
+  const codeFields = scope === 'ALL'
+    ? SEARCH_CODE_FIELDS
+    : fields.filter(field => SEARCH_CODE_FIELDS.includes(field));
+  const requireAll = String(mode || 'ANY').toUpperCase() === 'ALL';
+
+  return rows.filter(row => {
+    const haystack = searchFieldText(row, fields);
+    const matches = terms.map(term => {
+      const codeLike = /^[A-Z0-9\-/.]{3,}$/.test(term);
+      if(codeLike && codeFields.some(field => exactCodeMatch(row[field], term))){
+        return true;
+      }
+      return haystack.includes(term);
+    });
+    return requireAll ? matches.every(Boolean) : matches.some(Boolean);
+  });
+}
+
 
 function applyStaticQuery(rows, query={}){
   try{
@@ -343,6 +385,14 @@ function applyStaticQuery(rows, query={}){
     }
     if(query.search){
       out = smartSearchRows(out, query.search, String(query.search_scope || 'ALL').toUpperCase());
+    }
+    if(Array.isArray(query.multi_search_terms) && query.multi_search_terms.length){
+      out = multiSearchRows(
+        out,
+        query.multi_search_terms,
+        String(query.search_scope || 'ALL').toUpperCase(),
+        String(query.multi_search_mode || 'ANY').toUpperCase()
+      );
     }
     if(query.date_from){
       const dateFrom = String(query.date_from || '').substring(0, 10);
@@ -444,6 +494,22 @@ function staticRows(rows, query){
     console.error('Erro em staticRows:', err);
     return {columns:[], rows:[], total:0, page:1, page_size:50, pages:1, from:0, to:0};
   }
+}
+
+function staticRowDetail(rows, query={}){
+  const rowId = Number(query.row_id || 0);
+  if(!rowId) return {row:null};
+  const row = rows.find(item => Number(item._ROW_ID || 0) === rowId);
+  if(!row) return {row:null};
+
+  const result = {};
+  Object.entries(row).forEach(([key, value]) => {
+    if(key.startsWith('_') && !['_ROW_ID','_ETAPA','_VALOR_TOTAL','_DIAS_PARADO'].includes(key)){
+      return;
+    }
+    result[key] = value === null || value === undefined ? '' : value;
+  });
+  return {row:result};
 }
 
 function groupByStage(rows){

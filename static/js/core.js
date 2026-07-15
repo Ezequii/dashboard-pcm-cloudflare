@@ -5,7 +5,7 @@ function validateRuntimeConfiguration(){
   if(!rules || !rules.aging || !rules.targets || !rules.priorityWeights){
     throw new Error("Configuração de regras de negócio indisponível. Recarregue a página.");
   }
-  if(!config || String(config.assetVersion || "") !== "992"){
+  if(!config || String(config.assetVersion || "") !== "993"){
     throw new Error("Os arquivos da aplicação estão em versões diferentes. Recarregue sem cache.");
   }
 
@@ -89,6 +89,7 @@ async function init(){
     state.generatedAt = boot.generated_at || '';
 
     loadPreferences();
+    window.restoreProductivityStateV99?.();
 
     const allowedFilterKeys = new Set([
       ...state.mainFilters.map(item => item.key),
@@ -113,6 +114,7 @@ async function init(){
 
     buildSmartFilters();
     bindEvents();
+    window.initProductivityV99?.();
     hydrateAdvancedSearch();
     updateFilterUI();
     switchTab(state.activeTab || 'visao', {loadRowsNow:false});
@@ -258,10 +260,10 @@ function bindEvents(){
     if(e.altKey && e.key === '1'){ e.preventDefault(); switchTab('visao'); }
     if(e.altKey && e.key === '2'){ e.preventDefault(); switchTab('base'); }
     if(cmd && e.key.toLowerCase() === 'k'){ e.preventDefault(); switchTab('base'); setTimeout(() => $('globalSearch')?.focus(), 80); }
-    if(cmd && e.key.toLowerCase() === 'e'){ e.preventDefault(); exportFile('csv'); }
+    if(cmd && e.key.toLowerCase() === 'e'){ e.preventDefault(); window.exportExcelFromCurrentViewV99?.(); }
     if(cmd && e.key === 'Backspace'){ e.preventDefault(); clearAll(); }
     if(e.key === '?' && !['INPUT','TEXTAREA','SELECT'].includes(document.activeElement?.tagName || '')){
-      showToast('Atalhos: Alt+1 visão, Alt+2 tabela, Ctrl+K busca, Ctrl+E exportar CSV.');
+      showToast('Atalhos: Alt+1 visão, Alt+2 tabela, Ctrl+K busca, Ctrl+E Excel, Esc fecha gavetas.');
     }
   });
 
@@ -520,6 +522,7 @@ function clearAll(){
   Object.keys(state.filters).forEach(k => state.filters[k] = []);
   state.search = '';
   state.dateFrom = state.dateTo = state.valueMin = state.valueMax = '';
+  window.resetProductivityStateV99?.();
   state.page = 1;
   if($('globalSearch')) $('globalSearch').value = '';
   updateSearchUI();

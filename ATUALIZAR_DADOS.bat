@@ -56,11 +56,11 @@ if %errorlevel% neq 0 (
 )
 
 echo.
-echo Validando estrutura, dados e interface da V99.2...
-%PY_CMD% tools\validar_v992.py
+echo Validando estrutura, dados e interface da V99.3...
+%PY_CMD% tools\validar_v993.py
 if %errorlevel% neq 0 (
     echo.
-    echo ERRO: A validacao da V99.2 encontrou um problema.
+    echo ERRO: A validacao da V99.3 encontrou um problema.
     echo Corrija o erro mostrado acima antes de publicar.
     echo.
     pause

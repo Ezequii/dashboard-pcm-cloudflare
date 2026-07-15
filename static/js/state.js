@@ -4,6 +4,8 @@ const state = {
   columns: [],
   search: '',
   searchScope: 'ALL',
+  multiSearchTerms: [],
+  multiSearchMode: 'ANY',
   page: 1,
   pageSize: 200,
   sortCol: 'DIAS PARADO',
@@ -33,8 +35,9 @@ const DESC_FIRST_COLUMNS = new Set([
 ]);
 
 const $ = (id) => document.getElementById(id);
-const STORAGE_KEY = 'pcm-dashboard-preferences-v97-cloudflare';
+const STORAGE_KEY = 'pcm-dashboard-preferences-v99-productivity';
 const LEGACY_STORAGE_KEYS = [
+  'pcm-dashboard-preferences-v97-cloudflare',
   'pcm-dashboard-preferences-v89-cloudflare',
   'pcm-dashboard-preferences-v88-cloudflare'
 ];
@@ -57,6 +60,8 @@ function loadPreferences(){
     state.filters = prefs.filters || {};
     state.search = prefs.search || '';
     state.searchScope = prefs.searchScope || 'ALL';
+    state.multiSearchTerms = Array.isArray(prefs.multiSearchTerms) ? prefs.multiSearchTerms : [];
+    state.multiSearchMode = prefs.multiSearchMode === 'ALL' ? 'ALL' : 'ANY';
     state.pageSize = Number(prefs.pageSize || state.pageSize);
     state.sortCol = prefs.sortCol || state.sortCol;
     state.sortDir = prefs.sortDir || state.sortDir;
@@ -74,6 +79,8 @@ function savePreferences(){
       filters: state.filters,
       search: state.search,
       searchScope: state.searchScope,
+      multiSearchTerms: state.multiSearchTerms,
+      multiSearchMode: state.multiSearchMode,
       pageSize: state.pageSize,
       sortCol: state.sortCol,
       sortDir: state.sortDir,
@@ -83,6 +90,7 @@ function savePreferences(){
       valueMin: state.valueMin,
       valueMax: state.valueMax
     }));
+    window.syncProductivityUrlV99?.({replace:true});
   }catch(e){}
 }
 

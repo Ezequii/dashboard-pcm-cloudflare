@@ -1,0 +1,87 @@
+[
+  {
+    "name": "arquivos_obrigatorios",
+    "passed": true,
+    "detail": "todos presentes"
+  },
+  {
+    "name": "versionamento_993",
+    "passed": true,
+    "detail": "configuração, runtime e HTML devem usar exclusivamente 993"
+  },
+  {
+    "name": "ordem_dos_scripts",
+    "passed": true,
+    "detail": "{'app-config.js': 22931, 'state.js': 22988, 'utils.js': 23040, 'api.js': 23092, 'filters.js': 23142, 'dashboard.js': 23196, 'table.js': 23252, 'xlsx-v99.js': 23304, 'productivity-v99.js': 23359, 'core.js': 23422, 'main.js': 23473}"
+  },
+  {
+    "name": "ids_unicos",
+    "passed": true,
+    "detail": "{'btnOpenMultiSearchV99': 1, 'multiSearchDialogV99': 1, 'btnSavedViewsV99': 1, 'savedViewsDialogV99': 1, 'btnColumnsV99': 1, 'columnsDialogV99': 1, 'btnShareViewV99': 1, 'selectionBarV99': 1, 'detailsDrawerV99': 1, 'btnExportExcelV99': 1, 'btnExportExcelTableV99': 1}"
+  },
+  {
+    "name": "busca_multipla",
+    "passed": true,
+    "detail": "implementação encontrada"
+  },
+  {
+    "name": "selecao_linhas",
+    "passed": true,
+    "detail": "implementação encontrada"
+  },
+  {
+    "name": "copiar_resumo",
+    "passed": true,
+    "detail": "implementação encontrada"
+  },
+  {
+    "name": "colunas_configuraveis",
+    "passed": true,
+    "detail": "implementação encontrada"
+  },
+  {
+    "name": "filtros_salvos",
+    "passed": true,
+    "detail": "implementação encontrada"
+  },
+  {
+    "name": "url_compartilhavel",
+    "passed": true,
+    "detail": "implementação encontrada"
+  },
+  {
+    "name": "gaveta_detalhes",
+    "passed": true,
+    "detail": "implementação encontrada"
+  },
+  {
+    "name": "excel_real",
+    "passed": true,
+    "detail": "implementação encontrada"
+  },
+  {
+    "name": "css_operacional",
+    "passed": true,
+    "detail": "todos presentes"
+  },
+  {
+    "name": "dados_em_par",
+    "passed": true,
+    "detail": "dashboard-data.json e version.json devem existir juntos"
+  },
+  {
+    "name": "dados_validos",
+    "passed": true,
+    "detail": "base JSON e versão devem ser válidas"
+  },
+  {
+    "name": "node_disponivel",
+    "passed": false,
+    "detail": "Node.js não encontrado"
+  },
+  {
+    "name": "xlsx_ooxml_valido",
+    "passed": true,
+    "detail": "ausentes=[]"
+  }
+]
