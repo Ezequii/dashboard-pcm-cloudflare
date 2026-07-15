@@ -46,3 +46,44 @@ A proteção real continua sendo responsabilidade do Cloudflare Access.
 
 Não envie para o repositório a pasta de estado local usada por backup e
 rollback. Ela fica fora da raiz publicável por padrão.
+
+
+## Build publicável obrigatório
+
+O Wrangler publica exclusivamente `dist/`. Antes de cada deploy:
+
+```bash
+python tools/build_dist.py
+npx wrangler deploy
+```
+
+Nunca altere `wrangler.toml` para publicar a raiz do repositório. A pasta
+`dist/` é reconstruída por allowlist e rejeita scripts, planilhas, documentos,
+arquivos de rollback e relatórios internos.
+
+## Verificação automatizada pós-deploy
+
+Execute sem cookies ou credenciais de serviço:
+
+```bash
+python tools/verify_cloudflare_access.py https://SEU-DOMINIO
+```
+
+O comando deve retornar código zero. Ele falha se qualquer uma destas rotas
+responder `2xx` anonimamente:
+
+- `/`
+- `/index.html`
+- `/static/data/executive-data.json`
+- `/static/data/operational-data.json`
+- `/static/config/security-config.json`
+
+Inclua essa verificação no pipeline após o deploy. Redirecionamentos para o
+login do Access e respostas `401`/`403` são aceitos; resposta `200` é bloqueante.
+
+## Regra de produção
+
+`localDevelopmentAllowed` deve permanecer `false` no
+`static/config/security-config.json` de produção. Mesmo em configurações de
+desenvolvimento, o bypass só é aceito em `localhost`, `127.0.0.1` ou `::1`,
+nunca em `file://`.

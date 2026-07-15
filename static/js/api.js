@@ -702,8 +702,10 @@ function applyStaticQuery(rows, query={}){
     }
     return sortStaticRows(out, query.sort_col || 'ETAPA', String(query.sort_dir || 'asc').toLowerCase());
   }catch(err){
-    console.error('Erro em applyStaticQuery:', err);
-    return sortStaticRows(rows.slice(), 'ETAPA', 'asc');
+    console.error("Erro em applyStaticQuery:", err);
+    throw new DataSchemaError(
+      "Não foi possível aplicar os filtros com segurança."
+    );
   }
 }
 
