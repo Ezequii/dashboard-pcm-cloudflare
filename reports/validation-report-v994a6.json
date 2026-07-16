@@ -11,8 +11,8 @@
   },
   {
     "name": "ordem_scripts",
-    "passed": true,
-    "detail": "{'app-config.js': 25382, 'state.js': 25440, 'utils.js': 25493, 'security-v994a.js': 25546, 'api.js': 25608, 'filters.js': 25659, 'dashboard.js': 25714, 'table.js': 25771, 'xlsx-v99.js': 25824, 'productivity-v99.js': 25880, 'core.js': 25944, 'main.js': 25996}"
+    "passed": false,
+    "detail": "{'app-config.js': 27721, 'state.js': 27779, 'utils.js': 27832, 'security-v994a.js': 27885, 'api.js': 27947, 'filters.js': -1, 'dashboard.js': 28054, 'table.js': -1, 'xlsx-v99.js': 28165, 'productivity-v99.js': -1, 'core.js': -1, 'main.js': 28339}"
   },
   {
     "name": "ids_unicos",
@@ -107,7 +107,7 @@
   {
     "name": "dados_publicados_validos",
     "passed": true,
-    "detail": "versão 20260715200352"
+    "detail": "versão 20260716201827"
   },
   {
     "name": "pacote_sem_legado_executavel",
@@ -201,7 +201,7 @@
   },
   {
     "name": "preferencias_novas_v994a4",
-    "passed": true,
+    "passed": false,
     "detail": "preferências antigas não sobrescrevem o novo padrão"
   },
   {
@@ -271,7 +271,7 @@
   },
   {
     "name": "mostrador_filtros_v994a5",
-    "passed": true,
+    "passed": false,
     "detail": "barra de contexto diferencia visão, fila e base"
   },
   {
