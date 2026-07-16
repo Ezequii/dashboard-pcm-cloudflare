@@ -12,7 +12,7 @@
   {
     "name": "ordem_scripts",
     "passed": false,
-    "detail": "{'app-config.js': 27824, 'state.js': 27882, 'utils.js': 27935, 'security-v994a.js': 27988, 'api.js': 28050, 'filters.js': -1, 'dashboard.js': 28157, 'table.js': -1, 'xlsx-v99.js': 28268, 'productivity-v99.js': -1, 'core.js': -1, 'main.js': 28442}"
+    "detail": "{'app-config.js': 27941, 'state.js': 27999, 'utils.js': 28052, 'security-v994a.js': 28105, 'api.js': 28167, 'filters.js': -1, 'dashboard.js': 28274, 'table.js': -1, 'xlsx-v99.js': 28385, 'productivity-v99.js': -1, 'core.js': -1, 'main.js': 28559}"
   },
   {
     "name": "ids_unicos",
@@ -107,7 +107,7 @@
   {
     "name": "dados_publicados_validos",
     "passed": true,
-    "detail": "versão 20260716173700"
+    "detail": "versão 20260716174823"
   },
   {
     "name": "pacote_sem_legado_executavel",

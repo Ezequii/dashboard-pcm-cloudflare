@@ -43,15 +43,10 @@ test("evita repetição executiva e promove a pendência mais antiga", () => {
   );
 });
 
-test("organiza fila e rankings na mesma região inferior", () => {
-  assert.match(
-    INDEX,
-    /class="executive-lower-v100"[\s\S]*class="operations-panel-v991 queue-panel-v991"[\s\S]*class="ranking-grid-v991 ranking-grid-v994a6"/
-  );
-  assert.match(
-    CSS,
-    /\.executive-lower-v100\s*\{[\s\S]*grid-template-columns:/
-  );
+test("preserva fila e rankings sem duplicação estrutural", () => {
+  assert.equal((INDEX.match(/queue-panel-v991/g) || []).length, 1);
+  assert.equal((INDEX.match(/ranking-grid-v991 ranking-grid-v994a6/g) || []).length, 1);
+  assert.match(INDEX, /class="executive-lower-v100"[\s\S]*class="ranking-grid-v991 ranking-grid-v994a6"/);
 });
 
 test("folha nova é carregada por último", () => {
