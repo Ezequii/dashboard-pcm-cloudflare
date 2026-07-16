@@ -21,8 +21,10 @@
   <link rel="stylesheet" href="/static/styles_v100_global_context.css?v=10040" />
   <link rel="stylesheet" href="/static/styles_v100_base_table.css?v=10050" />
   <link rel="stylesheet" href="/static/styles_v100_top_hierarchy.css?v=10060" />
+  <link rel="stylesheet" href="/static/styles_v100_executive_decision.css?v=10070" />
+  <link rel="stylesheet" href="/static/styles_v100_executive_no_redundancy.css?v=10080" />
 </head>
-<body class="v86-table-lines v89-simple-filters-search-money v90-layout-safe v91-layout-final v95-header-kpi-polish v97-reliability-navigation v971-runtime-fix v991-faithful v992-polished v993-productivity v994a-hardening v994a2-audited v994a2-visual app-booting v994a3-operational-fix v994a4-top-base-flow v994a5-lapidacao v994a6-clean-rankings v100-base-redesign v100-top-hierarchy">
+<body class="v86-table-lines v89-simple-filters-search-money v90-layout-safe v91-layout-final v95-header-kpi-polish v97-reliability-navigation v971-runtime-fix v991-faithful v992-polished v993-productivity v994a-hardening v994a2-audited v994a2-visual app-booting v994a3-operational-fix v994a4-top-base-flow v994a5-lapidacao v994a6-clean-rankings v100-base-redesign v100-top-hierarchy v100-executive-decision v100-executive-no-redundancy">
   <a class="skip-link-v994a" href="#mainContent">Pular para o conteúdo</a>
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
   <div id="drawerBackdrop" class="drawer-backdrop no-print" hidden></div>
@@ -81,12 +83,6 @@
       </div>
     </div>
 
-    <div class="topbar-row topbar-row-filters-v40 no-print filters-row-v994a4">
-      <div class="smart-filter-row executive-filter-row top-inline-filters top-filters-v40" id="mainFilters" aria-label="Filtros principais"></div>
-      <button id="btnOpenFilters" class="btn btn-soft btn-compact filters-summary-button-v97" type="button" aria-label="Abrir resumo dos filtros" aria-expanded="false">
-        <span>Filtros</span><b id="activeFilterCount">0</b>
-      </button>
-    </div>
   </header>
 
   <aside id="filterDrawer" class="filter-drawer no-print" aria-label="Filtros do dashboard" aria-hidden="true">
@@ -125,7 +121,15 @@
       class="global-context-v100 no-print"
       aria-label="Contexto global aplicado"
     >
+      <strong class="global-context-title-v100">Contexto atual</strong>
       <dl id="globalContextList" class="global-context-list-v100"></dl>
+
+      <div class="topbar-row topbar-row-filters-v40 no-print filters-row-v994a4">
+        <div class="smart-filter-row executive-filter-row top-inline-filters top-filters-v40" id="mainFilters" aria-label="Filtros principais"></div>
+        <button id="btnOpenFilters" class="btn btn-soft btn-compact filters-summary-button-v97" type="button" aria-label="Abrir resumo dos filtros" aria-expanded="false">
+        <span>Filtros</span><b id="activeFilterCount">0</b>
+      </button>
+      </div>
       <button
         id="globalContextClearAll"
         class="global-context-clear-v100"
@@ -198,6 +202,20 @@
         </span>
         <span class="hero-open-v991">Abrir na base <b aria-hidden="true">→</b></span>
       </button>
+
+      <button id="kpiMaisParadoCard" type="button" class="alert-item-v991 is-oldest">
+        <span class="alert-icon-v991" aria-hidden="true">
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v6l4 2"/></svg>
+        </span>
+        <span>Pendência mais antiga</span>
+        <strong id="kMaiorAtraso" class="oldest-value-v96">
+          <span class="oldest-days-number-v96">—</span>
+          <span class="oldest-days-unit-v96">dias</span>
+        </strong>
+        <small id="kMaiorAtrasoSub" class="oldest-context-v96">
+          <span class="oldest-empty-v96">Carregando dados…</span>
+        </small>
+      </button>
     </section>
 
     <section class="executive-alerts-v991" data-panel="visao" aria-label="Alertas operacionais">
@@ -219,19 +237,6 @@
         <small id="kFarolSub">Carregando dados…</small>
       </button>
 
-      <button id="kpiMaisParadoCard" type="button" class="alert-item-v991 is-oldest">
-        <span class="alert-icon-v991" aria-hidden="true">
-          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v6l4 2"/></svg>
-        </span>
-        <span>Pendência mais antiga</span>
-        <strong id="kMaiorAtraso" class="oldest-value-v96">
-          <span class="oldest-days-number-v96">—</span>
-          <span class="oldest-days-unit-v96">dias</span>
-        </strong>
-        <small id="kMaiorAtrasoSub" class="oldest-context-v96">
-          <span class="oldest-empty-v96">Carregando dados…</span>
-        </small>
-      </button>
     </section>
 
     <section class="operations-grid-v991" data-panel="visao">
@@ -248,6 +253,10 @@
         </div>
       </article>
 
+    </section>
+
+    <section class="executive-lower-v100" data-panel="visao">
+
       <article class="operations-panel-v991 queue-panel-v991">
         <header class="panel-title-v991">
           <div>
@@ -262,9 +271,7 @@
           Ver todas as pendências na base <span aria-hidden="true">→</span>
         </button>
       </article>
-    </section>
-
-    <section class="ranking-grid-v991 ranking-grid-v994a6" data-panel="visao">
+    <section class="ranking-grid-v991 ranking-grid-v994a6">
       <div class="ranking-scopebar-v994a6">
         <div class="ranking-scope-copy-v994a6">
           <strong>Top 3 do contexto</strong>
@@ -313,6 +320,7 @@
           Ver todos os solicitantes <span aria-hidden="true">→</span>
         </button>
       </article>
+    </section>
     </section>
 
 <section class="base-overview-v991" data-panel="base" hidden>

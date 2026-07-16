@@ -10,14 +10,15 @@ const css = fs.readFileSync(
   "utf8"
 );
 
-test("existe uma única região global com uma única ação de recuperação", () => {
+test("existe uma única região global com filtros e uma única ação de recuperação", () => {
   assert.equal((html.match(/id="globalContextBar"/g) || []).length, 1);
   assert.equal((html.match(/id="globalContextList"/g) || []).length, 1);
   assert.match(html, /id="globalContextBar"[\s\S]*?aria-label="Contexto global aplicado"/);
   const start = html.lastIndexOf("<section", html.indexOf('id="globalContextBar"'));
   const end = html.indexOf("</section>", start) + "</section>".length;
   const section = html.slice(start, end);
-  assert.equal((section.match(/<button\b/gi) || []).length, 1);
+  assert.equal((section.match(/id="globalContextClearAll"/g) || []).length, 1);
+  assert.equal((section.match(/id="btnOpenFilters"/g) || []).length, 1);
   assert.match(section, /id="globalContextClearAll"/);
   assert.match(section, />\s*Limpar tudo\s*</);
   assert.doesNotMatch(section, /<a\s/i);
