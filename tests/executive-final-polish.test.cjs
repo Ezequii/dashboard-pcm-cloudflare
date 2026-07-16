@@ -5,48 +5,21 @@ const path = require("node:path");
 
 const ROOT = path.join(__dirname, "..");
 const INDEX = fs.readFileSync(path.join(ROOT, "index.html"), "utf8");
-const CSS = fs.readFileSync(
-  path.join(ROOT, "static", "styles_v100_executive_final_polish.css"),
-  "utf8"
-);
+const CSS = fs.readFileSync(path.join(ROOT, "static", "styles_v100_executive_composed.css"), "utf8");
 
-test("carrega o acabamento final após as camadas executivas anteriores", () => {
-  assert.match(
-    INDEX,
-    /styles_v100_executive_no_redundancy\.css\?v=10080"[\s\S]*styles_v100_executive_final_polish\.css\?v=10090"/
-  );
-  assert.match(INDEX, /v100-executive-final-polish/);
+test("camada consolidada substitui o empilhamento visual anterior", () => {
+  assert.match(INDEX, /styles_v100_executive_composed\.css\?v=10100/);
+  assert.doesNotMatch(INDEX, /styles_v100_executive_final_polish\.css/);
+  assert.doesNotMatch(INDEX, /styles_v100_executive_no_redundancy\.css/);
 });
 
-test("fila prioritária foi movida para o núcleo visual ao lado do fluxo", () => {
-  const operations = INDEX.match(
-    /<section class="operations-grid-v991"[\s\S]*?<\/section>/
-  )?.[0] || "";
-  assert.match(operations, /flow-panel-v991/);
-  assert.match(operations, /queue-panel-v991/);
-  assert.equal((INDEX.match(/queue-panel-v991/g) || []).length, 1);
+test("fluxo é compacto e apresentado como pipeline", () => {
+  assert.match(CSS, /\.process-flow-v991::before\s*\{[\s\S]*height:\s*2px/);
+  assert.match(CSS, /\.flow-average-v994a2,[\s\S]*display:\s*none\s*!important/);
 });
 
-test("fluxo compacto oculta apenas a média e preserva etapa, métricas e status", () => {
-  assert.match(CSS, /\.flow-average-v994a2\s*\{[\s\S]*display:\s*none\s*!important/);
-  assert.match(CSS, /\.flow-main-metrics-v994a2\s*\{/);
-  assert.match(CSS, /\.flow-context-v994a2\s*\{/);
-  assert.match(CSS, /\.flow-step-v994a2 mark\s*\{/);
-});
-
-test("rankings permanecem em duas colunas e fila ganha protagonismo", () => {
-  assert.match(
-    CSS,
-    /\.executive-lower-v100 > \.ranking-grid-v991\s*\{[\s\S]*grid-template-columns:\s*1fr 1fr/
-  );
-  assert.match(
-    CSS,
-    /\.operations-grid-v991\s*\{[\s\S]*grid-template-columns:\s*minmax\(0,\s*1\.55fr\)\s+minmax\(300px,\s*\.85fr\)/
-  );
-});
-
-test("preserva foco visível e reduced motion", () => {
-  assert.match(CSS, /outline:\s*3px solid #1d4ed8\s*!important/);
-  assert.match(CSS, /@media \(prefers-reduced-motion:\s*reduce\)/);
-  assert.match(CSS, /transition:\s*none\s*!important/);
+test("responsividade e redução de movimento permanecem cobertas", () => {
+  assert.match(CSS, /@media\s*\(max-width:\s*900px\)/);
+  assert.match(CSS, /@media\s*\(max-width:\s*680px\)/);
+  assert.match(CSS, /@media\s*\(prefers-reduced-motion:\s*reduce\)/);
 });

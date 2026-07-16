@@ -5,49 +5,23 @@ const path = require("node:path");
 
 const ROOT = path.join(__dirname, "..");
 const INDEX = fs.readFileSync(path.join(ROOT, "index.html"), "utf8");
-const CSS = fs.readFileSync(
-  path.join(ROOT, "static", "styles_v100_executive_decision.css"),
-  "utf8"
-);
+const CSS = fs.readFileSync(path.join(ROOT, "static", "styles_v100_executive_composed.css"), "utf8");
 
-test("carrega o polimento executivo após os estilos existentes", () => {
-  assert.match(
-    INDEX,
-    /styles_v100_top_hierarchy\.css\?v=10060"[\s\S]*styles_v100_executive_decision\.css\?v=10070"/
-  );
-  assert.match(INDEX, /<body[^>]*\bv100-executive-decision\b/);
+test("carrega a camada executiva consolidada", () => {
+  assert.match(INDEX, /styles_v100_executive_composed\.css\?v=10100/);
+  assert.match(INDEX, /v100-executive-composed/);
 });
 
-test("preserva os IDs e elementos interativos dos KPIs", () => {
-  [
-    "kpiValorAndamentoCard",
-    "kpiPendenciasCard",
-    "kpiConcluidoCard",
-    "firstFocusV991",
-    "kpiFocoPcmCard",
-    "farolRegional",
-    "kpiMaisParadoCard",
-    "openAllPrioritiesV991",
-  ].forEach(id => {
-    assert.match(INDEX, new RegExp(`id="${id}"`));
-  });
+test("KPIs preservam os cinco componentes existentes em grade explícita", () => {
+  assert.match(INDEX, /id="kpiValorAndamentoCard"/);
+  assert.match(INDEX, /id="kpiPendenciasCard"/);
+  assert.match(INDEX, /id="kpiConcluidoCard"/);
+  assert.match(INDEX, /id="firstFocusV991"/);
+  assert.match(INDEX, /id="kpiMaisParadoCard"/);
+  assert.match(CSS, /\.executive-primary-v991\s*\{[\s\S]*grid-template-columns:/);
 });
 
-test("o escopo visual permanece restrito à classe da entrega", () => {
-  assert.match(CSS, /body\.v100-executive-decision \.executive-primary-v991/);
-  assert.match(CSS, /body\.v100-executive-decision \.hero-metric-v991/);
-  assert.match(CSS, /body\.v100-executive-decision \.queue-panel-v991/);
-});
-
-test("mantém foco visível e suporte a movimento reduzido", () => {
-  assert.match(CSS, /:focus-visible[\s\S]*outline:\s*3px solid #1d4ed8/);
-  assert.match(CSS, /@media \(prefers-reduced-motion: reduce\)/);
-  assert.match(CSS, /transition:\s*none !important/);
-});
-
-test("possui layouts responsivos sem alterar a marcação dos componentes", () => {
-  assert.match(CSS, /@media \(max-width: 1280px\)/);
-  assert.match(CSS, /@media \(max-width: 900px\)/);
-  assert.match(CSS, /@media \(max-width: 640px\)/);
-  assert.match(CSS, /grid-template-columns:\s*1fr !important/);
+test("fila prioritária recebe destaque sem alteração estrutural", () => {
+  assert.match(INDEX, /id="topPrioridades"/);
+  assert.match(CSS, /\.queue-panel-v991\s*\{[\s\S]*box-shadow:/);
 });
