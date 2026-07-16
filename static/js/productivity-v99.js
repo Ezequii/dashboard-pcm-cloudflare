@@ -6,7 +6,7 @@
   "use strict";
 
   const SAVED_VIEWS_KEY_V99 = "pcm-dashboard-saved-views-v99";
-  const COLUMNS_KEY_V99 = "pcm-dashboard-columns-v994a4-flow";
+  const COLUMNS_KEY_V99 = "pcm-dashboard-columns-v100-base-redesign";
   const URL_STATE_KEY_V99 = "view";
   const MAX_SAVED_VIEWS_V99 = 30;
   const MAX_MULTI_TERMS_V99 = 500;
@@ -324,6 +324,15 @@
   function resolveColumnsV99(defaultColumns, sourceColumns){
     const available = new Set((sourceColumns || defaultColumns || []).map(String));
     const defaultList = (defaultColumns || []).filter(column => available.has(column));
+    const hasCustomPreferences = Boolean(
+      (columnPreferencesV99.order || []).length ||
+      (columnPreferencesV99.hidden || []).length
+    );
+
+    if(!hasCustomPreferences){
+      return defaultList.slice();
+    }
+
     const ordered = [
       ...(columnPreferencesV99.order || []).filter(column => available.has(column)),
       ...defaultList.filter(column => !(columnPreferencesV99.order || []).includes(column)),
@@ -586,13 +595,28 @@
 
   function openColumnsV99(){
     const available = Array.isArray(state.columns) ? state.columns.slice() : [];
-    const order = [
-      ...(columnPreferencesV99.order || []).filter(column => available.includes(column)),
-      ...available.filter(column => !(columnPreferencesV99.order || []).includes(column)),
-    ];
+    const defaults = (window.V100_DEFAULT_BASE_COLUMNS || [])
+      .filter(column => available.includes(column));
+    const hasCustomPreferences = Boolean(
+      (columnPreferencesV99.order || []).length ||
+      (columnPreferencesV99.hidden || []).length
+    );
+    const order = hasCustomPreferences
+      ? [
+          ...(columnPreferencesV99.order || []).filter(column => available.includes(column)),
+          ...available.filter(column => !(columnPreferencesV99.order || []).includes(column)),
+        ]
+      : [
+          ...defaults,
+          ...available.filter(column => !defaults.includes(column)),
+        ];
     columnDraftV99 = {
       order,
-      hidden: new Set(columnPreferencesV99.hidden || []),
+      hidden: new Set(
+        hasCustomPreferences
+          ? (columnPreferencesV99.hidden || [])
+          : available.filter(column => !defaults.includes(column))
+      ),
     };
     renderColumnsV99();
     openDialogV99(document.getElementById("columnsDialogV99"));
@@ -664,9 +688,15 @@
   function resetColumnsV99(){
     columnPreferencesV99 = {order:[], hidden:[]};
     writeColumnPreferencesV99(columnPreferencesV99);
+    const available = Array.isArray(state.columns) ? state.columns.slice() : [];
+    const defaults = (window.V100_DEFAULT_BASE_COLUMNS || [])
+      .filter(column => available.includes(column));
     columnDraftV99 = {
-      order: Array.isArray(state.columns) ? state.columns.slice() : [],
-      hidden: new Set(),
+      order: [
+        ...defaults,
+        ...available.filter(column => !defaults.includes(column)),
+      ],
+      hidden: new Set(available.filter(column => !defaults.includes(column))),
     };
     renderColumnsV99();
   }

@@ -4,6 +4,41 @@ let pendingBaseAnnouncementV100 = null;
 let baseAnnouncementTimerV100 = null;
 let baseAnnouncementTokenV100 = 0;
 
+const V100_DEFAULT_BASE_COLUMNS = Object.freeze([
+  "ETAPA",
+  "DIAS PARADO",
+  "SLA STATUS",
+  "DATA DE RECEBIMENTO",
+  "DATA LANÇAMENTO",
+  "Nº ORÇAMENTO FINAL",
+  "FORNECEDOR",
+  "SOLICITANTE"
+]);
+
+const V100_BASE_COLUMN_GROUPS = Object.freeze({
+  "ETAPA": "priority",
+  "DIAS PARADO": "priority",
+  "SLA STATUS": "priority",
+  "DATA DE RECEBIMENTO": "time",
+  "DATA LANÇAMENTO": "time",
+  "Nº ORÇAMENTO FINAL": "identity",
+  "FORNECEDOR": "identity",
+  "SOLICITANTE": "identity"
+});
+
+window.V100_DEFAULT_BASE_COLUMNS = V100_DEFAULT_BASE_COLUMNS.slice();
+
+function baseColumnGroupClassV100(column){
+  const group = V100_BASE_COLUMN_GROUPS[column];
+  if(!group) return "";
+  const starts = {
+    "ETAPA": " group-start-v100",
+    "DATA DE RECEBIMENTO": " group-start-v100",
+    "Nº ORÇAMENTO FINAL": " group-start-v100"
+  };
+  return ` group-${group}-v100${starts[column] || ""}`;
+}
+
 function normalizeSnapshotTextV100(value){
   return String(value ?? "").trim();
 }
@@ -329,6 +364,45 @@ function syncSearchHelpForEmptyStateV100(descriptor){
   help.classList.add("no-results");
 }
 
+
+function baseColumnGroupLabelV100(column){
+  const group = V100_BASE_COLUMN_GROUPS[column];
+  const labels = {
+    priority: "Prioridade",
+    time: "Tempo",
+    identity: "Identificação"
+  };
+  return labels[group] || "Detalhes";
+}
+
+function renderTableHeaderRowsV100(columns, rows){
+  const selectionHeader = window.renderSelectionHeaderV99?.(rows) || "";
+  const selectionWithRowspan = selectionHeader
+    ? selectionHeader.replace("<th ", '<th rowspan="2" ')
+    : "";
+
+  const groups = [];
+  columns.forEach(column => {
+    const label = baseColumnGroupLabelV100(column);
+    const last = groups[groups.length - 1];
+    if(last && last.label === label){
+      last.count += 1;
+    }else{
+      groups.push({label, count: 1});
+    }
+  });
+
+  const groupRow = `<tr class="table-group-header-v100">${selectionWithRowspan}${groups
+    .map(group => `<th scope="colgroup" colspan="${group.count}" class="table-group-${group.label === "Prioridade" ? "priority" : group.label === "Tempo" ? "time" : group.label === "Identificação" ? "identity" : "details"}-v100">${escapeHtml(group.label)}</th>`)
+    .join("")}</tr>`;
+
+  const columnRow = `<tr class="table-column-header-v100">${columns
+    .map((column, index) => renderHeader(column, index))
+    .join("")}</tr>`;
+
+  return groupRow + columnRow;
+}
+
 async function loadRows(seq=null){
   if(!window.SecurityV994a?.canViewOperationalData()){
     window.renderOperationalAccessDeniedV994a?.();
@@ -359,21 +433,14 @@ async function loadRows(seq=null){
     state.page = data.page;
 
     const preferredOrder = [
-      "ETAPA",
-      "DATA DE RECEBIMENTO",
-      "DATA LANÇAMENTO",
+      ...V100_DEFAULT_BASE_COLUMNS,
       "Nº PEDIDO DE COMPRA",
       "DATA DO PEDIDO",
       "Nº NFS/DANFE",
       "DATA LANÇAMENTO NFS",
-      "DIAS PARADO",
-      "SLA STATUS",
       "DONO DA AÇÃO",
       "Nº REQUISIÇÃO",
-      "Nº ORÇAMENTO FINAL",
       "VALOR TOTAL",
-      "FORNECEDOR",
-      "SOLICITANTE",
       "PREFIXO",
       "EQUIPAMENTO",
       "Nº ORDEM SERVIÇO",
@@ -381,16 +448,14 @@ async function loadRows(seq=null){
     ];
 
     const sourceColumns = Array.isArray(data.columns) ? data.columns : [];
-    const defaultColumns = [
-      ...preferredOrder.filter(column => sourceColumns.includes(column)),
-      ...sourceColumns.filter(column => !preferredOrder.includes(column))
-    ];
+    const defaultColumns = V100_DEFAULT_BASE_COLUMNS
+      .filter(column => sourceColumns.includes(column));
     const columns = window.resolveColumnsV99?.(defaultColumns, sourceColumns) || defaultColumns;
     window.__V99_CURRENT_PAGE_ROWS = rows;
     window.__V99_CURRENT_COLUMNS = columns;
     window.__V99_CURRENT_TOTAL = total;
 
-    thead.innerHTML = "<tr>" + (window.renderSelectionHeaderV99?.(rows) || "") + columns.map((column, index) => renderHeader(column, index)).join("") + "</tr>";
+    thead.innerHTML = renderTableHeaderRowsV100(columns, rows);
 
     let emptyDescriptor = null;
     if(rows.length){
@@ -449,6 +514,7 @@ async function loadRows(seq=null){
   }
 }
 
+window.renderTableHeaderRowsV100 = renderTableHeaderRowsV100;
 window.createTableQuerySnapshotV100 = createTableQuerySnapshotV100;
 window.classifyEmptyStateV100 = classifyEmptyStateV100;
 window.createEmptyStateDescriptorV100 = createEmptyStateDescriptorV100;
@@ -491,7 +557,8 @@ function renderHeader(col, columnIndex=-1){
   const ariaSort = active ? (state.sortDir === 'asc' ? 'ascending' : 'descending') : 'none';
   const [main, sub] = headerInfo(col);
   const pinClass = pinnedColumnClassV994a2(columnIndex);
-  return `<th class="sortable ${colClass(col)}${pinClass}${active ? ' active-sort' : ''}" data-col="${escapeAttr(col)}" data-column-index="${columnIndex}" aria-sort="${ariaSort}" title="Clique para ordenar por ${escapeAttr(col)} (${directionText})">
+  const groupClass = baseColumnGroupClassV100(col);
+  return `<th class="sortable ${colClass(col)}${pinClass}${groupClass}${active ? ' active-sort' : ''}" data-col="${escapeAttr(col)}" data-column-index="${columnIndex}" aria-sort="${ariaSort}" title="Clique para ordenar por ${escapeAttr(col)} (${directionText})">
     <span class="th-label"><span class="th-main">${escapeHtml(main)}</span>${sub ? `<span class="th-sub">${escapeHtml(sub)}</span>` : ''}</span><span class="sort-icon">${sortMark(col)}</span>
   </th>`;
 }
@@ -515,7 +582,7 @@ function formatCurrencyBR(value){
 
 function renderCell(col, value, etapa, row={}, columnIndex=-1){
   const val = value || '';
-  const cls = `${colClass(col)}${pinnedColumnClassV994a2(columnIndex)}`;
+  const cls = `${colClass(col)}${pinnedColumnClassV994a2(columnIndex)}${baseColumnGroupClassV100(col)}`;
   const safeTitle = escapeAttr(val || '');
   if(col === 'ETAPA'){
     return `<td class="${cls}"><span class="tag-etapa ${stageClass(val || etapa)}">${escapeHtml(val || etapa || '')}</span></td>`;

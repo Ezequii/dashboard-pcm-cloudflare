@@ -12,7 +12,7 @@
   {
     "name": "ordem_scripts",
     "passed": false,
-    "detail": "{'app-config.js': 27243, 'state.js': 27301, 'utils.js': 27354, 'security-v994a.js': 27407, 'api.js': 27469, 'filters.js': -1, 'dashboard.js': 27576, 'table.js': -1, 'xlsx-v99.js': 27687, 'productivity-v99.js': -1, 'core.js': -1, 'main.js': 27861}"
+    "detail": "{'app-config.js': 27353, 'state.js': 27411, 'utils.js': 27464, 'security-v994a.js': 27517, 'api.js': 27579, 'filters.js': -1, 'dashboard.js': 27686, 'table.js': -1, 'xlsx-v99.js': 27797, 'productivity-v99.js': -1, 'core.js': -1, 'main.js': 27971}"
   },
   {
     "name": "ids_unicos",
@@ -107,7 +107,7 @@
   {
     "name": "dados_publicados_validos",
     "passed": true,
-    "detail": "versão 20260716154511"
+    "detail": "versão 20260716165035"
   },
   {
     "name": "pacote_sem_legado_executavel",
@@ -201,7 +201,7 @@
   },
   {
     "name": "preferencias_novas_v994a4",
-    "passed": true,
+    "passed": false,
     "detail": "preferências antigas não sobrescrevem o novo padrão"
   },
   {
