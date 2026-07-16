@@ -632,51 +632,57 @@ function applyQuickFilter(kind){
   scheduleDashboard();
 }
 
+function normalizeContextValuesV100(values){
+  const source = Array.isArray(values) ? values : [];
+  const seen = new Set();
+  const normalized = [];
+
+  source.forEach(value => {
+    const clean = String(value ?? "").replace(/\s+/g, " ").trim();
+    if(!clean) return;
+    const key = clean.toLocaleUpperCase("pt-BR");
+    if(seen.has(key)) return;
+    seen.add(key);
+    normalized.push(clean);
+  });
+
+  return normalized;
+}
+
+function deriveOperationalViewV100(filters=state.filters){
+  const etapa = normalizeContextValuesV100(filters?.ETAPA);
+  const sla = normalizeContextValuesV100(filters?.["SLA STATUS"]);
+  const faixa = normalizeContextValuesV100(filters?.["FAIXA ATRASO"]);
+  const etapaKeys = etapa.map(value => value.toLocaleUpperCase("pt-BR")).sort();
+  const slaKeys = sla.map(value => value.toLocaleUpperCase("pt-BR")).sort();
+
+  if(!etapa.length && !sla.length && !faixa.length){
+    return {id:"TODAS", label:"Geral"};
+  }
+  if(!sla.length && !faixa.length && etapaKeys.length === 1){
+    if(etapaKeys[0] === "SEM LANÇAMENTO") return {id:"SEM_LANCAMENTO", label:"Sem lançamento"};
+    if(etapaKeys[0] === "SEM PEDIDO") return {id:"SEM_PEDIDO", label:"Sem pedido"};
+    if(etapaKeys[0] === "SEM NF") return {id:"SEM_NF", label:"Sem NF"};
+  }
+  if(!etapa.length && !faixa.length && slaKeys.length === 1 && slaKeys[0] === "CRÍTICO"){
+    return {id:"CRITICO", label:"Críticos"};
+  }
+  if(
+    !etapa.length
+    && !faixa.length
+    && slaKeys.length === 2
+    && slaKeys[0] === "ATENÇÃO"
+    && slaKeys[1] === "CRÍTICO"
+  ){
+    return {id:"FORA_SLA", label:"Fora do SLA"};
+  }
+
+  return {id:"PERSONALIZADA", label:"Personalizada"};
+}
+
 function quickFilterKindFromState(){
-  const sla = Array.isArray(state.filters['SLA STATUS'])
-    ? state.filters['SLA STATUS']
-    : [];
-  const faixa = Array.isArray(state.filters['FAIXA ATRASO'])
-    ? state.filters['FAIXA ATRASO']
-    : [];
-  const etapa = Array.isArray(state.filters['ETAPA'])
-    ? state.filters['ETAPA']
-    : [];
-
-  if(!sla.length && !faixa.length && !etapa.length) return 'TODAS';
-  if(
-    etapa.length === 1
-    && etapa[0] === 'SEM LANÇAMENTO'
-    && !sla.length
-    && !faixa.length
-  ) return 'SEM_LANCAMENTO';
-  if(
-    etapa.length === 1
-    && etapa[0] === 'SEM PEDIDO'
-    && !sla.length
-    && !faixa.length
-  ) return 'SEM_PEDIDO';
-  if(
-    etapa.length === 1
-    && etapa[0] === 'SEM NF'
-    && !sla.length
-    && !faixa.length
-  ) return 'SEM_NF';
-  if(
-    !etapa.length
-    && !faixa.length
-    && sla.length === 1
-    && sla[0] === 'CRÍTICO'
-  ) return 'CRITICO';
-  if(
-    !etapa.length
-    && !faixa.length
-    && sla.length === 2
-    && sla.includes('ATENÇÃO')
-    && sla.includes('CRÍTICO')
-  ) return 'FORA_SLA';
-
-  return null;
+  const view = deriveOperationalViewV100(state.filters);
+  return view.id === "PERSONALIZADA" ? null : view.id;
 }
 
 function syncQuickChips(){
@@ -686,6 +692,85 @@ function syncQuickChips(){
     const active = Boolean(activeKind && btn.dataset.quick === activeKind);
     btn.classList.toggle('active', active);
     btn.setAttribute('aria-pressed', active ? 'true' : 'false');
+  });
+}
+
+function formatGlobalContextSelectionV100(values){
+  const normalized = normalizeContextValuesV100(values);
+  if(!normalized.length) return "";
+  if(normalized.length === 1) return normalized[0];
+  return `${normalized.length} selecionados`;
+}
+
+function formatGlobalContextDateV100(value){
+  const clean = String(value || "").trim();
+  if(!/^\d{4}-\d{2}-\d{2}$/.test(clean)) return "";
+  const [year, month, day] = clean.split("-");
+  return `${day}/${month}/${year}`;
+}
+
+function deriveGlobalContextItemsV100(currentState=state){
+  const filters = currentState?.filters || {};
+  const view = deriveOperationalViewV100(filters);
+  const items = [{key:"view", label:"Visão", value:view.label}];
+
+  const supplier = formatGlobalContextSelectionV100(filters.FORNECEDOR);
+  if(supplier) items.push({key:"supplier", label:"Fornecedor", value:supplier});
+
+  const requester = formatGlobalContextSelectionV100(filters.SOLICITANTE);
+  if(requester) items.push({key:"requester", label:"Solicitante", value:requester});
+
+  const month = formatGlobalContextSelectionV100(filters.MES_RECEBIMENTO);
+  if(month) items.push({key:"month", label:"Mês", value:month});
+
+  const dateFrom = formatGlobalContextDateV100(currentState?.dateFrom);
+  const dateTo = formatGlobalContextDateV100(currentState?.dateTo);
+  if(dateFrom || dateTo){
+    const dateValue = dateFrom && dateTo
+      ? `${dateFrom}–${dateTo}`
+      : dateFrom
+        ? `A partir de ${dateFrom}`
+        : `Até ${dateTo}`;
+    items.push({key:"dates", label:"Datas", value:dateValue});
+  }
+
+  const search = String(currentState?.search || "").trim();
+  if(search) items.push({key:"search", label:"Busca", value:search});
+
+  const multiTerms = typeof window.normalizeMultiSearchTermsV100 === "function"
+    ? window.normalizeMultiSearchTermsV100(currentState?.multiSearchTerms)
+    : normalizeContextValuesV100(currentState?.multiSearchTerms);
+  if(multiTerms.length){
+    items.push({
+      key:"multi-search",
+      label:"Busca múltipla",
+      value:`${multiTerms.length} ${multiTerms.length === 1 ? "item" : "itens"}`
+    });
+  }
+
+  return items;
+}
+
+function renderGlobalContextV100(){
+  const host = $("globalContextList");
+  if(!host) return;
+
+  const items = deriveGlobalContextItemsV100(state);
+  host.textContent = "";
+
+  items.forEach(item => {
+    const pair = document.createElement("div");
+    pair.className = "global-context-item-v100";
+    pair.dataset.contextKey = item.key;
+
+    const term = document.createElement("dt");
+    term.textContent = item.label;
+
+    const description = document.createElement("dd");
+    description.textContent = item.value;
+
+    pair.append(term, description);
+    host.appendChild(pair);
   });
 }
 
@@ -854,6 +939,9 @@ function setLoading(on){
 
 window.syncQuickChips = syncQuickChips;
 window.applyQuickFilter = applyQuickFilter;
+window.deriveOperationalViewV100 = deriveOperationalViewV100;
+window.deriveGlobalContextItemsV100 = deriveGlobalContextItemsV100;
+window.renderGlobalContextV100 = renderGlobalContextV100;
 window.init = init;
 
 window.clearSimpleSearchEmptyStateV100 = clearSimpleSearchEmptyStateV100;

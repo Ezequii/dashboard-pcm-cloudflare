@@ -1,0 +1,79 @@
+/* ==========================================================================
+   V100 Enterprise — Entrega 03: Barra de Contexto Global V1
+   Região informativa compacta, somente leitura e compartilhada entre as abas.
+   ========================================================================== */
+
+.global-context-v100 {
+  margin: 10px 0 12px;
+  padding: 8px 12px;
+  border: 1px solid #dbe3ee;
+  border-radius: 10px;
+  background: #f8fafc;
+  color: #334155;
+}
+
+.global-context-list-v100 {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 6px 0;
+  margin: 0;
+  min-width: 0;
+}
+
+.global-context-item-v100 {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 4px;
+  min-width: 0;
+  max-width: 100%;
+}
+
+.global-context-item-v100:not(:last-child)::after {
+  content: "·";
+  margin: 0 8px;
+  color: #94a3b8;
+}
+
+.global-context-item-v100 dt,
+.global-context-item-v100 dd {
+  margin: 0;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.global-context-item-v100 dt {
+  color: #475569;
+  font-size: 0.8125rem;
+  font-weight: 600;
+}
+
+.global-context-item-v100 dt::after {
+  content: ":";
+}
+
+.global-context-item-v100 dd {
+  color: #0f172a;
+  font-size: 0.875rem;
+  font-weight: 700;
+}
+
+@media (max-width: 768px) {
+  .global-context-v100 {
+    padding: 8px 10px;
+  }
+
+  .global-context-list-v100 {
+    gap: 6px 0;
+  }
+
+  .global-context-item-v100:not(:last-child)::after {
+    margin: 0 6px;
+  }
+}
+
+@media (max-width: 390px) {
+  .global-context-item-v100 {
+    flex-wrap: wrap;
+  }
+}

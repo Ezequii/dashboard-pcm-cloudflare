@@ -67,6 +67,27 @@
     return unique.slice(0, MAX_MULTI_TERMS_V99);
   }
 
+
+
+  function normalizeMultiSearchTermsV100(values){
+    const source = Array.isArray(values) ? values : [];
+    const unique = [];
+    const seen = new Set();
+
+    source.forEach(value => {
+      const clean = String(value ?? "")
+        .replace(/\s+/g, " ")
+        .trim()
+        .slice(0, 160);
+      const key = normalizeCodeV99(clean);
+      if(!clean || seen.has(key)) return;
+      seen.add(key);
+      unique.push(clean);
+    });
+
+    return unique.slice(0, MAX_MULTI_TERMS_V99);
+  }
+
   function toBase64UrlV99(value){
     const bytes = new TextEncoder().encode(JSON.stringify(value));
     let binary = "";
@@ -107,9 +128,7 @@
       filters: safeFiltersV99(state.filters),
       search: String(state.search || "").slice(0, 200),
       searchScope: String(state.searchScope || "ALL"),
-      multiSearchTerms: Array.isArray(state.multiSearchTerms)
-        ? state.multiSearchTerms.slice(0, MAX_MULTI_TERMS_V99)
-        : [],
+      multiSearchTerms: normalizeMultiSearchTermsV100(state.multiSearchTerms),
       multiSearchMode: state.multiSearchMode === "ALL" ? "ALL" : "ANY",
       dateFrom: String(state.dateFrom || ""),
       dateTo: String(state.dateTo || ""),
@@ -137,12 +156,7 @@
       filters: safeFiltersV99(view.filters),
       search: String(view.search || "").slice(0, 200),
       searchScope: String(view.searchScope || "ALL").slice(0, 40),
-      multiSearchTerms: Array.isArray(view.multiSearchTerms)
-        ? view.multiSearchTerms
-            .map(value => String(value ?? "").trim().slice(0, 160))
-            .filter(Boolean)
-            .slice(0, MAX_MULTI_TERMS_V99)
-        : [],
+      multiSearchTerms: normalizeMultiSearchTermsV100(view.multiSearchTerms),
       multiSearchMode: view.multiSearchMode === "ALL" ? "ALL" : "ANY",
       dateFrom: /^\d{4}-\d{2}-\d{2}$/.test(String(view.dateFrom || ""))
         ? String(view.dateFrom)
@@ -1411,6 +1425,7 @@
   }
 
   window.parseMultiSearchInputV99 = parseMultiSearchInputV99;
+  window.normalizeMultiSearchTermsV100 = normalizeMultiSearchTermsV100;
   window.captureViewStateV99 = captureViewStateV99;
   window.applyViewStateV99 = applyViewStateV99;
   window.restoreProductivityStateV99 = restoreProductivityStateV99;

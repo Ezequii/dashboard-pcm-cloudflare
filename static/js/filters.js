@@ -278,6 +278,7 @@ function updateFilterUI(){
 
   renderActiveFilters();
   window.syncQuickChips?.();
+  window.renderGlobalContextV100?.();
 }
 
 function renderActiveFilters(){
