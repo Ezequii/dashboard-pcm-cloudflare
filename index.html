@@ -2,7 +2,9 @@
 <html lang="pt-BR">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="description" content="Painel executivo e operacional para controle de requisições PCM em 2026." />
+  <meta name="theme-color" content="#123c2f" />
   <title>Controle de Requisições PCM 2026</title>
   <link rel="icon" type="image/png" href="/static/favicon.png" />
   <link rel="stylesheet" href="/static/styles_v50_corrigido.css?v=9946" />
@@ -20,9 +22,10 @@
   <link rel="stylesheet" href="/static/styles_v100_empty_states.css?v=10020" />
   <link rel="stylesheet" href="/static/styles_v100_global_context.css?v=10040" />
   <link rel="stylesheet" href="/static/styles_v100_base_table.css?v=10050" />
-  <link rel="stylesheet" href="/static/styles_v100_executive_clean.css?v=10200" />
+  <link rel="stylesheet" href="/static/styles_v100_executive_composed.css?v=10100" />
+  <link rel="stylesheet" href="/static/styles_v100_1_usability.css?v=10010" />
 </head>
-<body class="v86-table-lines v89-simple-filters-search-money v90-layout-safe v91-layout-final v95-header-kpi-polish v97-reliability-navigation v971-runtime-fix v991-faithful v992-polished v993-productivity v994a-hardening v994a2-audited v994a2-visual app-booting v994a3-operational-fix v994a4-top-base-flow v994a5-lapidacao v994a6-clean-rankings v100-base-redesign v100-executive-clean">
+<body class="v86-table-lines v89-simple-filters-search-money v90-layout-safe v91-layout-final v95-header-kpi-polish v97-reliability-navigation v971-runtime-fix v991-faithful v992-polished v993-productivity v994a-hardening v994a2-audited v994a2-visual app-booting v994a3-operational-fix v994a4-top-base-flow v994a5-lapidacao v994a6-clean-rankings v100-base-redesign v100-executive-composed">
   <a class="skip-link-v994a" href="#mainContent">Pular para o conteúdo</a>
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
   <div id="drawerBackdrop" class="drawer-backdrop no-print" hidden></div>
@@ -36,7 +39,7 @@
         <div class="brand-copy-v994a4">
           <div class="brand-title-line">
             <h1>Controle de Requisições PCM</h1>
-            <span class="version-pill-v34" aria-label="Versão atual">V99.4A.6</span>
+            <span class="version-pill-v34" aria-label="Versão atual">V100.1</span>
           </div>
           <p class="subtitle-top">Controle de lançamento e acompanhamento — 2026</p>
         </div>
@@ -352,7 +355,6 @@
                 <option value="FORNECEDOR">Fornecedor</option>
                 <option value="SOLICITANTE">Solicitante</option>
                 <option value="EQUIPAMENTO">Equipamento / Prefixo</option>
-                <option value="DOCUMENTO">Orçamento / OS / NF</option>
               </select>
             </label>
             <label class="table-search">
@@ -454,7 +456,6 @@
               <option value="PEDIDO">Pedido</option>
               <option value="FORNECEDOR">Fornecedor</option>
               <option value="SOLICITANTE">Solicitante</option>
-              <option value="DOCUMENTO">Orçamento / OS / NF</option>
             </select>
           </label>
           <label class="field-v99">
