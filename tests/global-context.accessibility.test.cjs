@@ -10,14 +10,17 @@ const css = fs.readFileSync(
   "utf8"
 );
 
-test("existe uma única região global informativa e sem controles", () => {
+test("existe uma única região global com uma única ação de recuperação", () => {
   assert.equal((html.match(/id="globalContextBar"/g) || []).length, 1);
   assert.equal((html.match(/id="globalContextList"/g) || []).length, 1);
   assert.match(html, /id="globalContextBar"[\s\S]*?aria-label="Contexto global aplicado"/);
   const start = html.lastIndexOf("<section", html.indexOf('id="globalContextBar"'));
   const end = html.indexOf("</section>", start) + "</section>".length;
   const section = html.slice(start, end);
-  assert.doesNotMatch(section, /<button|<a\s/i);
+  assert.equal((section.match(/<button\b/gi) || []).length, 1);
+  assert.match(section, /id="globalContextClearAll"/);
+  assert.match(section, />\s*Limpar tudo\s*</);
+  assert.doesNotMatch(section, /<a\s/i);
   assert.doesNotMatch(section, /tabindex=/i);
   assert.match(section, /<dl[^>]*id="globalContextList"/);
 });
@@ -31,7 +34,7 @@ test("CSS permite reflow sem rolagem horizontal ou animações", () => {
   assert.doesNotMatch(css, /animation\s*:/);
 });
 
-test("componente não introduz ícones, tooltips ou ações", () => {
+test("componente não introduz ícones ou tooltips além da ação aprovada", () => {
   assert.doesNotMatch(css, /background-image|mask-image/);
   const start = html.lastIndexOf("<section", html.indexOf('id="globalContextBar"'));
   const end = html.indexOf("</section>", start) + "</section>".length;

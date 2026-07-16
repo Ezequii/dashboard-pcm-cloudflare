@@ -12,7 +12,7 @@
   {
     "name": "ordem_scripts",
     "passed": false,
-    "detail": "{'app-config.js': 27139, 'state.js': 27197, 'utils.js': 27250, 'security-v994a.js': 27303, 'api.js': 27365, 'filters.js': 27416, 'dashboard.js': 27471, 'table.js': -1, 'xlsx-v99.js': 27582, 'productivity-v99.js': -1, 'core.js': -1, 'main.js': 27756}"
+    "detail": "{'app-config.js': 27243, 'state.js': 27301, 'utils.js': 27354, 'security-v994a.js': 27407, 'api.js': 27469, 'filters.js': -1, 'dashboard.js': 27576, 'table.js': -1, 'xlsx-v99.js': 27687, 'productivity-v99.js': -1, 'core.js': -1, 'main.js': 27861}"
   },
   {
     "name": "ids_unicos",
@@ -107,7 +107,7 @@
   {
     "name": "dados_publicados_validos",
     "passed": true,
-    "detail": "versão 20260716124923"
+    "detail": "versão 20260716154511"
   },
   {
     "name": "pacote_sem_legado_executavel",
@@ -271,7 +271,7 @@
   },
   {
     "name": "mostrador_filtros_v994a5",
-    "passed": true,
+    "passed": false,
     "detail": "barra de contexto diferencia visão, fila e base"
   },
   {

@@ -382,6 +382,7 @@ function bindEvents(){
   });
 
   $('btnClear').onclick = clearAll;
+  $('globalContextClearAll')?.addEventListener('click', () => clearAll());
   bindFilterDrawer();
   bindQuickChips();
   $('btnRefresh').onclick = refreshData;
@@ -751,6 +752,12 @@ function deriveGlobalContextItemsV100(currentState=state){
   return items;
 }
 
+function hasActiveGlobalContextV100(currentState=state){
+  const items = deriveGlobalContextItemsV100(currentState);
+  const view = deriveOperationalViewV100(currentState?.filters || {});
+  return view.id !== "GERAL" || items.some(item => item.key !== "view");
+}
+
 function renderGlobalContextV100(){
   const host = $("globalContextList");
   if(!host) return;
@@ -772,6 +779,13 @@ function renderGlobalContextV100(){
     pair.append(term, description);
     host.appendChild(pair);
   });
+
+  const clearButton = $("globalContextClearAll");
+  if(clearButton){
+    const active = hasActiveGlobalContextV100(state);
+    clearButton.disabled = !active;
+    clearButton.setAttribute("aria-disabled", active ? "false" : "true");
+  }
 }
 
 function switchTab(tab, options={}){
@@ -817,21 +831,33 @@ function switchTab(tab, options={}){
   window.scrollTo({top:0, behavior:'auto'});
 }
 
-function clearAll(){
+async function clearAll(options={}){
   Object.keys(state.filters).forEach(k => state.filters[k] = []);
   state.search = '';
   state.dateFrom = state.dateTo = state.valueMin = state.valueMax = '';
   window.resetProductivityStateV99?.();
   state.page = 1;
-  if($('globalSearch')) $('globalSearch').value = '';
+
+  const globalSearch = $('globalSearch');
+  if(globalSearch) globalSearch.value = '';
+
   updateSearchUI();
   hydrateAdvancedSearch();
   updateFilterUI();
-  syncQuickChips();
   closeAllPopovers();
   closeFilterDrawer();
   savePreferences();
-  refreshAll(true).catch(error => console.error('Falha ao limpar filtros:', error));
+
+  try{
+    await refreshAll(true);
+  }catch(error){
+    console.error('Falha ao limpar filtros:', error);
+  }finally{
+    updateFilterUI();
+    const focusTarget = $('btnOpenFilters') || globalSearch;
+    if(options.restoreFocus !== false) focusTarget?.focus();
+    showToast('Filtros redefinidos.');
+  }
 }
 
 async function refreshData(){
@@ -926,6 +952,7 @@ function setLoading(on){
     'btnUploadWorkbook',
     'btnExportCsv',
     'btnClear',
+    'globalContextClearAll',
     'btnExportMenu',
     'btnToggleAdvancedSearch',
     'btnClearSearch',
@@ -942,6 +969,8 @@ window.applyQuickFilter = applyQuickFilter;
 window.deriveOperationalViewV100 = deriveOperationalViewV100;
 window.deriveGlobalContextItemsV100 = deriveGlobalContextItemsV100;
 window.renderGlobalContextV100 = renderGlobalContextV100;
+window.hasActiveGlobalContextV100 = hasActiveGlobalContextV100;
+window.clearAll = clearAll;
 window.init = init;
 
 window.clearSimpleSearchEmptyStateV100 = clearSimpleSearchEmptyStateV100;
