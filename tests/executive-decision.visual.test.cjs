@@ -8,7 +8,7 @@ const INDEX = fs.readFileSync(path.join(ROOT, "index.html"), "utf8");
 const CSS = fs.readFileSync(path.join(ROOT, "static", "styles_v100_executive_composed.css"), "utf8");
 
 test("carrega a camada executiva consolidada", () => {
-  assert.match(INDEX, /styles_v100_executive_composed\.css\?v=10100/);
+  assert.match(INDEX, /styles_v100_executive_composed\.css\?v=10110/);
   assert.match(INDEX, /v100-executive-composed/);
 });
 

@@ -1,25 +1,31 @@
 /* ==========================================================================
-   V100 — Visão Executiva composta
-   Consolida o topo e a visão executiva em uma única camada visual.
-   Não altera IDs, eventos, dados, permissões, navegação ou regras de negócio.
+   V100 — Visão Executiva clean consolidada
+   Uma única camada visual para cabeçalho, contexto, KPIs, pipeline, fila e rankings.
+   Preserva IDs, eventos, dados, permissões, navegação e regras de negócio.
    ========================================================================== */
 
 body.v100-executive-composed {
   --vx-ink: #10233f;
   --vx-muted: #64748b;
   --vx-line: #dbe5ef;
-  --vx-soft: #f7f9fc;
+  --vx-line-soft: #edf2f7;
+  --vx-bg: #f8fafc;
   --vx-blue: #0569d8;
+  --vx-blue-soft: #edf5ff;
   --vx-green: #07966f;
+  --vx-green-soft: #ebfaf4;
   --vx-amber: #d88917;
+  --vx-amber-soft: #fff7e8;
   --vx-danger: #d92d20;
+  --vx-danger-soft: #fff1f0;
   --vx-radius: 12px;
-  --vx-shadow: 0 4px 14px rgba(15, 35, 63, .05);
-  background: #f7f9fc;
+  --vx-shadow: 0 2px 10px rgba(15, 35, 63, .045);
+  background: var(--vx-bg);
+  color: var(--vx-ink);
 }
 
 /* --------------------------------------------------------------------------
-   Header: uma faixa única, compacta e estável. Sem sobreposição ao rolar.
+   Cabeçalho
    -------------------------------------------------------------------------- */
 
 body.v100-executive-composed .topbar-v994a4 {
@@ -28,20 +34,20 @@ body.v100-executive-composed .topbar-v994a4 {
   z-index: 20;
   padding: 0 !important;
   background: #fff !important;
-  border-top: 4px solid #0569d8;
+  border-top: 4px solid var(--vx-blue);
   border-bottom: 1px solid var(--vx-line) !important;
-  box-shadow: 0 2px 10px rgba(15, 35, 63, .045) !important;
+  box-shadow: 0 1px 8px rgba(15, 35, 63, .04) !important;
   backdrop-filter: none !important;
   -webkit-backdrop-filter: none !important;
 }
 
 body.v100-executive-composed .topbar-main-v994a4 {
   display: grid !important;
-  grid-template-columns: minmax(310px, 1fr) auto minmax(360px, 1fr);
+  grid-template-columns: minmax(320px, 1fr) auto minmax(410px, 1fr);
   align-items: center;
-  gap: 20px;
-  min-height: 72px;
-  padding: 10px clamp(18px, 3vw, 36px) !important;
+  gap: 18px;
+  min-height: 66px;
+  padding: 8px clamp(18px, 2.5vw, 34px) !important;
 }
 
 body.v100-executive-composed .brand-v994a4 {
@@ -56,26 +62,26 @@ body.v100-executive-composed .brand-v994a4 {
 }
 
 body.v100-executive-composed .brand-logo-box {
-  width: 78px;
-  min-width: 78px;
-  height: 38px;
   display: grid;
   place-items: center;
+  width: 80px;
+  min-width: 80px;
+  height: 36px;
   border: 0;
   background: transparent;
 }
 
 body.v100-executive-composed .brand-logo-box img {
   width: 100%;
-  max-width: 78px;
-  max-height: 34px;
+  max-width: 80px;
+  max-height: 32px;
   object-fit: contain;
 }
 
 body.v100-executive-composed .brand-title-line h1 {
   margin: 0;
   color: var(--vx-ink);
-  font-size: clamp(1rem, 1.25vw, 1.22rem);
+  font-size: clamp(1rem, 1.2vw, 1.18rem);
   line-height: 1.15;
   white-space: nowrap;
 }
@@ -87,14 +93,14 @@ body.v100-executive-composed .version-pill-v34 {
 body.v100-executive-composed .subtitle-top {
   margin: 3px 0 0;
   color: var(--vx-muted);
-  font-size: .72rem;
+  font-size: .69rem;
 }
 
 body.v100-executive-composed .prominent-tabs {
   display: grid !important;
-  grid-template-columns: repeat(2, minmax(145px, 1fr));
-  justify-self: center;
+  grid-template-columns: repeat(2, minmax(148px, 1fr));
   gap: 4px;
+  justify-self: center;
   padding: 4px !important;
   border: 1px solid var(--vx-line) !important;
   border-radius: 11px !important;
@@ -103,7 +109,7 @@ body.v100-executive-composed .prominent-tabs {
 }
 
 body.v100-executive-composed .prominent-tabs .tab-btn {
-  min-width: 145px;
+  min-width: 148px;
   padding: 8px 14px !important;
   border: 0 !important;
   border-radius: 8px !important;
@@ -113,37 +119,37 @@ body.v100-executive-composed .prominent-tabs .tab-btn {
 }
 
 body.v100-executive-composed .prominent-tabs .tab-btn span {
-  font-size: .83rem;
-  font-weight: 800;
+  font-size: .82rem;
+  font-weight: 850;
 }
 
 body.v100-executive-composed .prominent-tabs .tab-btn small {
   margin-top: 1px;
   color: #718096;
-  font-size: .61rem;
+  font-size: .6rem;
 }
 
 body.v100-executive-composed .prominent-tabs .tab-btn.active {
   background: var(--vx-blue) !important;
   color: #fff !important;
-  box-shadow: 0 3px 9px rgba(5, 105, 216, .22) !important;
+  box-shadow: 0 3px 9px rgba(5, 105, 216, .20) !important;
 }
 
 body.v100-executive-composed .prominent-tabs .tab-btn.active small {
-  color: rgba(255,255,255,.85) !important;
+  color: rgba(255,255,255,.86) !important;
 }
 
 body.v100-executive-composed .top-actions-v994a4 {
   justify-self: end;
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
   min-width: 0;
 }
 
 body.v100-executive-composed .status-cluster-v994a4,
 body.v100-executive-composed .action-cluster-v994a4 {
-  gap: 8px !important;
+  gap: 7px !important;
 }
 
 body.v100-executive-composed .security-runtime-only-v994a6,
@@ -159,43 +165,46 @@ body.v100-executive-composed .data-status-group-v994a4 {
 
 body.v100-executive-composed .meta-inline-v95,
 body.v100-executive-composed .data-freshness-v97 {
-  min-height: 36px;
+  min-height: 34px;
   display: inline-flex;
   align-items: center;
-  padding: 7px 10px;
+  padding: 6px 9px;
   border: 1px solid var(--vx-line);
   border-radius: 8px;
   background: #fff;
-  font-size: .66rem;
+  font-size: .63rem;
   white-space: nowrap;
 }
 
 body.v100-executive-composed .action-cluster-v994a4 .btn {
-  min-height: 38px;
-  padding: 8px 14px;
+  min-height: 36px;
+  padding: 7px 13px;
   border-radius: 8px;
 }
 
 /* --------------------------------------------------------------------------
-   Conteúdo principal e contexto: um único bloco compacto, sem pseudo-formulário.
+   Área principal
    -------------------------------------------------------------------------- */
 
 body.v100-executive-composed .page-v41 {
-  max-width: 1240px;
+  max-width: 1500px;
   margin: 0 auto;
-  padding: 12px 16px 28px !important;
+  padding: 10px 16px 20px !important;
 }
 
-body.v100-executive-composed .global-context-v100 {
+/* --------------------------------------------------------------------------
+   Contexto atual: uma faixa, não um card-formulário.
+   -------------------------------------------------------------------------- */
+
+body.v100-executive-composed.active-tab-visao .global-context-v100 {
   display: grid !important;
-  grid-template-columns: auto minmax(0, 1fr) auto;
-  grid-template-areas:
-    "title summary clear"
-    "filters filters filters";
+  grid-template-columns: auto auto minmax(0, 1fr) auto;
+  grid-template-areas: "title summary filters clear";
   align-items: center;
-  gap: 8px 14px;
-  margin: 0 0 12px !important;
-  padding: 10px 12px 11px !important;
+  gap: 14px;
+  min-height: 62px;
+  margin: 0 0 10px !important;
+  padding: 8px 12px !important;
   border: 1px solid var(--vx-line) !important;
   border-left: 4px solid var(--vx-green) !important;
   border-radius: var(--vx-radius) !important;
@@ -203,137 +212,188 @@ body.v100-executive-composed .global-context-v100 {
   box-shadow: var(--vx-shadow) !important;
 }
 
-body.v100-executive-composed .global-context-v100::before {
+body.v100-executive-composed.active-tab-visao .global-context-v100::before {
   content: none !important;
 }
 
-body.v100-executive-composed .global-context-title-v100 {
+body.v100-executive-composed.active-tab-visao .global-context-title-v100 {
   grid-area: title;
   color: #0f766e;
-  font-size: .69rem;
+  font-size: .7rem;
   font-weight: 900;
   letter-spacing: .045em;
   text-transform: uppercase;
   white-space: nowrap;
 }
 
-body.v100-executive-composed .global-context-list-v100 {
+body.v100-executive-composed.active-tab-visao .global-context-list-v100 {
   grid-area: summary;
   display: flex;
   align-items: center;
-  gap: 8px 12px;
+  gap: 7px;
   min-width: 0;
   min-height: 18px;
   margin: 0;
+  padding-right: 12px;
+  border-right: 1px solid var(--vx-line-soft);
 }
 
-body.v100-executive-composed .global-context-list-v100 > div {
+body.v100-executive-composed.active-tab-visao .global-context-list-v100 > div {
   display: inline-flex;
   align-items: baseline;
   gap: 4px;
   min-width: 0;
 }
 
-body.v100-executive-composed .global-context-list-v100 dt {
+body.v100-executive-composed.active-tab-visao .global-context-list-v100 dt {
   color: var(--vx-muted);
-  font-size: .68rem;
+  font-size: .65rem;
   font-weight: 700;
 }
 
-body.v100-executive-composed .global-context-list-v100 dd {
+body.v100-executive-composed.active-tab-visao .global-context-list-v100 dd {
   margin: 0;
   color: var(--vx-ink);
-  font-size: .76rem;
+  font-size: .75rem;
   font-weight: 850;
 }
 
-body.v100-executive-composed .global-context-clear-v100 {
+body.v100-executive-composed.active-tab-visao .global-context-clear-v100 {
   grid-area: clear;
   min-height: 34px;
-  padding: 6px 11px;
-  border: 1px solid #b9c7d7;
+  padding: 6px 10px;
+  border: 0;
   border-radius: 7px;
-  background: #fff;
-  color: #42526a;
-  font-size: .72rem;
-  font-weight: 800;
+  background: transparent;
+  color: var(--vx-blue);
+  font-size: .7rem;
+  font-weight: 850;
+  white-space: nowrap;
 }
 
-body.v100-executive-composed .global-context-v100 .filters-row-v994a4 {
+body.v100-executive-composed.active-tab-visao .global-context-v100 .filters-row-v994a4 {
   grid-area: filters;
   position: static !important;
   display: grid !important;
-  grid-template-columns: minmax(0, 1fr) auto;
-  align-items: end;
-  gap: 10px;
+  grid-template-columns: minmax(0, 1fr) 38px;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
   padding: 0 !important;
   border: 0 !important;
   background: transparent !important;
 }
 
-body.v100-executive-composed .global-context-v100 .filters-row-v994a4::before {
+body.v100-executive-composed.active-tab-visao .global-context-v100 .filters-row-v994a4::before {
   content: none !important;
 }
 
-body.v100-executive-composed .top-filters-v40 {
+body.v100-executive-composed.active-tab-visao .top-filters-v40 {
   display: grid !important;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(110px, 1fr));
   gap: 8px !important;
-}
-
-body.v100-executive-composed .smart-filter {
   min-width: 0;
 }
 
-body.v100-executive-composed .smart-filter label,
-body.v100-executive-composed .filter-label {
+body.v100-executive-composed.active-tab-visao .smart-filter {
+  min-width: 0;
+}
+
+body.v100-executive-composed.active-tab-visao .smart-filter label,
+body.v100-executive-composed.active-tab-visao .filter-label {
   color: #66758a !important;
-  font-size: .59rem !important;
+  font-size: .56rem !important;
   letter-spacing: .025em;
   text-transform: uppercase;
 }
 
-body.v100-executive-composed .smart-filter select,
-body.v100-executive-composed .smart-filter button,
-body.v100-executive-composed .top-filters-v40 select {
-  min-height: 38px !important;
-  border-radius: 7px !important;
-  border-color: #d6e0ea !important;
+body.v100-executive-composed.active-tab-visao .smart-filter select,
+body.v100-executive-composed.active-tab-visao .smart-filter button,
+body.v100-executive-composed.active-tab-visao .top-filters-v40 select {
+  min-height: 34px !important;
+  border: 0 !important;
+  border-bottom: 1px solid #d8e2ec !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  font-size: .7rem !important;
+  box-shadow: none !important;
+}
+
+body.v100-executive-composed.active-tab-visao .filters-summary-button-v97 {
+  position: relative;
+  display: inline-grid !important;
+  grid-template-columns: 1fr;
+  place-items: center;
+  width: 36px;
+  min-width: 36px;
+  height: 36px;
+  min-height: 36px !important;
+  padding: 0 !important;
+  border: 1px solid var(--vx-line) !important;
+  border-radius: 9px !important;
   background: #fff !important;
-  font-size: .73rem !important;
+  color: var(--vx-blue) !important;
+  box-shadow: none !important;
 }
 
-body.v100-executive-composed .filters-summary-button-v97 {
-  min-width: 88px;
-  min-height: 38px !important;
-  align-self: end;
-  border-radius: 7px !important;
+body.v100-executive-composed.active-tab-visao .filters-summary-button-v97 > span {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  padding: 0 !important;
+  margin: -1px !important;
+  overflow: hidden !important;
+  clip: rect(0,0,0,0) !important;
+  white-space: nowrap !important;
+  border: 0 !important;
 }
 
-/* Atalhos deixam de duplicar a visão executiva, mas permanecem na Base. */
+body.v100-executive-composed.active-tab-visao .filters-summary-button-v97::before {
+  content: "☷";
+  font-size: 1rem;
+  line-height: 1;
+  transform: rotate(90deg);
+}
+
+body.v100-executive-composed.active-tab-visao .filters-summary-button-v97 b {
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  min-width: 17px;
+  height: 17px;
+  display: grid;
+  place-items: center;
+  padding: 0 4px;
+  border-radius: 999px;
+  background: var(--vx-blue);
+  color: #fff;
+  font-size: .55rem;
+  line-height: 1;
+}
+
 body.v100-executive-composed.active-tab-visao #quickChips {
   display: none !important;
 }
 
 /* --------------------------------------------------------------------------
-   KPIs: cinco cartões consistentes em uma única grade.
+   KPIs
    -------------------------------------------------------------------------- */
 
-body.v100-executive-composed .executive-primary-v991 {
+body.v100-executive-composed.active-tab-visao .executive-primary-v991 {
   display: grid !important;
-  grid-template-columns: 1fr 1fr 1fr 1.22fr .88fr !important;
-  gap: 10px !important;
+  grid-template-columns: 1fr 1fr 1fr 1.15fr .9fr !important;
+  gap: 8px !important;
   min-height: 0 !important;
-  margin: 0 0 12px !important;
+  margin: 0 0 10px !important;
 }
 
-body.v100-executive-composed .hero-metric-v991,
-body.v100-executive-composed .hero-focus-v991,
-body.v100-executive-composed #kpiMaisParadoCard {
+body.v100-executive-composed.active-tab-visao .hero-metric-v991,
+body.v100-executive-composed.active-tab-visao .hero-focus-v991,
+body.v100-executive-composed.active-tab-visao #kpiMaisParadoCard {
   position: relative;
   min-width: 0;
-  min-height: 118px !important;
-  height: 118px !important;
+  min-height: 126px !important;
+  height: 126px !important;
   padding: 14px !important;
   border: 1px solid var(--vx-line) !important;
   border-radius: var(--vx-radius) !important;
@@ -342,113 +402,121 @@ body.v100-executive-composed #kpiMaisParadoCard {
   overflow: hidden;
 }
 
-body.v100-executive-composed .hero-metric-v991,
-body.v100-executive-composed .hero-focus-v991 {
+body.v100-executive-composed.active-tab-visao .hero-metric-v991::before,
+body.v100-executive-composed.active-tab-visao .hero-focus-v991::before,
+body.v100-executive-composed.active-tab-visao #kpiMaisParadoCard::before {
+  content: none !important;
+}
+
+body.v100-executive-composed.active-tab-visao .hero-metric-v991,
+body.v100-executive-composed.active-tab-visao .hero-focus-v991 {
   display: grid !important;
-  grid-template-columns: 38px minmax(0, 1fr);
+  grid-template-columns: 40px minmax(0, 1fr);
   align-items: center;
-  gap: 10px;
+  gap: 11px;
+  text-align: left;
 }
 
-body.v100-executive-composed .hero-focus-v991 {
-  grid-template-columns: 38px minmax(0, 1fr) auto !important;
+body.v100-executive-composed.active-tab-visao .hero-focus-v991 {
+  grid-template-columns: 40px minmax(0, 1fr) !important;
 }
 
-body.v100-executive-composed .hero-icon-v991,
-body.v100-executive-composed .alert-icon-v991 {
-  width: 36px !important;
-  height: 36px !important;
-  min-width: 36px;
+body.v100-executive-composed.active-tab-visao .hero-icon-v991,
+body.v100-executive-composed.active-tab-visao .alert-icon-v991 {
+  width: 40px !important;
+  height: 40px !important;
+  min-width: 40px;
 }
 
-body.v100-executive-composed .hero-copy-v991,
-body.v100-executive-composed .focus-copy {
+body.v100-executive-composed.active-tab-visao .hero-copy-v991,
+body.v100-executive-composed.active-tab-visao .focus-copy {
   min-width: 0;
 }
 
-body.v100-executive-composed .hero-copy-v991 small,
-body.v100-executive-composed #kpiMaisParadoCard > span:not(.alert-icon-v991) {
+body.v100-executive-composed.active-tab-visao .hero-copy-v991 small,
+body.v100-executive-composed.active-tab-visao #kpiMaisParadoCard > span:not(.alert-icon-v991) {
   display: block;
   color: #596b82;
-  font-size: .62rem;
+  font-size: .61rem;
   font-weight: 850;
   letter-spacing: .025em;
   text-transform: uppercase;
 }
 
-body.v100-executive-composed .hero-copy-v991 strong,
-body.v100-executive-composed #kpiMaisParadoCard > strong {
+body.v100-executive-composed.active-tab-visao .hero-copy-v991 strong,
+body.v100-executive-composed.active-tab-visao #kpiMaisParadoCard > strong {
   display: block;
-  margin-top: 3px;
+  margin-top: 4px;
   color: var(--vx-ink);
-  font-size: clamp(1.35rem, 1.7vw, 1.72rem);
+  font-size: clamp(1.42rem, 1.65vw, 1.78rem);
   line-height: 1.02;
 }
 
-body.v100-executive-composed .hero-copy-v991 em,
-body.v100-executive-composed .hero-copy-v991 > span:not(.hero-progress-v991),
-body.v100-executive-composed #kpiMaisParadoCard > small {
+body.v100-executive-composed.active-tab-visao .hero-copy-v991 em,
+body.v100-executive-composed.active-tab-visao .hero-copy-v991 > span:not(.hero-progress-v991),
+body.v100-executive-composed.active-tab-visao #kpiMaisParadoCard > small {
   display: block;
   max-width: 100%;
-  margin-top: 5px;
+  margin-top: 6px;
   color: var(--vx-muted);
-  font-size: .67rem;
-  line-height: 1.3;
+  font-size: .66rem;
+  line-height: 1.28;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-body.v100-executive-composed .hero-progress-v991 {
-  margin-top: 7px;
+body.v100-executive-composed.active-tab-visao .hero-progress-v991 {
+  margin-top: 8px;
 }
 
-body.v100-executive-composed .hero-focus-v991 .hero-open-v991 {
-  align-self: center;
-  min-width: max-content;
-  padding: 7px 9px;
-  border: 1px solid #cbd8e5;
-  border-radius: 7px;
-  background: #fff;
+body.v100-executive-composed.active-tab-visao .hero-focus-v991 .hero-open-v991 {
+  position: absolute;
+  left: 65px;
+  bottom: 12px;
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
   color: var(--vx-blue);
-  font-size: .68rem;
+  font-size: .67rem;
   font-weight: 850;
 }
 
-body.v100-executive-composed #kpiMaisParadoCard {
+body.v100-executive-composed.active-tab-visao #kpiMaisParadoCard {
   display: grid;
-  grid-template-columns: 36px minmax(0, 1fr);
+  grid-template-columns: 40px minmax(0, 1fr);
   grid-template-areas:
     "icon label"
     "icon value"
     "icon context";
   align-content: center;
-  gap: 2px 10px;
+  gap: 2px 11px;
   text-align: left;
 }
 
-body.v100-executive-composed #kpiMaisParadoCard .alert-icon-v991 { grid-area: icon; }
-body.v100-executive-composed #kpiMaisParadoCard > span:not(.alert-icon-v991) { grid-area: label; }
-body.v100-executive-composed #kpiMaisParadoCard > strong { grid-area: value; }
-body.v100-executive-composed #kpiMaisParadoCard > small { grid-area: context; }
+body.v100-executive-composed.active-tab-visao #kpiMaisParadoCard .alert-icon-v991 { grid-area: icon; }
+body.v100-executive-composed.active-tab-visao #kpiMaisParadoCard > span:not(.alert-icon-v991) { grid-area: label; }
+body.v100-executive-composed.active-tab-visao #kpiMaisParadoCard > strong { grid-area: value; color: var(--vx-danger); }
+body.v100-executive-composed.active-tab-visao #kpiMaisParadoCard > small { grid-area: context; }
 
-body.v100-executive-composed .executive-alerts-v991 {
+body.v100-executive-composed.active-tab-visao .executive-alerts-v991 {
   display: none !important;
 }
 
 /* --------------------------------------------------------------------------
-   Núcleo executivo: fluxo compacto + fila protagonista.
+   Núcleo executivo: pipeline real + fila.
    -------------------------------------------------------------------------- */
 
-body.v100-executive-composed .operations-grid-v991 {
+body.v100-executive-composed.active-tab-visao .operations-grid-v991 {
   display: grid !important;
-  grid-template-columns: minmax(0, 1.08fr) minmax(380px, .92fr);
-  gap: 12px;
+  grid-template-columns: minmax(0, 1.25fr) minmax(390px, .95fr);
+  gap: 10px;
   align-items: stretch;
-  margin: 0 0 12px !important;
+  margin: 0 0 10px !important;
 }
 
-body.v100-executive-composed .operations-panel-v991 {
+body.v100-executive-composed.active-tab-visao .operations-panel-v991 {
   min-width: 0;
   border: 1px solid var(--vx-line) !important;
   border-radius: var(--vx-radius) !important;
@@ -457,46 +525,46 @@ body.v100-executive-composed .operations-panel-v991 {
   overflow: hidden;
 }
 
-body.v100-executive-composed .panel-title-v991 {
-  min-height: 50px !important;
-  padding: 11px 13px 9px !important;
-  border-bottom: 1px solid #e8eef4;
+body.v100-executive-composed.active-tab-visao .panel-title-v991 {
+  min-height: 46px !important;
+  padding: 10px 13px 8px !important;
+  border-bottom: 1px solid var(--vx-line-soft);
 }
 
-body.v100-executive-composed .panel-title-v991 h2 {
+body.v100-executive-composed.active-tab-visao .panel-title-v991 h2 {
   margin: 0;
   color: var(--vx-ink);
-  font-size: 1rem;
+  font-size: .95rem;
 }
 
-body.v100-executive-composed .panel-title-v991 p,
-body.v100-executive-composed .panel-title-v991 small {
+body.v100-executive-composed.active-tab-visao .panel-title-v991 p,
+body.v100-executive-composed.active-tab-visao .panel-title-v991 small {
   color: var(--vx-muted);
-  font-size: .66rem;
+  font-size: .63rem;
 }
 
-/* O fluxo vira um pipeline contínuo, não quatro cartões. */
-body.v100-executive-composed .process-flow-v991 {
+/* Pipeline contínuo: uma linha, quatro marcos, sem mini-cards. */
+body.v100-executive-composed.active-tab-visao .process-flow-v991 {
   position: relative;
   display: grid !important;
   grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
   gap: 0 !important;
-  min-height: 190px;
-  padding: 16px 12px 14px;
+  min-height: 196px;
+  padding: 14px 14px 12px;
   overflow: visible !important;
 }
 
-body.v100-executive-composed .process-flow-v991::before {
+body.v100-executive-composed.active-tab-visao .process-flow-v991::before {
   content: "";
   position: absolute;
-  top: 47px;
+  top: 43px;
   left: 12.5%;
   right: 12.5%;
   height: 2px;
-  background: #dce6ef;
+  background: linear-gradient(90deg, #efb5b1 0 24%, #f2d2a4 24% 49%, #a8caf2 49% 74%, #a9dfcc 74% 100%);
 }
 
-body.v100-executive-composed .flow-step-v994a2 {
+body.v100-executive-composed.active-tab-visao .flow-step-v994a2 {
   position: relative;
   z-index: 1;
   display: grid !important;
@@ -520,37 +588,38 @@ body.v100-executive-composed .flow-step-v994a2 {
   text-align: center;
 }
 
-body.v100-executive-composed .flow-step-v994a2::after {
+body.v100-executive-composed.active-tab-visao .flow-step-v994a2::after {
   content: none !important;
 }
 
-body.v100-executive-composed .flow-sequence-v994a2 {
-  top: 0;
-  right: 10px;
-  width: 20px;
-  height: 20px;
-  font-size: .61rem;
+body.v100-executive-composed.active-tab-visao .flow-sequence-v994a2 {
+  top: -3px;
+  right: calc(50% - 29px);
+  width: 18px;
+  height: 18px;
+  font-size: .56rem;
 }
 
-body.v100-executive-composed .flow-icon-v991 {
+body.v100-executive-composed.active-tab-visao .flow-icon-v991 {
   grid-area: icon;
   width: 42px !important;
   height: 42px !important;
-  margin: 0 auto 4px;
+  margin: 0 auto 5px;
   background: #fff;
+  box-shadow: 0 0 0 5px #fff;
 }
 
-body.v100-executive-composed .flow-step-v994a2 > small {
+body.v100-executive-composed.active-tab-visao .flow-step-v994a2 > small {
   grid-area: label;
-  min-height: 26px;
+  min-height: 24px;
   color: var(--vx-ink);
-  font-size: .69rem;
+  font-size: .68rem;
   font-weight: 900;
-  line-height: 1.2;
+  line-height: 1.15;
   text-align: center;
 }
 
-body.v100-executive-composed .flow-main-metrics-v994a2 {
+body.v100-executive-composed.active-tab-visao .flow-main-metrics-v994a2 {
   grid-area: metrics;
   display: flex;
   align-items: baseline;
@@ -558,97 +627,99 @@ body.v100-executive-composed .flow-main-metrics-v994a2 {
   gap: 7px;
 }
 
-body.v100-executive-composed .flow-main-metrics-v994a2 strong {
-  font-size: 1.26rem;
+body.v100-executive-composed.active-tab-visao .flow-main-metrics-v994a2 strong {
   color: var(--vx-ink);
+  font-size: 1.26rem;
+  line-height: 1;
 }
 
-body.v100-executive-composed .flow-main-metrics-v994a2 em {
+body.v100-executive-composed.active-tab-visao .flow-main-metrics-v994a2 em {
   color: #42526a;
-  font-size: .65rem;
+  font-size: .63rem;
   font-weight: 850;
 }
 
-body.v100-executive-composed .flow-context-v994a2 {
+body.v100-executive-composed.active-tab-visao .flow-context-v994a2 {
   grid-area: context;
   display: flex;
   flex-direction: column;
   gap: 1px;
   color: var(--vx-muted);
-  font-size: .62rem;
+  font-size: .6rem;
 }
 
-body.v100-executive-composed .flow-average-v994a2,
-body.v100-executive-composed .flow-open-v994a2 {
+body.v100-executive-composed.active-tab-visao .flow-average-v994a2,
+body.v100-executive-composed.active-tab-visao .flow-open-v994a2 {
   display: none !important;
 }
 
-body.v100-executive-composed .flow-step-v994a2 mark {
+body.v100-executive-composed.active-tab-visao .flow-step-v994a2 mark {
   grid-area: status;
-  margin-top: 4px;
+  margin-top: 5px;
   padding: 3px 7px;
   border-radius: 999px;
-  font-size: .59rem;
+  font-size: .57rem;
   white-space: nowrap;
 }
 
-body.v100-executive-composed .queue-panel-v991 {
-  border-color: #c9daea !important;
-  box-shadow: 0 7px 20px rgba(15, 35, 63, .07) !important;
+body.v100-executive-composed.active-tab-visao .queue-panel-v991 {
+  border-color: #cfdeec !important;
+  box-shadow: 0 4px 15px rgba(15, 35, 63, .06) !important;
 }
 
-body.v100-executive-composed .queue-panel-v991 .panel-title-v991 h2 {
-  color: var(--vx-blue);
+body.v100-executive-composed.active-tab-visao .queue-panel-v991 .panel-title-v991 h2 {
+  color: var(--vx-ink);
 }
 
-body.v100-executive-composed .priority-list-v991 {
+body.v100-executive-composed.active-tab-visao .priority-list-v991 {
   padding: 0 13px;
 }
 
-body.v100-executive-composed .priority-row-v991 {
-  min-height: 62px;
-  padding: 10px 2px;
+body.v100-executive-composed.active-tab-visao .priority-row-v991 {
+  min-height: 57px;
+  padding: 8px 2px;
 }
 
-body.v100-executive-composed .priority-main-v991 strong {
-  font-size: .82rem;
+body.v100-executive-composed.active-tab-visao .priority-main-v991 strong {
+  font-size: .8rem;
 }
 
-body.v100-executive-composed .priority-main-v991 small,
-body.v100-executive-composed .priority-data-v991 {
-  font-size: .67rem;
+body.v100-executive-composed.active-tab-visao .priority-main-v991 small,
+body.v100-executive-composed.active-tab-visao .priority-data-v991 {
+  font-size: .64rem;
 }
 
-body.v100-executive-composed .panel-footer-link-v991 {
-  min-height: 40px;
+body.v100-executive-composed.active-tab-visao .panel-footer-link-v991 {
+  min-height: 36px;
 }
 
 /* --------------------------------------------------------------------------
-   Rankings: duas colunas completas, sem faixa desconectada ou vazio lateral.
+   Rankings: três linhas completas e legíveis.
    -------------------------------------------------------------------------- */
 
-body.v100-executive-composed .executive-lower-v100 {
+body.v100-executive-composed.active-tab-visao .executive-lower-v100 {
   display: block !important;
-  margin: 0 0 12px;
+  margin: 0 0 8px;
 }
 
-body.v100-executive-composed .ranking-grid-v991 {
+body.v100-executive-composed.active-tab-visao .ranking-grid-v991 {
   display: grid !important;
   grid-template-columns: 1fr 1fr;
-  gap: 12px;
+  gap: 10px;
 }
 
-body.v100-executive-composed .ranking-scopebar-v994a6 {
+body.v100-executive-composed.active-tab-visao .ranking-scopebar-v994a6 {
   grid-column: 1 / -1;
-  min-height: 38px;
+  min-height: 34px;
   margin: 0 !important;
-  padding: 6px 9px !important;
-  border: 1px solid var(--vx-line);
-  border-radius: 9px;
-  background: #fff;
+  padding: 5px 9px !important;
+  border: 0;
+  border-bottom: 1px solid var(--vx-line-soft);
+  border-radius: 0;
+  background: transparent;
 }
 
-body.v100-executive-composed .ranking-panel-v994a6 {
+body.v100-executive-composed.active-tab-visao .ranking-panel-v994a6 {
   min-width: 0;
   margin: 0 !important;
   border: 1px solid var(--vx-line) !important;
@@ -657,48 +728,53 @@ body.v100-executive-composed .ranking-panel-v994a6 {
   box-shadow: var(--vx-shadow) !important;
 }
 
-body.v100-executive-composed .ranking-head-v991 {
-  padding: 12px 13px 9px;
+body.v100-executive-composed.active-tab-visao .ranking-head-v991 {
+  padding: 9px 12px 7px;
 }
 
-body.v100-executive-composed .ranking-head-v991 > span {
+body.v100-executive-composed.active-tab-visao .ranking-head-v991 > span {
   display: none;
 }
 
-body.v100-executive-composed .ranking-head-v991 h2 {
-  font-size: .92rem;
+body.v100-executive-composed.active-tab-visao .ranking-head-v991 h2 {
+  font-size: .88rem;
 }
 
-body.v100-executive-composed .ranking-columns-v991 {
-  opacity: .7;
-  font-size: .58rem;
+body.v100-executive-composed.active-tab-visao .ranking-columns-v991 {
+  min-height: 22px;
+  opacity: .72;
+  font-size: .55rem;
 }
 
-body.v100-executive-composed .ranking-row-v994a5 {
-  min-height: 62px;
-  padding-top: 8px;
-  padding-bottom: 8px;
+body.v100-executive-composed.active-tab-visao .ranking-row-v994a5 {
+  min-height: 48px;
+  padding-top: 6px;
+  padding-bottom: 6px;
 }
 
-body.v100-executive-composed .ranking-name-v994a5 strong {
-  font-size: .78rem;
+body.v100-executive-composed.active-tab-visao .ranking-name-v994a5 strong {
+  font-size: .73rem;
 }
 
-body.v100-executive-composed .ranking-name-v994a5 small,
-body.v100-executive-composed .ranking-qty-v994a5 small,
-body.v100-executive-composed .ranking-value-v994a5 small {
-  font-size: .59rem;
+body.v100-executive-composed.active-tab-visao .ranking-name-v994a5 small,
+body.v100-executive-composed.active-tab-visao .ranking-qty-v994a5 small,
+body.v100-executive-composed.active-tab-visao .ranking-value-v994a5 small {
+  font-size: .55rem;
 }
 
-body.v100-executive-composed .ranking-progress-v991 {
-  height: 4px;
+body.v100-executive-composed.active-tab-visao .ranking-progress-v991 {
+  height: 3px;
 }
 
-body.v100-executive-composed .ranking-footer-v991 {
-  min-height: 38px;
+body.v100-executive-composed.active-tab-visao .ranking-footer-v991 {
+  min-height: 32px;
+  font-size: .64rem;
 }
 
-/* Interação e acessibilidade */
+/* --------------------------------------------------------------------------
+   Interação e acessibilidade
+   -------------------------------------------------------------------------- */
+
 body.v100-executive-composed .hero-metric-v991:hover:not(:disabled),
 body.v100-executive-composed .hero-focus-v991:hover:not(:disabled),
 body.v100-executive-composed #kpiMaisParadoCard:hover:not(:disabled),
@@ -706,7 +782,7 @@ body.v100-executive-composed .flow-step-v994a2:hover:not(:disabled),
 body.v100-executive-composed .priority-row-v991:hover:not(:disabled),
 body.v100-executive-composed .ranking-row-v994a5:hover:not(:disabled) {
   border-color: #b9cce0 !important;
-  box-shadow: 0 6px 18px rgba(15, 35, 63, .08) !important;
+  box-shadow: 0 5px 16px rgba(15, 35, 63, .07) !important;
 }
 
 body.v100-executive-composed .hero-metric-v991:focus-visible,
@@ -715,7 +791,8 @@ body.v100-executive-composed #kpiMaisParadoCard:focus-visible,
 body.v100-executive-composed .flow-step-v994a2:focus-visible,
 body.v100-executive-composed .priority-row-v991:focus-visible,
 body.v100-executive-composed .ranking-row-v994a5:focus-visible,
-body.v100-executive-composed .global-context-clear-v100:focus-visible {
+body.v100-executive-composed .global-context-clear-v100:focus-visible,
+body.v100-executive-composed .filters-summary-button-v97:focus-visible {
   outline: 3px solid #1d4ed8 !important;
   outline-offset: 3px !important;
 }
@@ -733,19 +810,26 @@ body.v100-executive-composed .global-context-clear-v100:focus-visible {
     grid-column: 1 / -1;
     width: 100%;
     justify-content: space-between;
-    padding-top: 8px;
+    padding-top: 7px;
     border-top: 1px solid var(--vx-line);
   }
 
-  body.v100-executive-composed .executive-primary-v991 {
+  body.v100-executive-composed.active-tab-visao .global-context-v100 {
+    grid-template-columns: auto auto 1fr;
+    grid-template-areas:
+      "title summary clear"
+      "filters filters filters";
+  }
+
+  body.v100-executive-composed.active-tab-visao .executive-primary-v991 {
     grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
   }
 
-  body.v100-executive-composed .hero-focus-v991 {
+  body.v100-executive-composed.active-tab-visao .hero-focus-v991 {
     grid-column: span 2;
   }
 
-  body.v100-executive-composed .operations-grid-v991 {
+  body.v100-executive-composed.active-tab-visao .operations-grid-v991 {
     grid-template-columns: 1fr;
   }
 }
@@ -753,7 +837,7 @@ body.v100-executive-composed .global-context-clear-v100:focus-visible {
 @media (max-width: 900px) {
   body.v100-executive-composed .topbar-main-v994a4 {
     grid-template-columns: 1fr;
-    gap: 10px;
+    gap: 9px;
   }
 
   body.v100-executive-composed .brand-v994a4,
@@ -762,7 +846,7 @@ body.v100-executive-composed .global-context-clear-v100:focus-visible {
     justify-self: stretch;
   }
 
-  body.v100-executive-composed .global-context-v100 {
+  body.v100-executive-composed.active-tab-visao .global-context-v100 {
     grid-template-columns: 1fr auto;
     grid-template-areas:
       "title clear"
@@ -770,31 +854,31 @@ body.v100-executive-composed .global-context-clear-v100:focus-visible {
       "filters filters";
   }
 
-  body.v100-executive-composed .top-filters-v40 {
+  body.v100-executive-composed.active-tab-visao .top-filters-v40 {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  body.v100-executive-composed .process-flow-v991 {
+  body.v100-executive-composed.active-tab-visao .process-flow-v991 {
     grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
     row-gap: 18px !important;
   }
 
-  body.v100-executive-composed .process-flow-v991::before {
+  body.v100-executive-composed.active-tab-visao .process-flow-v991::before {
     display: none;
   }
 
-  body.v100-executive-composed .ranking-grid-v991 {
+  body.v100-executive-composed.active-tab-visao .ranking-grid-v991 {
     grid-template-columns: 1fr;
   }
 
-  body.v100-executive-composed .ranking-scopebar-v994a6 {
+  body.v100-executive-composed.active-tab-visao .ranking-scopebar-v994a6 {
     grid-column: 1;
   }
 }
 
 @media (max-width: 680px) {
   body.v100-executive-composed .page-v41 {
-    padding: 10px 10px 24px !important;
+    padding: 9px 10px 20px !important;
   }
 
   body.v100-executive-composed .brand-title-line h1 {
@@ -811,7 +895,7 @@ body.v100-executive-composed .global-context-clear-v100:focus-visible {
 
   body.v100-executive-composed .top-actions-v994a4 {
     display: grid;
-    gap: 8px;
+    gap: 7px;
   }
 
   body.v100-executive-composed .data-status-group-v994a4,
@@ -824,7 +908,7 @@ body.v100-executive-composed .global-context-clear-v100:focus-visible {
     grid-template-columns: 1fr 1fr;
   }
 
-  body.v100-executive-composed .global-context-v100 {
+  body.v100-executive-composed.active-tab-visao .global-context-v100 {
     grid-template-columns: 1fr;
     grid-template-areas:
       "title"
@@ -833,43 +917,39 @@ body.v100-executive-composed .global-context-clear-v100:focus-visible {
       "clear";
   }
 
-  body.v100-executive-composed .global-context-clear-v100 {
+  body.v100-executive-composed.active-tab-visao .global-context-clear-v100 {
     justify-self: end;
   }
 
-  body.v100-executive-composed .global-context-v100 .filters-row-v994a4 {
+  body.v100-executive-composed.active-tab-visao .global-context-v100 .filters-row-v994a4 {
+    grid-template-columns: 1fr 36px;
+  }
+
+  body.v100-executive-composed.active-tab-visao .top-filters-v40 {
     grid-template-columns: 1fr;
   }
 
-  body.v100-executive-composed .top-filters-v40 {
-    grid-template-columns: 1fr;
-  }
-
-  body.v100-executive-composed .filters-summary-button-v97 {
-    justify-self: stretch;
-  }
-
-  body.v100-executive-composed .executive-primary-v991 {
+  body.v100-executive-composed.active-tab-visao .executive-primary-v991 {
     grid-template-columns: 1fr !important;
   }
 
-  body.v100-executive-composed .hero-focus-v991 {
+  body.v100-executive-composed.active-tab-visao .hero-focus-v991 {
     grid-column: auto;
   }
 
-  body.v100-executive-composed .hero-metric-v991,
-  body.v100-executive-composed .hero-focus-v991,
-  body.v100-executive-composed #kpiMaisParadoCard {
+  body.v100-executive-composed.active-tab-visao .hero-metric-v991,
+  body.v100-executive-composed.active-tab-visao .hero-focus-v991,
+  body.v100-executive-composed.active-tab-visao #kpiMaisParadoCard {
     height: auto !important;
     min-height: 108px !important;
   }
 
-  body.v100-executive-composed .process-flow-v991 {
+  body.v100-executive-composed.active-tab-visao .process-flow-v991 {
     grid-template-columns: 1fr !important;
-    padding: 12px;
+    padding: 10px 12px;
   }
 
-  body.v100-executive-composed .flow-step-v994a2 {
+  body.v100-executive-composed.active-tab-visao .flow-step-v994a2 {
     grid-template-columns: 42px minmax(0, 1fr) !important;
     grid-template-areas:
       "icon label"
@@ -878,32 +958,33 @@ body.v100-executive-composed .global-context-clear-v100:focus-visible {
       "status status";
     justify-items: stretch;
     text-align: left;
-    padding: 10px 2px !important;
-    border-bottom: 1px solid #e8eef4 !important;
+    padding: 9px 2px !important;
+    border-bottom: 1px solid var(--vx-line-soft) !important;
   }
 
-  body.v100-executive-composed .flow-step-v994a2:last-child {
+  body.v100-executive-composed.active-tab-visao .flow-step-v994a2:last-child {
     border-bottom: 0 !important;
   }
 
-  body.v100-executive-composed .flow-icon-v991 {
+  body.v100-executive-composed.active-tab-visao .flow-icon-v991 {
     margin: 0;
+    box-shadow: none;
   }
 
-  body.v100-executive-composed .flow-step-v994a2 > small {
+  body.v100-executive-composed.active-tab-visao .flow-step-v994a2 > small {
     text-align: left;
   }
 
-  body.v100-executive-composed .flow-main-metrics-v994a2 {
+  body.v100-executive-composed.active-tab-visao .flow-main-metrics-v994a2 {
     justify-content: flex-start;
   }
 
-  body.v100-executive-composed .flow-context-v994a2 {
+  body.v100-executive-composed.active-tab-visao .flow-context-v994a2 {
     flex-direction: row;
     justify-content: space-between;
   }
 
-  body.v100-executive-composed .flow-step-v994a2 mark {
+  body.v100-executive-composed.active-tab-visao .flow-step-v994a2 mark {
     justify-self: start;
   }
 }

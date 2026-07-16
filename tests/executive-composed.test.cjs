@@ -11,7 +11,7 @@ const CSS = fs.readFileSync(
 );
 
 test("usa uma única camada visual consolidada para topo e visão executiva", () => {
-  assert.match(INDEX, /styles_v100_executive_composed\.css\?v=10100/);
+  assert.match(INDEX, /styles_v100_executive_composed\.css\?v=10110/);
   assert.doesNotMatch(INDEX, /styles_v100_top_hierarchy\.css/);
   assert.doesNotMatch(INDEX, /styles_v100_executive_decision\.css/);
   assert.doesNotMatch(INDEX, /styles_v100_executive_no_redundancy\.css/);

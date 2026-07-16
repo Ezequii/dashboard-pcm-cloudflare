@@ -8,7 +8,7 @@ const INDEX = fs.readFileSync(path.join(ROOT, "index.html"), "utf8");
 const CSS = fs.readFileSync(path.join(ROOT, "static", "styles_v100_executive_composed.css"), "utf8");
 
 test("camada consolidada substitui o empilhamento visual anterior", () => {
-  assert.match(INDEX, /styles_v100_executive_composed\.css\?v=10100/);
+  assert.match(INDEX, /styles_v100_executive_composed\.css\?v=10110/);
   assert.doesNotMatch(INDEX, /styles_v100_executive_final_polish\.css/);
   assert.doesNotMatch(INDEX, /styles_v100_executive_no_redundancy\.css/);
 });
