@@ -20,8 +20,9 @@
   <link rel="stylesheet" href="/static/styles_v100_empty_states.css?v=10020" />
   <link rel="stylesheet" href="/static/styles_v100_global_context.css?v=10040" />
   <link rel="stylesheet" href="/static/styles_v100_base_table.css?v=10050" />
+  <link rel="stylesheet" href="/static/styles_v100_top_hierarchy.css?v=10060" />
 </head>
-<body class="v86-table-lines v89-simple-filters-search-money v90-layout-safe v91-layout-final v95-header-kpi-polish v97-reliability-navigation v971-runtime-fix v991-faithful v992-polished v993-productivity v994a-hardening v994a2-audited v994a2-visual app-booting v994a3-operational-fix v994a4-top-base-flow v994a5-lapidacao v994a6-clean-rankings v100-base-redesign">
+<body class="v86-table-lines v89-simple-filters-search-money v90-layout-safe v91-layout-final v95-header-kpi-polish v97-reliability-navigation v971-runtime-fix v991-faithful v992-polished v993-productivity v994a-hardening v994a2-audited v994a2-visual app-booting v994a3-operational-fix v994a4-top-base-flow v994a5-lapidacao v994a6-clean-rankings v100-base-redesign v100-top-hierarchy">
   <a class="skip-link-v994a" href="#mainContent">Pular para o conteúdo</a>
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
   <div id="drawerBackdrop" class="drawer-backdrop no-print" hidden></div>
@@ -119,21 +120,6 @@
       <button id="btnRetryData" class="btn btn-small btn-soft" type="button">Tentar novamente</button>
     </section>
 
-    <section id="quickChips" class="quick-filter-bar-v100 no-print" aria-labelledby="quickFiltersTitle">
-      <div class="quick-filter-heading-v100">
-        <strong id="quickFiltersTitle">Atalhos de visão</strong>
-        <span>Aplicam um único contexto operacional e mantêm os demais filtros.</span>
-      </div>
-      <div class="quick-filter-list-v100" role="group" aria-label="Atalhos de visão operacional">
-        <button type="button" class="quick-chip" data-quick="TODAS" aria-pressed="false">Visão geral</button>
-        <button type="button" class="quick-chip" data-quick="FORA_SLA" aria-pressed="false">Fora do SLA</button>
-        <button type="button" class="quick-chip" data-quick="CRITICO" aria-pressed="false">Críticos</button>
-        <button type="button" class="quick-chip" data-quick="SEM_LANCAMENTO" aria-pressed="false">Sem lançamento</button>
-        <button type="button" class="quick-chip" data-quick="SEM_PEDIDO" aria-pressed="false">Sem pedido</button>
-        <button type="button" class="quick-chip" data-quick="SEM_NF" aria-pressed="false">Sem NF</button>
-      </div>
-    </section>
-
     <section
       id="globalContextBar"
       class="global-context-v100 no-print"
@@ -148,6 +134,21 @@
       >
         Limpar tudo
       </button>
+    </section>
+
+    <section id="quickChips" class="quick-filter-bar-v100 no-print" aria-labelledby="quickFiltersTitle">
+      <div class="quick-filter-heading-v100">
+        <strong id="quickFiltersTitle">Atalhos de visão</strong>
+        <span>Aplicam um único contexto operacional e mantêm os demais filtros.</span>
+      </div>
+      <div class="quick-filter-list-v100" role="group" aria-label="Atalhos de visão operacional">
+        <button type="button" class="quick-chip" data-quick="TODAS" aria-pressed="false">Visão geral</button>
+        <button type="button" class="quick-chip" data-quick="FORA_SLA" aria-pressed="false">Fora do SLA</button>
+        <button type="button" class="quick-chip" data-quick="CRITICO" aria-pressed="false">Críticos</button>
+        <button type="button" class="quick-chip" data-quick="SEM_LANCAMENTO" aria-pressed="false">Sem lançamento</button>
+        <button type="button" class="quick-chip" data-quick="SEM_PEDIDO" aria-pressed="false">Sem pedido</button>
+        <button type="button" class="quick-chip" data-quick="SEM_NF" aria-pressed="false">Sem NF</button>
+      </div>
     </section>
 
         <section class="executive-primary-v991" data-panel="visao" aria-label="Indicadores executivos">
