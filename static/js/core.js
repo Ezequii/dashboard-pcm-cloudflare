@@ -14,7 +14,9 @@ function validateRuntimeConfiguration(){
     "buildSmartFilters",
     "renderDashboardData",
     "loadRows",
-    "updateFilterUI"
+    "updateFilterUI",
+    "clearProductivityQueryContextV100",
+    "getSelectedRowsCountV100"
   ];
   const missing = requiredFunctions.filter((name) => typeof window[name] !== "function");
   if(missing.length){
@@ -39,11 +41,162 @@ const scheduleRows = debounce(() => {
   loadRows().catch(error => console.error('Carregamento agendado da tabela falhou:', error));
 }, 220);
 
+
 function loadRowsSafely(){
   return loadRows().catch(error => {
     console.error('Falha ao carregar a tabela:', error);
     return null;
   });
+}
+
+let baseFocusIntentV100 = null;
+let baseFocusIntentSequenceV100 = 0;
+let emptyStateReloadPromiseV100 = null;
+
+function requestBaseFocusV100(target, origin=document.activeElement){
+  baseFocusIntentV100 = {
+    id: ++baseFocusIntentSequenceV100,
+    target,
+    origin: origin || null
+  };
+  return baseFocusIntentV100.id;
+}
+
+function cancelBaseFocusIntentV100(){
+  baseFocusIntentV100 = null;
+}
+
+function canRestoreBaseFocusV100(intent){
+  if(!intent || state.activeTab !== 'base') return false;
+  const active = document.activeElement;
+  if(!active || active === document.body || active === document.documentElement) return true;
+  if(intent.origin && active === intent.origin) return true;
+  return false;
+}
+
+function focusBaseElementV100(id){
+  const element = $(id);
+  if(!element || element.hidden || element.disabled) return false;
+  element.focus({preventScroll:false});
+  return document.activeElement === element;
+}
+
+function restoreBaseFocusAfterRenderV100(){
+  const intent = baseFocusIntentV100;
+  if(!intent || intent.target !== 'BASE_TITLE') return false;
+  if(!canRestoreBaseFocusV100(intent)){
+    cancelBaseFocusIntentV100();
+    return false;
+  }
+  const restored = focusBaseElementV100('basePanelTitle');
+  cancelBaseFocusIntentV100();
+  return restored;
+}
+
+function restoreBaseFocusAfterReloadV100(){
+  const intent = baseFocusIntentV100;
+  if(!intent || intent.target !== 'RELOAD_BUTTON') return false;
+  if(!canRestoreBaseFocusV100(intent)){
+    cancelBaseFocusIntentV100();
+    return false;
+  }
+  const restored = focusBaseElementV100('emptyStateReloadButton')
+    || focusBaseElementV100('basePanelTitle');
+  cancelBaseFocusIntentV100();
+  return restored;
+}
+
+function setEmptyStateReloadBusyV100(active){
+  const region = $('baseTableRegion');
+  if(region) region.setAttribute('aria-busy', active ? 'true' : 'false');
+  window.syncEmptyStateReloadUiV100?.(Boolean(active));
+}
+
+function isEmptyStateReloadActiveV100(){
+  return Boolean(emptyStateReloadPromiseV100);
+}
+
+function waitForGlobalRefreshIdleV100(){
+  return new Promise(resolve => {
+    const check = () => {
+      if(!state.refreshPromise && !state.refreshQueued && !state.isRefreshing){
+        resolve();
+        return;
+      }
+      setTimeout(check, 40);
+    };
+    check();
+  });
+}
+
+function clearSimpleSearchEmptyStateV100(){
+  state.search = '';
+  const globalSearch = $('globalSearch');
+  if(globalSearch) globalSearch.value = '';
+  state.page = 1;
+  updateSearchUI();
+  updateFilterUI();
+  savePreferences();
+  globalSearch?.focus();
+  return loadRowsSafely();
+}
+
+async function clearQueryContextEmptyStateV100(){
+  requestBaseFocusV100('BASE_TITLE');
+
+  Object.keys(state.filters || {}).forEach(key => {
+    state.filters[key] = [];
+  });
+  state.search = '';
+  state.dateFrom = '';
+  state.dateTo = '';
+  state.valueMin = '';
+  state.valueMax = '';
+  state.page = 1;
+
+  window.clearProductivityQueryContextV100?.();
+
+  const globalSearch = $('globalSearch');
+  if(globalSearch) globalSearch.value = '';
+  updateSearchUI();
+  hydrateAdvancedSearch();
+  updateFilterUI();
+  savePreferences();
+
+  try{
+    await refreshAll(true);
+  }finally{
+    restoreBaseFocusAfterRenderV100();
+  }
+}
+
+function reloadEmptyStateDataV100(){
+  if(emptyStateReloadPromiseV100) return emptyStateReloadPromiseV100;
+
+  requestBaseFocusV100('RELOAD_BUTTON');
+  setEmptyStateReloadBusyV100(true);
+
+  const run = async () => {
+    if(state.refreshPromise || state.isRefreshing){
+      await waitForGlobalRefreshIdleV100();
+    }else{
+      await refreshData();
+      await waitForGlobalRefreshIdleV100();
+    }
+  };
+
+  emptyStateReloadPromiseV100 = run()
+    .catch(error => {
+      console.error('Falha ao recarregar a base vazia:', error);
+      return null;
+    })
+    .finally(() => {
+      emptyStateReloadPromiseV100 = null;
+      setEmptyStateReloadBusyV100(false);
+      restoreBaseFocusAfterReloadV100();
+    });
+
+  return emptyStateReloadPromiseV100;
 }
 
 function updateHeaderMetadata(metadata={}, generatedAt=''){
@@ -203,14 +356,7 @@ function bindEvents(){
   }
   if(clearSearch){
     clearSearch.addEventListener('click', () => {
-      state.search = '';
-      if(globalSearch) globalSearch.value = '';
-      state.page = 1;
-      updateSearchUI();
-      updateFilterUI();
-      savePreferences();
-      loadRowsSafely();
-      globalSearch?.focus();
+      clearSimpleSearchEmptyStateV100();
     });
   }
   updateSearchUI();
@@ -561,6 +707,13 @@ function switchTab(tab, options={}){
 
   document.body.classList.toggle('active-tab-visao', selected === 'visao');
   document.body.classList.toggle('active-tab-base', selected === 'base');
+
+  if(selected !== 'base'){
+    cancelBaseFocusIntentV100();
+  }else{
+    window.flushPendingBaseAnnouncementV100?.();
+  }
+
   closeAllPopovers();
   closeFilterDrawer();
   updateFilterUI();
@@ -702,3 +855,11 @@ function setLoading(on){
 window.syncQuickChips = syncQuickChips;
 window.applyQuickFilter = applyQuickFilter;
 window.init = init;
+
+window.clearSimpleSearchEmptyStateV100 = clearSimpleSearchEmptyStateV100;
+window.clearQueryContextEmptyStateV100 = clearQueryContextEmptyStateV100;
+window.reloadEmptyStateDataV100 = reloadEmptyStateDataV100;
+window.restoreBaseFocusAfterRenderV100 = restoreBaseFocusAfterRenderV100;
+window.cancelBaseFocusIntentV100 = cancelBaseFocusIntentV100;
+window.isEmptyStateReloadActiveV100 = isEmptyStateReloadActiveV100;
+

@@ -707,6 +707,24 @@
     if(options.reload !== false) loadRowsSafely();
   }
 
+  function getSelectedRowsCountV100(){
+    return selectedRowsV99.size;
+  }
+
+  function clearProductivityQueryContextV100(){
+    state.multiSearchTerms = [];
+    state.multiSearchMode = "ANY";
+    selectedRowsV99.clear();
+
+    const input = document.getElementById("multiSearchInputV99");
+    const mode = document.getElementById("multiSearchModeV99");
+    if(input) input.value = "";
+    if(mode) mode.value = "ANY";
+
+    updateMultiSearchUiV99();
+    updateSelectionUiV99();
+  }
+
   function updateSelectionUiV99(){
     const count = selectedRowsV99.size;
     const bar = document.getElementById("selectionBarV99");
@@ -1403,6 +1421,8 @@
   window.renderRowCheckboxV99 = renderRowCheckboxV99;
   window.afterTableRenderV99 = afterTableRenderV99;
   window.buildOperationalSummaryV99 = buildOperationalSummaryV99;
+  window.getSelectedRowsCountV100 = getSelectedRowsCountV100;
+  window.clearProductivityQueryContextV100 = clearProductivityQueryContextV100;
   window.exportExcelFromCurrentViewV99 = exportExcelFromCurrentViewV99;
   window.openDetailsV99 = openDetailsV99;
   window.resetProductivityStateV99 = resetProductivityStateV99;

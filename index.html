@@ -17,6 +17,7 @@
   <link rel="stylesheet" href="/static/styles_v994a5_lapidacao.css?v=9946" />
   <link rel="stylesheet" href="/static/styles_v994a6_clean_rankings.css?v=9946" />
   <link rel="stylesheet" href="/static/styles_v100_quick_filters.css?v=10002" />
+  <link rel="stylesheet" href="/static/styles_v100_empty_states.css?v=10020" />
 </head>
 <body class="v86-table-lines v89-simple-filters-search-money v90-layout-safe v91-layout-final v95-header-kpi-polish v97-reliability-navigation v971-runtime-fix v991-faithful v992-polished v993-productivity v994a-hardening v994a2-audited v994a2-visual app-booting v994a3-operational-fix v994a4-top-base-flow v994a5-lapidacao v994a6-clean-rankings">
   <a class="skip-link-v994a" href="#mainContent">Pular para o conteúdo</a>
@@ -299,7 +300,7 @@
 
 <section class="base-overview-v991" data-panel="base" hidden>
       <div class="base-overview-copy-v991">
-        <span>Base de Tratativa</span>
+        <span id="basePanelTitle" tabindex="-1">Base de Tratativa</span>
         <strong>Registros operacionais</strong>
         <small id="baseOverviewHintV991">Priorize sem lançamento; acompanhe pedido e NF.</small>
       </div>
@@ -310,11 +311,12 @@
       </div>
     </section>
 
-<section class="table-card table-card-compact" data-panel="base" hidden>
+<section id="baseTableRegion" class="table-card table-card-compact" data-panel="base" aria-busy="false" hidden>
       <div class="table-head">
         <div>
           <h3>Registros</h3>
           <p id="tableCounter">0 registros</p>
+          <p id="baseTableStatusLive" class="sr-only-v100" aria-live="polite" aria-atomic="true"></p>
           <small class="leader-table-note">Use busca e filtros para localizar a tratativa necessária.</small>
         </div>
         <div class="table-tools no-print">
@@ -521,10 +523,10 @@
   <script src="/static/js/api.js?v=9946"></script>
   <script src="/static/js/filters.js?v=9946"></script>
   <script src="/static/js/dashboard.js?v=9946"></script>
-  <script src="/static/js/table.js?v=9946"></script>
+  <script src="/static/js/table.js?v=10020"></script>
   <script src="/static/js/xlsx-v99.js?v=9946"></script>
-  <script src="/static/js/productivity-v99.js?v=9946"></script>
-  <script src="/static/js/core.js?v=10001"></script>
+  <script src="/static/js/productivity-v99.js?v=10020"></script>
+  <script src="/static/js/core.js?v=10020"></script>
   <script src="/static/js/main.js?v=9946"></script>
 </body>
 </html>

@@ -1,0 +1,99 @@
+/* ==========================================================================
+   V100 — Entrega 02: estados vazios da Base Operacional
+   ========================================================================== */
+
+.sr-only-v100 {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  padding: 0 !important;
+  margin: -1px !important;
+  overflow: hidden !important;
+  clip: rect(0, 0, 0, 0) !important;
+  white-space: nowrap !important;
+  border: 0 !important;
+}
+
+#basePanelTitle:focus-visible {
+  outline: 3px solid #1d4ed8;
+  outline-offset: 4px;
+  border-radius: 4px;
+}
+
+.table-empty-row-v100 > td {
+  padding: 32px 20px;
+  text-align: center;
+  background: #ffffff;
+}
+
+.table-empty-state-v100 {
+  display: grid;
+  justify-items: center;
+  gap: 10px;
+  max-width: 680px;
+  margin: 0 auto;
+  color: #0f172a;
+}
+
+.table-empty-state-v100 strong {
+  display: block;
+  max-width: 100%;
+  font-size: 1rem;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+
+.table-empty-state-v100 p {
+  max-width: 620px;
+  margin: 0;
+  color: #475569;
+  line-height: 1.55;
+  overflow-wrap: anywhere;
+}
+
+.table-empty-search-term-v100 {
+  overflow-wrap: anywhere;
+}
+
+.table-empty-action-v100 {
+  min-height: 44px;
+  margin-top: 4px;
+  padding: 10px 16px;
+  border: 1px solid #1d4ed8;
+  border-radius: 8px;
+  background: #ffffff;
+  color: #1d4ed8;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.table-empty-action-v100:hover:not(:disabled) {
+  background: #eff6ff;
+}
+
+.table-empty-action-v100:focus-visible {
+  outline: 3px solid #1d4ed8;
+  outline-offset: 3px;
+}
+
+.table-empty-action-v100:disabled,
+.table-empty-action-v100[aria-disabled="true"] {
+  cursor: wait;
+  opacity: 0.72;
+}
+
+@media (max-width: 640px) {
+  .table-empty-row-v100 > td {
+    padding: 24px 14px;
+  }
+
+  .table-empty-state-v100 {
+    gap: 8px;
+  }
+
+  .table-empty-action-v100 {
+    width: 100%;
+    max-width: 320px;
+  }
+}
