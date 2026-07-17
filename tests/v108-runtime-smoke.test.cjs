@@ -7,7 +7,7 @@ const vm = require("node:vm");
 const ROOT = path.resolve(__dirname, "..");
 const read = (relative) => fs.readFileSync(path.join(ROOT, relative), "utf8");
 
-test("bootstrap de configuração da V108 passa pela validação de runtime", () => {
+test("bootstrap de configuração atual passa pela validação de runtime", () => {
   const context = {
     window: {
       addEventListener() {},
@@ -40,8 +40,10 @@ test("bootstrap de configuração da V108 passa pela validação de runtime", ()
   assert.ok(end > 0, "função de validação não encontrada");
   vm.runInContext(core.slice(0, end), context);
 
-  assert.equal(context.window.PCM_APP_CONFIG.version, "108.0.0");
-  assert.equal(context.window.PCM_APP_CONFIG.assetVersion, "10800");
+  const pkg = JSON.parse(read("package.json"));
+  const major = String(pkg.version).split(".")[0];
+  assert.equal(context.window.PCM_APP_CONFIG.version, pkg.version);
+  assert.equal(context.window.PCM_APP_CONFIG.assetVersion, `${major}00`);
   assert.doesNotThrow(() => context.validateRuntimeConfiguration());
 });
 

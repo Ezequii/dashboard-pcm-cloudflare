@@ -6,7 +6,7 @@ const path = require("node:path");
 const ROOT = path.resolve(__dirname, "..");
 const read = (relative) => fs.readFileSync(path.join(ROOT, relative), "utf8");
 
-test("V108 mantém versão e token de ativos sincronizados nos arquivos críticos", () => {
+test("versão atual mantém token de ativos sincronizado nos arquivos críticos", () => {
   const pkg = JSON.parse(read("package.json"));
   const html = read("index.html");
   const config = read("static/js/app-config.js");
@@ -22,14 +22,16 @@ test("V108 mantém versão e token de ativos sincronizados nos arquivos crítico
   const visualVersion = html.match(/aria-label="Versão atual">V([^<]+)<\/span>/)?.[1];
   const swVersion = sw.match(/const VERSION = "v([^"]+)"/)?.[1];
 
-  assert.equal(pkg.version, "108.0.0");
+  const major = String(pkg.version).split(".")[0];
+  const expectedAssetVersion = `${major}00`;
+  assert.ok(Number(major) >= 108);
   assert.equal(appVersion, pkg.version);
-  assert.equal(assetVersion, "10800");
+  assert.equal(assetVersion, expectedAssetVersion);
   assert.equal(coreAssetVersion, assetVersion);
   assert.equal(appConfigQuery, assetVersion);
   assert.equal(coreQuery, assetVersion);
-  assert.equal(visualVersion, "108");
-  assert.equal(swVersion, "108");
+  assert.equal(visualVersion, major);
+  assert.equal(swVersion, major);
   assert.match(build, /version:\s*PACKAGE\.version/);
 });
 

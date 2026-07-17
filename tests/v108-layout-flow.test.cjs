@@ -48,10 +48,11 @@ test("paginação possui rótulos acessíveis", () => {
   assert.match(html, /class="pager pager-v108" role="group" aria-label="Paginação da base"/);
 });
 
-test("versões de pacote, PWA e manifesto do build estão sincronizadas", () => {
-  assert.equal(packageJson.version, "108.0.0");
-  assert.match(sw, /const VERSION = "v108"/);
+test("recursos da V108 permanecem ativos em versões posteriores", () => {
+  const major = Number(String(packageJson.version).split(".")[0]);
+  assert.ok(major >= 108, "a versão atual deve preservar a entrega V108");
+  assert.match(sw, /const VERSION = "v10[8-9]"/);
   assert.match(build, /version:\s*PACKAGE\.version/);
-  assert.match(html, />V108<\/span>/);
+  assert.match(html, />V10[8-9]<\/span>/);
   assert.match(html, /styles_v108_layout_flow\.css\?v=10800/);
 });
