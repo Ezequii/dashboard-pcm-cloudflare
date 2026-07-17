@@ -7,9 +7,12 @@ const root = path.resolve(__dirname, "..");
 const html = fs.readFileSync(path.join(root, "index.html"), "utf8");
 const css = fs.readFileSync(path.join(root, "static", "styles_v101_resilience.css"), "utf8");
 
-test("V101 é carregada e identificada na interface", () => {
+test("V101 é carregada e preservada nas versões posteriores", () => {
+  const pkg = JSON.parse(fs.readFileSync(path.join(root, "package.json"), "utf8"));
+  const major = Number(String(pkg.version).split(".")[0]);
+  assert.ok(major >= 101);
   assert.match(html, /styles_v101_resilience\.css\?v=10100/);
-  assert.match(html, />V10[1-9]<\/span>/);
+  assert.match(html, new RegExp(`>V${major}<\\/span>`));
 });
 
 test("ações de navegação possuem tipo explícito e nomes acessíveis", () => {

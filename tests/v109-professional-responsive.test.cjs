@@ -41,13 +41,13 @@ test("fluxo e fila permanecem lado a lado quando há largura útil", () => {
   assert.match(css, /@media \(min-width:\s*768px\) and \(max-width:\s*1099px\)[\s\S]*\.operations-grid-v991[\s\S]*grid-template-columns:\s*1fr\s*!important/);
 });
 
-test("V109 está sincronizada nos arquivos críticos", () => {
-  assert.equal(pkg.version, "109.0.0");
-  assert.match(html, />V109<\/span>/);
+test("a fundação responsiva da V109 permanece ativa nas versões posteriores", () => {
+  const major = Number(String(pkg.version).split(".")[0]);
+  assert.ok(major >= 109);
   assert.match(html, /styles_v109_professional_responsive\.css\?v=10900/);
   assert.match(html, /v109-professional-responsive/);
-  assert.match(config, /version:\s*"109\.0\.0"/);
-  assert.match(config, /assetVersion:\s*"10900"/);
-  assert.match(core, /assetVersion \|\| ""\) !== "10900"/);
-  assert.match(sw, /const VERSION = "v109"/);
+  assert.match(config, new RegExp(`version:\\s*"${major}\\.0\\.0"`));
+  assert.match(config, new RegExp(`assetVersion:\\s*"${major}00"`));
+  assert.match(core, new RegExp(`assetVersion \\|\\| ""\\) !== "${major}00"`));
+  assert.match(sw, new RegExp(`const VERSION = "v${major}"`));
 });

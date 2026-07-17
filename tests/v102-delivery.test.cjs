@@ -8,8 +8,11 @@ const read = (file) => fs.readFileSync(path.join(root, file), "utf8");
 
 test("V102 expõe manifesto, service worker e versão visual", () => {
   const html = read("index.html");
+  const pkg = JSON.parse(read("package.json"));
+  const major = Number(String(pkg.version).split(".")[0]);
+  assert.ok(major >= 102);
   assert.match(html, /rel="manifest" href="\/manifest\.webmanifest"/);
-  assert.match(html, />V10[2-9]<\/span>/);
+  assert.match(html, new RegExp(`>V${major}<\\/span>`));
   assert.ok(html.includes("/static/js/pwa-v103.js") || /navigator\.serviceWorker\.register\("\/sw\.js"\)/.test(html));
   assert.match(html, /noscript-banner-v102/);
 });

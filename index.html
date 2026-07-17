@@ -32,8 +32,9 @@
   <link rel="stylesheet" href="/static/styles_v107_base_cleanup.css?v=10700">
   <link rel="stylesheet" href="/static/styles_v108_layout_flow.css?v=10800">
   <link rel="stylesheet" href="/static/styles_v109_professional_responsive.css?v=10900">
+  <link rel="stylesheet" href="/static/styles_v110_header_kpi.css?v=11000">
 </head>
-<body class="v86-table-lines v89-simple-filters-search-money v90-layout-safe v91-layout-final v95-header-kpi-polish v97-reliability-navigation v971-runtime-fix v991-faithful v992-polished v993-productivity v994a-hardening v994a2-audited v994a2-visual app-booting v994a3-operational-fix v994a4-top-base-flow v994a5-lapidacao v994a6-clean-rankings v100-base-redesign v100-executive-composed v107-base-cleanup v108-layout-flow v109-professional-responsive">
+<body class="v86-table-lines v89-simple-filters-search-money v90-layout-safe v91-layout-final v95-header-kpi-polish v97-reliability-navigation v971-runtime-fix v991-faithful v992-polished v993-productivity v994a-hardening v994a2-audited v994a2-visual app-booting v994a3-operational-fix v994a4-top-base-flow v994a5-lapidacao v994a6-clean-rankings v100-base-redesign v100-executive-composed v107-base-cleanup v108-layout-flow v109-professional-responsive v110-header-kpi">
   <section id="appStatusV103" class="app-status-v103 no-print" aria-label="Status do aplicativo" aria-live="polite">
     <div id="offlineNoticeV103" class="app-status-v103__item" role="status" hidden>
       <p class="app-status-v103__text"><strong>Sem conexão.</strong> Os dados atuais não serão substituídos por uma cópia antiga.</p>
@@ -62,7 +63,7 @@
         <div class="brand-copy-v994a4">
           <div class="brand-title-line">
             <h1>Controle de Requisições PCM</h1>
-            <span class="version-pill-v34" aria-label="Versão atual">V109</span>
+            <span class="version-pill-v34" aria-label="Versão atual">V110</span>
           </div>
           <p class="subtitle-top">Controle de lançamento e acompanhamento — 2026</p>
         </div>
@@ -96,13 +97,6 @@
 
         <div class="action-cluster-v994a4">
           <button id="btnRefresh" type="button" class="btn btn-primary" aria-label="Recarregar dados da planilha">Recarregar</button>
-          <div id="exportMenu" class="export-menu">
-            <button id="btnExportMenu" class="btn btn-soft" type="button" aria-label="Abrir opções de exportação" aria-expanded="false">Exportar</button>
-            <div id="exportDropdown" class="export-dropdown" hidden>
-              <button id="btnExportExcelV99" class="export-item" type="button">Exportar Excel real (.xlsx)</button>
-              <button id="btnExportCsv" class="export-item" type="button">Exportar CSV da visão atual</button>
-            </div>
-          </div>
         </div>
       </div>
     </div>
@@ -224,18 +218,20 @@
         <span class="hero-open-v991">Abrir na base <b aria-hidden="true">→</b></span>
       </button>
 
-      <button id="kpiMaisParadoCard" type="button" class="alert-item-v991 is-oldest">
+      <button id="kpiMaisParadoCard" type="button" class="alert-item-v991 is-oldest oldest-kpi-v110">
         <span class="alert-icon-v991" aria-hidden="true">
           <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v6l4 2"/></svg>
         </span>
-        <span>Pendência mais antiga</span>
-        <strong id="kMaiorAtraso" class="oldest-value-v96">
-          <span class="oldest-days-number-v96">—</span>
-          <span class="oldest-days-unit-v96">dias</span>
-        </strong>
-        <small id="kMaiorAtrasoSub" class="oldest-context-v96">
-          <span class="oldest-empty-v96">Carregando dados…</span>
-        </small>
+        <span class="oldest-copy-v110">
+          <small class="oldest-label-v110">Pendência mais antiga</small>
+          <strong id="kMaiorAtraso" class="oldest-value-v96">
+            <span class="oldest-days-number-v96">—</span>
+            <span class="oldest-days-unit-v96">dias</span>
+          </strong>
+          <span id="kMaiorAtrasoSub" class="oldest-context-v96">
+            <span class="oldest-empty-v96">Carregando dados…</span>
+          </span>
+        </span>
       </button>
     </section>
 
@@ -471,7 +467,7 @@
     <div id="detailsContentV99" class="details-content-v99"></div>
   </aside>
 
-  <script src="/static/js/app-config.js?v=10900"></script>
+  <script src="/static/js/app-config.js?v=11000"></script>
   <script src="/static/js/state.js?v=9946"></script>
   <script src="/static/js/utils.js?v=9946"></script>
   <script src="/static/js/security-v994a.js?v=9946"></script>
@@ -481,7 +477,7 @@
   <script src="/static/js/table.js?v=10050"></script>
   <script src="/static/js/xlsx-v99.js?v=9946"></script>
   <script src="/static/js/productivity-v99.js?v=10050"></script>
-  <script src="/static/js/core.js?v=10900"></script>
+  <script src="/static/js/core.js?v=11000"></script>
   <script src="/static/js/main.js?v=10200"></script>
   <script src="/static/js/pwa-v103.js?v=10300"></script>
 </body>

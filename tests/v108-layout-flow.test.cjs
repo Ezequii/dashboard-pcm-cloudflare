@@ -51,8 +51,8 @@ test("paginação possui rótulos acessíveis", () => {
 test("recursos da V108 permanecem ativos em versões posteriores", () => {
   const major = Number(String(packageJson.version).split(".")[0]);
   assert.ok(major >= 108, "a versão atual deve preservar a entrega V108");
-  assert.match(sw, /const VERSION = "v10[8-9]"/);
+  assert.match(sw, new RegExp(`const VERSION = "v${major}"`));
   assert.match(build, /version:\s*PACKAGE\.version/);
-  assert.match(html, />V10[8-9]<\/span>/);
+  assert.match(html, new RegExp(`>V${major}<\\/span>`));
   assert.match(html, /styles_v108_layout_flow\.css\?v=10800/);
 });

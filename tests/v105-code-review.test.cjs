@@ -4,13 +4,14 @@ const fs = require("node:fs");
 const path = require("node:path");
 const root = path.resolve(__dirname, "..");
 
-test("V105 atualiza pacote, interface e cache", () => {
+test("V105 mantém pacote, interface e cache sincronizados", () => {
   const pkg = JSON.parse(fs.readFileSync(path.join(root, "package.json"), "utf8"));
   const html = fs.readFileSync(path.join(root, "index.html"), "utf8");
   const sw = fs.readFileSync(path.join(root, "sw.js"), "utf8");
-  assert.match(pkg.version, /^10[5-9]\.0\.0$/);
-  assert.match(html, />V10[5-9]<\/span>/);
-  assert.match(sw, /const VERSION = "v10[5-9]"/);
+  const major = Number(String(pkg.version).split(".")[0]);
+  assert.ok(major >= 105);
+  assert.match(html, new RegExp(`>V${major}<\\/span>`));
+  assert.match(sw, new RegExp(`const VERSION = "v${major}"`));
 });
 
 test("V105 possui auditoria consolidada e comando verify", () => {
