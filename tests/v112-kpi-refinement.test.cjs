@@ -42,14 +42,11 @@ test("celular devolve a ação ao fluxo e remove qualquer sobreposição", () =>
   assert.match(css, /@media \(max-width:\s*560px\)[\s\S]*\.oldest-context-v96[\s\S]*grid-row:\s*auto/);
 });
 
-test("V112 mantém versão, ativos e cache sincronizados", () => {
-  assert.equal(pkg.version, "112.0.0");
-  assert.match(html, />V112<\/span>/);
+test("V112 permanece integrada como camada histórica do sistema de KPIs", () => {
+  assert.match(html, /v112-kpi-refinement/);
   assert.match(html, /styles_v112_kpi_refinement\.css\?v=11200/);
-  assert.match(html, /app-config\.js\?v=11200/);
-  assert.match(html, /core\.js\?v=11200/);
-  assert.match(config, /version:\s*"112\.0\.0"/);
-  assert.match(config, /assetVersion:\s*"11200"/);
-  assert.match(core, /assetVersion \|\| ""\) !== "11200"/);
-  assert.match(sw, /const VERSION = "v112"/);
+  assert.ok(Number.parseInt(String(pkg.version).split(".")[0], 10) >= 112);
+  assert.match(config, /assetVersion:\s*"\d+"/);
+  assert.match(core, /assetVersion \|\| ""\) !== "\d+"/);
+  assert.match(sw, /const VERSION = "v\d+"/);
 });

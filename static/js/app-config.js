@@ -34,8 +34,8 @@
 
   const appConfig = deepFreeze({
     appName: "Controle de Requisições PCM",
-    version: "112.0.0",
-    assetVersion: "11200",
+    version: "113.0.0",
+    assetVersion: "11300",
     dataFiles: {
       executive: "/static/data/executive-data.json",
       operational: "/static/data/operational-data.json",

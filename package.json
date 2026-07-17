@@ -1,6 +1,6 @@
 {
   "name": "dashboard-pcm-cloudflare",
-  "version": "112.0.0",
+  "version": "113.0.0",
   "private": true,
   "scripts": {
     "build": "node tools/build-dist.cjs",

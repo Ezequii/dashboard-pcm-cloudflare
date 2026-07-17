@@ -1,0 +1,219 @@
+/* ==========================================================================
+   V113 — alinhamento interno dos cinco KPIs executivos
+   Mantém dimensões externas da V112 e reorganiza somente o conteúdo interno.
+   ========================================================================== */
+
+body.v113-kpi-content-alignment {
+  --v113-title-row: 24px;
+  --v113-value-row: 32px;
+  --v113-detail-row: 28px;
+  --v113-footer-row: 24px;
+  --v113-row-gap: 2px;
+  --v113-content-offset: 20px;
+  --v113-action-height: 28px;
+}
+
+/*
+ * Os cartões preservam exatamente a altura e o grid definidos nas versões
+ * anteriores. A mudança desta camada ocorre apenas dentro da área de conteúdo.
+ */
+@media (min-width: 561px) {
+  body.v113-kpi-content-alignment .executive-primary-v991 > .kpi-card-v111 {
+    overflow: hidden !important;
+  }
+
+  /*
+   * Quatro faixas idênticas:
+   * 1) título, 2) valor, 3) descrição, 4) apoio/ação.
+   *
+   * O conjunto é centralizado dentro do cartão, criando a mesma margem útil
+   * superior e inferior em todos os cinco indicadores.
+   */
+  body.v113-kpi-content-alignment .kpi-copy-v111 {
+    height: 100% !important;
+    min-height: 0 !important;
+    grid-template-rows:
+      var(--v113-title-row)
+      var(--v113-value-row)
+      var(--v113-detail-row)
+      var(--v113-footer-row) !important;
+    gap: var(--v113-row-gap) !important;
+    align-content: center !important;
+    align-items: stretch !important;
+  }
+
+  body.v113-kpi-content-alignment .kpi-copy-v111 > small,
+  body.v113-kpi-content-alignment .oldest-label-v110 {
+    grid-row: 1 !important;
+    height: var(--v113-title-row) !important;
+    min-height: var(--v113-title-row) !important;
+    align-items: center !important;
+  }
+
+  body.v113-kpi-content-alignment .kpi-copy-v111 > strong,
+  body.v113-kpi-content-alignment #kpiMaisParadoCard .oldest-value-v96 {
+    grid-row: 2 !important;
+    height: var(--v113-value-row) !important;
+    min-height: var(--v113-value-row) !important;
+    align-items: center !important;
+  }
+
+  body.v113-kpi-content-alignment .kpi-copy-v111 > em {
+    grid-row: 3 !important;
+    align-self: start !important;
+    max-height: var(--v113-detail-row) !important;
+    padding-top: 1px !important;
+  }
+
+  body.v113-kpi-content-alignment .kpi-copy-v111 > .hero-progress-v991 {
+    grid-row: 4 !important;
+    align-self: center !important;
+    margin: 0 !important;
+  }
+
+  /*
+   * Primeiro foco recomendado:
+   * o metadado e o botão compartilham a quarta faixa e deixam de encostar
+   * no limite inferior do cartão.
+   */
+  body.v113-kpi-content-alignment .kpi-focus-v111 #focusMetaV991 {
+    grid-row: 4 !important;
+    align-self: center !important;
+    min-width: 0 !important;
+    padding-right: 104px !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+  }
+
+  body.v113-kpi-content-alignment .kpi-focus-v111 > .hero-open-v991 {
+    position: absolute !important;
+    right: var(--v112-card-padding) !important;
+    bottom: var(--v113-content-offset) !important;
+    width: auto !important;
+    height: var(--v113-action-height) !important;
+    min-height: var(--v113-action-height) !important;
+    padding: 0 10px !important;
+    margin: 0 !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    font-size: .64rem !important;
+    line-height: 1 !important;
+    white-space: nowrap !important;
+  }
+
+  /*
+   * Pendência mais antiga:
+   * etapa e referência ocupam a terceira faixa; a ação ocupa a quarta,
+   * no mesmo eixo do progresso e do botão do cartão anterior.
+   */
+  body.v113-kpi-content-alignment #kpiMaisParadoCard .oldest-context-v96 {
+    grid-row: 3 / 5 !important;
+    height: calc(
+      var(--v113-detail-row)
+      + var(--v113-row-gap)
+      + var(--v113-footer-row)
+    ) !important;
+    min-height: 0 !important;
+    grid-template-rows: 14px 18px var(--v113-footer-row) !important;
+    align-content: start !important;
+    align-items: center !important;
+    gap: 0 !important;
+    overflow: hidden !important;
+  }
+
+  body.v113-kpi-content-alignment #kpiMaisParadoCard .oldest-stage-v96,
+  body.v113-kpi-content-alignment #kpiMaisParadoCard .oldest-reference-list-v994a5 {
+    align-self: center !important;
+  }
+
+  body.v113-kpi-content-alignment #kpiMaisParadoCard .oldest-open-v994a5 {
+    align-self: center !important;
+    min-height: var(--v113-footer-row) !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+
+  /*
+   * Os ícones continuam centralizados no cartão, mas o centro visual passa a
+   * acompanhar a faixa de conteúdo comum em vez de qualquer rodapé isolado.
+   */
+  body.v113-kpi-content-alignment .kpi-card-v111 > .hero-icon-v991,
+  body.v113-kpi-content-alignment .kpi-card-v111 > .alert-icon-v991 {
+    align-self: center !important;
+  }
+}
+
+/* Notebook e tablet mantêm os mesmos eixos com medidas ligeiramente menores. */
+@media (min-width: 561px) and (max-width: 1099px) {
+  body.v113-kpi-content-alignment {
+    --v113-title-row: 22px;
+    --v113-value-row: 31px;
+    --v113-detail-row: 26px;
+    --v113-footer-row: 24px;
+    --v113-content-offset: 19px;
+  }
+
+  body.v113-kpi-content-alignment .kpi-focus-v111 #focusMetaV991 {
+    padding-right: 100px !important;
+  }
+}
+
+/*
+ * Celular: o conteúdo volta ao fluxo natural. Nenhuma altura interna é
+ * forçada, evitando corte de nomes, referências ou ações em telas estreitas.
+ */
+@media (max-width: 560px) {
+  body.v113-kpi-content-alignment .kpi-copy-v111 {
+    grid-template-rows: auto !important;
+    align-content: center !important;
+  }
+
+  body.v113-kpi-content-alignment .kpi-copy-v111 > small,
+  body.v113-kpi-content-alignment .oldest-label-v110,
+  body.v113-kpi-content-alignment .kpi-copy-v111 > strong,
+  body.v113-kpi-content-alignment #kpiMaisParadoCard .oldest-value-v96,
+  body.v113-kpi-content-alignment .kpi-copy-v111 > em,
+  body.v113-kpi-content-alignment .kpi-copy-v111 > .hero-progress-v991 {
+    grid-row: auto !important;
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
+  }
+
+  body.v113-kpi-content-alignment .kpi-focus-v111 #focusMetaV991 {
+    grid-row: auto !important;
+    padding-right: 0 !important;
+    white-space: normal !important;
+  }
+
+  body.v113-kpi-content-alignment .kpi-focus-v111 > .hero-open-v991 {
+    position: static !important;
+    grid-column: 2 !important;
+    grid-row: auto !important;
+    justify-self: start !important;
+    min-height: 36px !important;
+    margin-top: 5px !important;
+  }
+
+  body.v113-kpi-content-alignment #kpiMaisParadoCard .oldest-context-v96 {
+    grid-row: auto !important;
+    height: auto !important;
+    grid-template-rows: auto !important;
+    gap: 4px !important;
+    overflow: visible !important;
+  }
+
+  body.v113-kpi-content-alignment #kpiMaisParadoCard .oldest-open-v994a5 {
+    min-height: 24px !important;
+  }
+}
+
+@media print {
+  body.v113-kpi-content-alignment .kpi-focus-v111 > .hero-open-v991 {
+    box-shadow: none !important;
+  }
+}
