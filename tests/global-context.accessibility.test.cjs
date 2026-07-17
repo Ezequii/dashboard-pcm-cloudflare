@@ -18,7 +18,7 @@ test("existe uma única região global com filtros e uma única ação de recupe
   const end = html.indexOf("</section>", start) + "</section>".length;
   const section = html.slice(start, end);
   assert.equal((section.match(/id="globalContextClearAll"/g) || []).length, 1);
-  assert.equal((section.match(/id="btnOpenFilters"/g) || []).length, 1);
+  assert.equal((section.match(/id="btnOpenFilters"/g) || []).length, 0);
   assert.match(section, /id="globalContextClearAll"/);
   assert.match(section, />\s*Limpar tudo\s*</);
   assert.doesNotMatch(section, /<a\s/i);

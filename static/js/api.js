@@ -546,8 +546,6 @@ function baseQuery(){
     filters: state.filters,
     search: '',
     search_scope: state.searchScope || 'ALL',
-    multi_search_terms: Array.isArray(state.multiSearchTerms) ? state.multiSearchTerms : [],
-    multi_search_mode: state.multiSearchMode || 'ANY',
     page: state.page,
     page_size: state.pageSize,
     sort_col: state.sortCol,

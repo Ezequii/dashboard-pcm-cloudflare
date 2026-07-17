@@ -376,11 +376,6 @@ function baseColumnGroupLabelV100(column){
 }
 
 function renderTableHeaderRowsV100(columns, rows){
-  const selectionHeader = window.renderSelectionHeaderV99?.(rows) || "";
-  const selectionWithRowspan = selectionHeader
-    ? selectionHeader.replace("<th ", '<th rowspan="2" ')
-    : "";
-
   const groups = [];
   columns.forEach(column => {
     const label = baseColumnGroupLabelV100(column);
@@ -392,7 +387,7 @@ function renderTableHeaderRowsV100(columns, rows){
     }
   });
 
-  const groupRow = `<tr class="table-group-header-v100">${selectionWithRowspan}${groups
+  const groupRow = `<tr class="table-group-header-v100">${groups
     .map(group => `<th scope="colgroup" colspan="${group.count}" class="table-group-${group.label === "Prioridade" ? "priority" : group.label === "Tempo" ? "time" : group.label === "Identificação" ? "identity" : "details"}-v100">${escapeHtml(group.label)}</th>`)
     .join("")}</tr>`;
 
@@ -460,8 +455,7 @@ async function loadRows(seq=null){
     let emptyDescriptor = null;
     if(rows.length){
       tbody.innerHTML = rows.map(row =>
-        `<tr class="${stageClass(row._ETAPA)}${window.isRowSelectedV99?.(row._ROW_ID) ? " is-selected-v99" : ""}" data-row-id="${escapeAttr(row._ROW_ID || "")}" tabindex="0">` +
-        (window.renderRowCheckboxV99?.(row) || "") +
+        `<tr class="${stageClass(row._ETAPA)}" data-row-id="${escapeAttr(row._ROW_ID || "")}" tabindex="0">` +
         columns.map((column, index) => renderCell(column, row[column], row._ETAPA, row, index)).join("") +
         "</tr>"
       ).join("");

@@ -70,8 +70,8 @@ function loadPreferences(){
     state.filters = prefs.filters || {};
     state.search = prefs.search || '';
     state.searchScope = prefs.searchScope || 'ALL';
-    state.multiSearchTerms = Array.isArray(prefs.multiSearchTerms) ? prefs.multiSearchTerms : [];
-    state.multiSearchMode = prefs.multiSearchMode === 'ALL' ? 'ALL' : 'ANY';
+    state.multiSearchTerms = [];
+    state.multiSearchMode = 'ANY';
     state.pageSize = Number(prefs.pageSize || state.pageSize);
     state.sortCol = prefs.sortCol || state.sortCol;
     state.sortDir = prefs.sortDir || state.sortDir;
@@ -89,8 +89,6 @@ function savePreferences(){
       filters: state.filters,
       search: state.search,
       searchScope: state.searchScope,
-      multiSearchTerms: state.multiSearchTerms,
-      multiSearchMode: state.multiSearchMode,
       pageSize: state.pageSize,
       sortCol: state.sortCol,
       sortDir: state.sortDir,

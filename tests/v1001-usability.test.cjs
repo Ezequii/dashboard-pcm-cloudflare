@@ -11,9 +11,8 @@ const css = fs.readFileSync(path.join(root, "static", "styles_v100_1_usability.c
 
 test("seletores de busca não oferecem escopos duplicados", () => {
   const searchScope = html.match(/<select id="searchScope"[\s\S]*?<\/select>/)?.[0] || "";
-  const multiScope = html.match(/<select id="multiSearchScopeV99"[\s\S]*?<\/select>/)?.[0] || "";
   assert.equal([...searchScope.matchAll(/<option value="DOCUMENTO">/g)].length, 1);
-  assert.equal([...multiScope.matchAll(/<option value="DOCUMENTO">/g)].length, 1);
+  assert.doesNotMatch(html, /id="multiSearchScopeV99"/);
 });
 
 test("página possui metadados básicos e viewport seguro", () => {

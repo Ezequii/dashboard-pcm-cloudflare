@@ -738,16 +738,6 @@ function deriveGlobalContextItemsV100(currentState=state){
   const search = String(currentState?.search || "").trim();
   if(search) items.push({key:"search", label:"Busca", value:search});
 
-  const multiTerms = typeof window.normalizeMultiSearchTermsV100 === "function"
-    ? window.normalizeMultiSearchTermsV100(currentState?.multiSearchTerms)
-    : normalizeContextValuesV100(currentState?.multiSearchTerms);
-  if(multiTerms.length){
-    items.push({
-      key:"multi-search",
-      label:"Busca múltipla",
-      value:`${multiTerms.length} ${multiTerms.length === 1 ? "item" : "itens"}`
-    });
-  }
 
   return items;
 }

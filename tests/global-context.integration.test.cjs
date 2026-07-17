@@ -31,11 +31,10 @@ test("chips e barra compartilham o mesmo derivador de Visão", () => {
   assert.equal((core.match(/function deriveOperationalViewV100/g) || []).length, 1);
 });
 
-test("normalizador da busca múltipla é compartilhado e usado na restauração", () => {
-  assert.match(productivity, /function normalizeMultiSearchTermsV100/);
-  assert.match(productivity, /multiSearchTerms:\s*normalizeMultiSearchTermsV100\(view\.multiSearchTerms\)/);
-  assert.match(productivity, /window\.normalizeMultiSearchTermsV100\s*=/);
-  assert.match(core, /window\.normalizeMultiSearchTermsV100/);
+test("busca múltipla e visão compartilhada não integram mais o contexto", () => {
+  assert.doesNotMatch(html, /btnOpenMultiSearchV99|multiSearchDialogV99|btnShareViewV99/);
+  assert.doesNotMatch(core, /label:"Busca múltipla"|key:"multi-search"/);
+  assert.match(productivity, /function restoreProductivityStateV99\(\)\{[\s\S]*?return false;/);
 });
 
 test("barra é única e fica fora dos painéis das abas", () => {

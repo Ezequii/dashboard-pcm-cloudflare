@@ -197,6 +197,6 @@ test("função restrita de produtividade não altera drawer nem preferências", 
   );
   assert.ok(match, "Função restrita não encontrada.");
   assert.match(match[1], /state\.multiSearchTerms\s*=\s*\[\]/);
-  assert.match(match[1], /selectedRowsV99\.clear\(\)/);
+  assert.doesNotMatch(match[1], /selectedRowsV99|selectionBarV99|row-select-v99/);
   assert.doesNotMatch(match[1], /detailRowsV99|activeDetailRowV99|columnPreferencesV99|localStorage/);
 });

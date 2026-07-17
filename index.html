@@ -29,8 +29,9 @@
   <link rel="stylesheet" href="/static/styles_v101_resilience.css?v=10100" />
   <link rel="stylesheet" href="/static/styles_v102_delivery.css?v=10200" />
   <link rel="stylesheet" href="/static/styles_v103_ops.css?v=10300">
+  <link rel="stylesheet" href="/static/styles_v107_base_cleanup.css?v=10700">
 </head>
-<body class="v86-table-lines v89-simple-filters-search-money v90-layout-safe v91-layout-final v95-header-kpi-polish v97-reliability-navigation v971-runtime-fix v991-faithful v992-polished v993-productivity v994a-hardening v994a2-audited v994a2-visual app-booting v994a3-operational-fix v994a4-top-base-flow v994a5-lapidacao v994a6-clean-rankings v100-base-redesign v100-executive-composed">
+<body class="v86-table-lines v89-simple-filters-search-money v90-layout-safe v91-layout-final v95-header-kpi-polish v97-reliability-navigation v971-runtime-fix v991-faithful v992-polished v993-productivity v994a-hardening v994a2-audited v994a2-visual app-booting v994a3-operational-fix v994a4-top-base-flow v994a5-lapidacao v994a6-clean-rankings v100-base-redesign v100-executive-composed v107-base-cleanup">
   <section id="appStatusV103" class="app-status-v103 no-print" aria-label="Status do aplicativo" aria-live="polite">
     <div id="offlineNoticeV103" class="app-status-v103__item" role="status" hidden>
       <p class="app-status-v103__text"><strong>Sem conexão.</strong> Os dados atuais não serão substituídos por uma cópia antiga.</p>
@@ -59,7 +60,7 @@
         <div class="brand-copy-v994a4">
           <div class="brand-title-line">
             <h1>Controle de Requisições PCM</h1>
-            <span class="version-pill-v34" aria-label="Versão atual">V106</span>
+            <span class="version-pill-v34" aria-label="Versão atual">V107</span>
           </div>
           <p class="subtitle-top">Controle de lançamento e acompanhamento — 2026</p>
         </div>
@@ -147,9 +148,6 @@
 
       <div class="topbar-row topbar-row-filters-v40 no-print filters-row-v994a4">
         <div class="smart-filter-row executive-filter-row top-inline-filters top-filters-v40" id="mainFilters" aria-label="Filtros principais"></div>
-        <button id="btnOpenFilters" class="btn btn-soft btn-compact filters-summary-button-v97" type="button" aria-label="Abrir resumo dos filtros" aria-expanded="false">
-        <span>Filtros</span><b id="activeFilterCount">0</b>
-      </button>
       </div>
       <button
         id="globalContextClearAll"
@@ -381,10 +379,12 @@
               <span>O que você quer encontrar?</span>
               <input id="globalSearch" type="search" autocomplete="off" placeholder="Digite um número, nome ou equipamento..." />
             </label>
-            <button id="btnClearSearch" class="btn btn-small btn-soft search-clear-v89" type="button" hidden>Limpar</button>
+            <div class="search-actions-v107">
+              <button id="btnToggleAdvancedSearch" class="btn btn-small btn-soft advanced-toggle" type="button" aria-expanded="false">Filtros avançados</button>
+              <button id="btnClearSearch" class="btn btn-small btn-soft search-clear-v89" type="button" hidden>Limpar</button>
+            </div>
             <small id="searchHelp" class="search-help-v89">Escolha o tipo e digite o dado. Para ORC, OS, pedido ou NF, prefira o número completo.</small>
           </div>
-          <button id="btnToggleAdvancedSearch" class="btn btn-small btn-soft advanced-toggle" type="button" aria-expanded="false">Filtros avançados</button>
           <div id="advancedSearchPanel" class="advanced-search no-print" aria-label="Busca avançada" hidden>
             <label><span>Recebido de</span><input id="advDateFrom" type="date" /></label>
             <label><span>Até</span><input id="advDateTo" type="date" /></label>
@@ -404,22 +404,9 @@
 
       <section class="productivity-toolbar-v99 no-print" aria-label="Ferramentas de produtividade">
         <div class="productivity-actions-v99">
-          <button id="btnOpenMultiSearchV99" class="productivity-button-v99" type="button">
-            <span aria-hidden="true">⌕</span>
-            Busca múltipla
-            <b id="multiSearchBadgeV99" hidden>0</b>
-          </button>
-          <button id="btnSavedViewsV99" class="productivity-button-v99" type="button">
-            <span aria-hidden="true">★</span>
-            Filtros salvos
-          </button>
           <button id="btnColumnsV99" class="productivity-button-v99" type="button">
             <span aria-hidden="true">▥</span>
             Colunas
-          </button>
-          <button id="btnShareViewV99" class="productivity-button-v99" type="button">
-            <span aria-hidden="true">↗</span>
-            Compartilhar visão
           </button>
           <button id="btnExportExcelTableV99" class="productivity-button-v99 is-primary" type="button">
             <span aria-hidden="true">X</span>
@@ -427,17 +414,7 @@
           </button>
         </div>
         <div id="productivityStateV99" class="productivity-state-v99" aria-live="polite">
-          Nenhuma busca múltipla ou seleção ativa
-        </div>
-      </section>
-
-      <section id="selectionBarV99" class="selection-bar-v99 no-print" hidden aria-live="polite">
-        <strong><span id="selectedCountV99">0</span> registros selecionados</strong>
-        <div>
-          <button id="btnSelectAllFilteredV99" type="button">Selecionar todos os resultados</button>
-          <button id="btnCopySummaryV99" type="button">Copiar resumo</button>
-          <button id="btnExportSelectionV99" type="button">Exportar selecionados</button>
-          <button id="btnClearSelectionV99" type="button">Limpar seleção</button>
+          Colunas padrão visíveis
         </div>
       </section>
 
@@ -451,73 +428,6 @@
       Desenvolvido por <strong>Ezequiel Caetano</strong>
     </footer>
   </main>
-
-  <dialog id="multiSearchDialogV99" class="modal-v99 no-print">
-    <form method="dialog" class="modal-card-v99">
-      <header>
-        <div>
-          <small>Produtividade operacional</small>
-          <h2>Busca múltipla</h2>
-          <p>Cole ORCs, OSs, pedidos, fornecedores ou solicitantes.</p>
-        </div>
-        <button class="modal-close-v99" value="cancel" aria-label="Fechar">×</button>
-      </header>
-      <div class="modal-body-v99">
-        <label class="field-v99">
-          <span>Itens para localizar</span>
-          <textarea id="multiSearchInputV99" rows="9" placeholder="Uma ORC ou OS por linha, ou itens separados por vírgula e ponto e vírgula"></textarea>
-        </label>
-        <div class="modal-grid-v99">
-          <label class="field-v99">
-            <span>Pesquisar em</span>
-            <select id="multiSearchScopeV99">
-              <option value="ALL">Geral — nomes e números</option>
-              <option value="DOCUMENTO">ORC / OS / NF</option>
-              <option value="PEDIDO">Pedido</option>
-              <option value="FORNECEDOR">Fornecedor</option>
-              <option value="SOLICITANTE">Solicitante</option>
-            </select>
-          </label>
-          <label class="field-v99">
-            <span>Regra</span>
-            <select id="multiSearchModeV99">
-              <option value="ANY">Encontrar qualquer item</option>
-              <option value="ALL">Exigir todos os itens na mesma linha</option>
-            </select>
-          </label>
-        </div>
-        <p id="multiSearchPreviewV99" class="modal-note-v99">Nenhum item informado.</p>
-      </div>
-      <footer>
-        <button id="btnClearMultiSearchV99" type="button" class="btn btn-soft">Limpar busca</button>
-        <button value="cancel" class="btn btn-soft">Cancelar</button>
-        <button id="btnApplyMultiSearchV99" type="button" class="btn btn-primary">Aplicar busca</button>
-      </footer>
-    </form>
-  </dialog>
-
-  <dialog id="savedViewsDialogV99" class="modal-v99 no-print">
-    <form method="dialog" class="modal-card-v99">
-      <header>
-        <div>
-          <small>Produtividade operacional</small>
-          <h2>Filtros salvos</h2>
-          <p>Salve e recupere visões de trabalho recorrentes.</p>
-        </div>
-        <button class="modal-close-v99" value="cancel" aria-label="Fechar">×</button>
-      </header>
-      <div class="modal-body-v99">
-        <div class="save-view-row-v99">
-          <input id="savedViewNameV99" type="text" maxlength="70" placeholder="Nome da visão, por exemplo: Campo Ere acima de 15 dias">
-          <button id="btnSaveCurrentViewV99" type="button" class="btn btn-primary">Salvar visão atual</button>
-        </div>
-        <div id="savedViewsListV99" class="saved-views-list-v99"></div>
-      </div>
-      <footer>
-        <button value="cancel" class="btn btn-soft">Fechar</button>
-      </footer>
-    </form>
-  </dialog>
 
   <dialog id="columnsDialogV99" class="modal-v99 no-print">
     <form method="dialog" class="modal-card-v99 is-wide">

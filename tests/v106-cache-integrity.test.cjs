@@ -9,13 +9,13 @@ const { execFileSync } = require("node:child_process");
 
 const ROOT = path.resolve(__dirname, "..");
 
-test("V106 atualiza pacote, interface e cache do service worker", () => {
+test("pacote mantém as garantias de cache introduzidas na V106", () => {
   const pkg = JSON.parse(fs.readFileSync(path.join(ROOT, "package.json"), "utf8"));
   const html = fs.readFileSync(path.join(ROOT, "index.html"), "utf8");
   const sw = fs.readFileSync(path.join(ROOT, "sw.js"), "utf8");
-  assert.equal(pkg.version, "106.0.0");
-  assert.match(html, /V106/);
-  assert.match(sw, /const VERSION = "v106"/);
+  assert.ok(Number(pkg.version.split(".")[0]) >= 106);
+  assert.match(html, /V10[6-9]|V1[1-9]\d/);
+  assert.match(sw, /const VERSION = "v(?:10[6-9]|1[1-9]\d)"/);
 });
 
 test("ativos sem fingerprint não usam cache immutable", () => {

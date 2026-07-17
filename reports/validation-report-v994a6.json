@@ -12,12 +12,12 @@
   {
     "name": "ordem_scripts",
     "passed": false,
-    "detail": "{'app-config.js': 29240, 'state.js': 29298, 'utils.js': 29351, 'security-v994a.js': 29404, 'api.js': 29466, 'filters.js': -1, 'dashboard.js': 29573, 'table.js': -1, 'xlsx-v99.js': 29684, 'productivity-v99.js': -1, 'core.js': -1, 'main.js': -1}"
+    "detail": "{'app-config.js': 25052, 'state.js': 25110, 'utils.js': 25163, 'security-v994a.js': 25216, 'api.js': 25278, 'filters.js': -1, 'dashboard.js': 25385, 'table.js': -1, 'xlsx-v99.js': 25496, 'productivity-v99.js': -1, 'core.js': -1, 'main.js': -1}"
   },
   {
     "name": "ids_unicos",
-    "passed": true,
-    "detail": "{'mainContent': 1, 'securityContextV994a': 1, 'securityRoleV994a': 1, 'securityClassificationV994a': 1, 'dataErrorTimeV994a': 1, 'lastValidVersionV994a': 1, 'lastSuccessTimeV994a': 1, 'btnOpenMultiSearchV99': 1, 'selectionBarV99': 1, 'detailsDrawerV99': 1, 'completionProgressV991': 1}"
+    "passed": false,
+    "detail": "{'mainContent': 1, 'securityContextV994a': 1, 'securityRoleV994a': 1, 'securityClassificationV994a': 1, 'dataErrorTimeV994a': 1, 'lastValidVersionV994a': 1, 'lastSuccessTimeV994a': 1, 'btnOpenMultiSearchV99': 0, 'selectionBarV99': 0, 'detailsDrawerV99': 1, 'completionProgressV991': 1}"
   },
   {
     "name": "csp_sem_inline",
@@ -61,8 +61,8 @@
   },
   {
     "name": "produtividade_preservada",
-    "passed": true,
-    "detail": "implementado"
+    "passed": false,
+    "detail": "ausente"
   },
   {
     "name": "xlsx_real",
@@ -107,7 +107,7 @@
   {
     "name": "dados_publicados_validos",
     "passed": true,
-    "detail": "versão 20260717111747"
+    "detail": "versão 20260717114824"
   },
   {
     "name": "pacote_sem_legado_executavel",

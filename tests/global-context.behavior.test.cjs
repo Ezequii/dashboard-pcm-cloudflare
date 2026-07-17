@@ -37,7 +37,6 @@ function loadCore(initialState = {}) {
       "FAIXA ATRASO": []
     },
     search: "",
-    multiSearchTerms: [],
     dateFrom: "",
     dateTo: "",
     page: 1,
@@ -47,20 +46,7 @@ function loadCore(initialState = {}) {
   const context = {
     console,
     state,
-    window: {
-      normalizeMultiSearchTermsV100(values) {
-        const seen = new Set();
-        return (Array.isArray(values) ? values : []).reduce((result, value) => {
-          const clean = String(value ?? "").replace(/\s+/g, " ").trim();
-          const key = clean.toUpperCase();
-          if(clean && !seen.has(key)) {
-            seen.add(key);
-            result.push(clean);
-          }
-          return result;
-        }, []);
-      }
-    },
+    window: {},
     document: {
       createElement,
       querySelectorAll(selector) {
@@ -141,8 +127,7 @@ test("barra mostra Visão sempre e omite critérios inativos", () => {
     plain(context.window.deriveGlobalContextItemsV100({
       filters: {},
       search: " ",
-      multiSearchTerms: [],
-      dateFrom: "",
+        dateFrom: "",
       dateTo: ""
     })),
     [{key: "view", label: "Visão", value: "Geral"}]
@@ -160,8 +145,7 @@ test("barra mantém ordem fixa e resume múltiplos valores", () => {
     },
     dateFrom: "2026-05-10",
     dateTo: "2026-05-20",
-    search: "NF123",
-    multiSearchTerms: ["1", " 1 ", "", "2"]
+    search: "NF123"
   });
 
   assert.deepEqual(
@@ -172,8 +156,7 @@ test("barra mantém ordem fixa e resume múltiplos valores", () => {
       {key: "requester", label: "Solicitante", value: "ANA"},
       {key: "month", label: "Mês", value: "MAIO/2026"},
       {key: "dates", label: "Datas", value: "10/05/2026–20/05/2026"},
-      {key: "search", label: "Busca", value: "NF123"},
-      {key: "multi-search", label: "Busca múltipla", value: "2 itens"}
+      {key: "search", label: "Busca", value: "NF123"}
     ]
   );
 });

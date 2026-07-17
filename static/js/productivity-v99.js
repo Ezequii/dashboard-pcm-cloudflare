@@ -1,17 +1,13 @@
 /* ==========================================================================
-   V99 — produtividade operacional
-   Busca múltipla, seleção, resumo, colunas, filtros salvos, URL, gaveta e XLSX.
+   V107 — produtividade operacional simplificada
+   Colunas configuráveis, detalhes de linha e exportação XLSX.
    ========================================================================== */
 (() => {
   "use strict";
 
-  const SAVED_VIEWS_KEY_V99 = "pcm-dashboard-saved-views-v99";
   const COLUMNS_KEY_V99 = "pcm-dashboard-columns-v100-base-redesign";
-  const URL_STATE_KEY_V99 = "view";
-  const MAX_SAVED_VIEWS_V99 = 30;
   const MAX_MULTI_TERMS_V99 = 500;
 
-  const selectedRowsV99 = new Map();
   let columnPreferencesV99 = readColumnPreferencesV99();
   let columnDraftV99 = null;
   let detailRowsV99 = [];
@@ -128,7 +124,7 @@
       filters: safeFiltersV99(state.filters),
       search: String(state.search || "").slice(0, 200),
       searchScope: String(state.searchScope || "ALL"),
-      multiSearchTerms: normalizeMultiSearchTermsV100(state.multiSearchTerms),
+      multiSearchTerms: [],
       multiSearchMode: state.multiSearchMode === "ALL" ? "ALL" : "ANY",
       dateFrom: String(state.dateFrom || ""),
       dateTo: String(state.dateTo || ""),
@@ -156,7 +152,7 @@
       filters: safeFiltersV99(view.filters),
       search: String(view.search || "").slice(0, 200),
       searchScope: String(view.searchScope || "ALL").slice(0, 40),
-      multiSearchTerms: normalizeMultiSearchTermsV100(view.multiSearchTerms),
+      multiSearchTerms: [],
       multiSearchMode: view.multiSearchMode === "ALL" ? "ALL" : "ANY",
       dateFrom: /^\d{4}-\d{2}-\d{2}$/.test(String(view.dateFrom || ""))
         ? String(view.dateFrom)
@@ -195,8 +191,8 @@
     });
     state.search = safe.search;
     state.searchScope = safe.searchScope;
-    state.multiSearchTerms = safe.multiSearchTerms;
-    state.multiSearchMode = safe.multiSearchMode;
+    state.multiSearchTerms = [];
+    state.multiSearchMode = "ANY";
     state.dateFrom = safe.dateFrom;
     state.dateTo = safe.dateTo;
     state.valueMin = safe.valueMin;
@@ -233,40 +229,12 @@
   }
 
   function restoreProductivityStateV99(){
-    try{
-      const url = new URL(window.location.href);
-      const encoded = url.searchParams.get(URL_STATE_KEY_V99);
-      if(!encoded) return false;
-      const view = fromBase64UrlV99(encoded);
-      return applyViewStateV99(view, {hydrate:false, refresh:false});
-    }catch(error){
-      console.warn("A visão compartilhada não pôde ser restaurada:", error);
-      return false;
-    }
+    // Compartilhamento de visão removido na V107.
+    return false;
   }
 
-  function syncProductivityUrlV99(options={}){
-    try{
-      const url = new URL(window.location.href);
-      const view = captureViewStateV99();
-      if(view.multiSearchTerms.length > 100){
-        view.multiSearchTerms = view.multiSearchTerms.slice(0, 100);
-        view.multiSearchTruncated = true;
-      }
-      url.searchParams.set(
-        URL_STATE_KEY_V99,
-        toBase64UrlV99(view)
-      );
-      if(options.replace === false){
-        history.pushState({}, "", url);
-      }else{
-        history.replaceState({}, "", url);
-      }
-      return url.toString();
-    }catch(error){
-      console.warn("Não foi possível sincronizar a URL:", error);
-      return window.location.href;
-    }
+  function syncProductivityUrlV99(){
+    return window.location.href;
   }
 
   async function copyTextV99(text, successMessage){
@@ -372,218 +340,10 @@
     if(globalSearch) globalSearch.value = state.search || "";
     if(scope) scope.value = state.searchScope || "ALL";
     if(pageSize) pageSize.value = String(state.pageSize || 200);
-
-    const multiInput = document.getElementById("multiSearchInputV99");
-    const multiScope = document.getElementById("multiSearchScopeV99");
-    const multiMode = document.getElementById("multiSearchModeV99");
-    if(multiInput) multiInput.value = (state.multiSearchTerms || []).join("\n");
-    if(multiScope) multiScope.value = state.searchScope || "ALL";
-    if(multiMode) multiMode.value = state.multiSearchMode || "ANY";
-
-    updateMultiSearchUiV99();
-    updateSelectionUiV99();
-  }
-
-  function updateMultiSearchUiV99(){
-    const terms = Array.isArray(state.multiSearchTerms)
-      ? state.multiSearchTerms
-      : [];
-    const badge = document.getElementById("multiSearchBadgeV99");
-    const preview = document.getElementById("multiSearchPreviewV99");
-
-    if(badge){
-      badge.hidden = !terms.length;
-      badge.textContent = String(terms.length);
-    }
-    if(preview){
-      preview.textContent = terms.length
-        ? `${terms.length.toLocaleString("pt-BR")} item${terms.length === 1 ? "" : "s"} ativo${terms.length === 1 ? "" : "s"} · modo ${state.multiSearchMode === "ALL" ? "todos" : "qualquer"}`
-        : "Nenhum item informado.";
-    }
     updateProductivityStateV99();
   }
 
-  function handleMultiSearchPreviewV99(){
-    const input = document.getElementById("multiSearchInputV99");
-    const scope = document.getElementById("multiSearchScopeV99");
-    const terms = parseMultiSearchInputV99(
-      input?.value || "",
-      scope?.value || "ALL"
-    );
-    const preview = document.getElementById("multiSearchPreviewV99");
-    if(preview){
-      preview.textContent = terms.length
-        ? `${terms.length.toLocaleString("pt-BR")} item${terms.length === 1 ? "" : "s"} reconhecido${terms.length === 1 ? "" : "s"}.`
-        : "Nenhum item informado.";
-    }
-  }
 
-  function applyMultiSearchV99(){
-    const input = document.getElementById("multiSearchInputV99");
-    const scope = document.getElementById("multiSearchScopeV99");
-    const mode = document.getElementById("multiSearchModeV99");
-    const terms = parseMultiSearchInputV99(
-      input?.value || "",
-      scope?.value || "ALL"
-    );
-
-    state.multiSearchTerms = terms;
-    state.multiSearchMode = mode?.value === "ALL" ? "ALL" : "ANY";
-    state.searchScope = scope?.value || "ALL";
-    state.page = 1;
-
-    const searchScope = document.getElementById("searchScope");
-    if(searchScope) searchScope.value = state.searchScope;
-
-    savePreferences();
-    updateMultiSearchUiV99();
-    closeDialogV99(document.getElementById("multiSearchDialogV99"));
-    refreshAll(false).catch(error => {
-      console.error("Falha na busca múltipla:", error);
-      showToast("Não foi possível aplicar a busca múltipla.", true);
-    });
-  }
-
-  function clearMultiSearchV99(){
-    state.multiSearchTerms = [];
-    state.multiSearchMode = "ANY";
-    state.page = 1;
-    const input = document.getElementById("multiSearchInputV99");
-    const mode = document.getElementById("multiSearchModeV99");
-    if(input) input.value = "";
-    if(mode) mode.value = "ANY";
-    savePreferences();
-    updateMultiSearchUiV99();
-    closeDialogV99(document.getElementById("multiSearchDialogV99"));
-    refreshAll(false).catch(error => {
-      console.error("Falha ao limpar busca múltipla:", error);
-    });
-  }
-
-  function readSavedViewsV99(){
-    try{
-      const views = JSON.parse(localStorage.getItem(SAVED_VIEWS_KEY_V99) || "[]");
-      return Array.isArray(views) ? views.slice(0, MAX_SAVED_VIEWS_V99) : [];
-    }catch(error){
-      return [];
-    }
-  }
-
-  function writeSavedViewsV99(views){
-    localStorage.setItem(
-      SAVED_VIEWS_KEY_V99,
-      JSON.stringify((views || []).slice(0, MAX_SAVED_VIEWS_V99))
-    );
-  }
-
-  function saveCurrentViewV99(){
-    const input = document.getElementById("savedViewNameV99");
-    const name = String(input?.value || "").trim().slice(0, 70);
-    if(!name){
-      showToast("Informe um nome para a visão.", true);
-      input?.focus();
-      return;
-    }
-
-    const views = readSavedViewsV99();
-    const existingIndex = views.findIndex(
-      item => normalizeCodeV99(item.name) === normalizeCodeV99(name)
-    );
-    const entry = {
-      id: existingIndex >= 0 ? views[existingIndex].id : crypto.randomUUID?.() || `view-${Date.now()}`,
-      name,
-      updatedAt: new Date().toISOString(),
-      state: captureViewStateV99(),
-    };
-
-    if(existingIndex >= 0){
-      views.splice(existingIndex, 1, entry);
-    }else{
-      views.unshift(entry);
-    }
-
-    writeSavedViewsV99(views);
-    if(input) input.value = "";
-    renderSavedViewsV99();
-    showToast(`Visão “${name}” salva.`);
-  }
-
-  function applySavedViewV99(id){
-    const view = readSavedViewsV99().find(item => item.id === id);
-    if(!view) return;
-    if(applyViewStateV99(view.state, {refresh:true})){
-      closeDialogV99(document.getElementById("savedViewsDialogV99"));
-      showToast(`Visão “${view.name}” aplicada.`);
-    }
-  }
-
-  function renameSavedViewV99(id){
-    const views = readSavedViewsV99();
-    const item = views.find(view => view.id === id);
-    if(!item) return;
-    const next = window.prompt("Novo nome da visão:", item.name);
-    if(next === null) return;
-    const name = String(next).trim().slice(0, 70);
-    if(!name){
-      showToast("O nome da visão não pode ficar vazio.", true);
-      return;
-    }
-    item.name = name;
-    item.updatedAt = new Date().toISOString();
-    writeSavedViewsV99(views);
-    renderSavedViewsV99();
-  }
-
-  function deleteSavedViewV99(id){
-    const views = readSavedViewsV99();
-    const item = views.find(view => view.id === id);
-    if(!item) return;
-    if(!window.confirm(`Excluir a visão “${item.name}”?`)) return;
-    writeSavedViewsV99(views.filter(view => view.id !== id));
-    renderSavedViewsV99();
-    showToast("Visão excluída.");
-  }
-
-  function renderSavedViewsV99(){
-    const host = document.getElementById("savedViewsListV99");
-    if(!host) return;
-    const views = readSavedViewsV99();
-
-    if(!views.length){
-      host.innerHTML = `
-        <div class="empty-productivity-v99">
-          <strong>Nenhuma visão salva</strong>
-          <span>Configure filtros, busca e colunas; depois salve a visão atual.</span>
-        </div>`;
-      return;
-    }
-
-    host.innerHTML = views.map(view => {
-      const stateInfo = validateViewStateV99(view.state) || {};
-      const filterCount = Object.values(stateInfo.filters || {})
-        .reduce((sum, values) => sum + values.length, 0);
-      const multiCount = (stateInfo.multiSearchTerms || []).length;
-      return `
-        <article class="saved-view-v99" data-id="${escapeAttr(view.id)}">
-          <div>
-            <strong>${escapeHtml(view.name)}</strong>
-            <span>${filterCount} filtro${filterCount === 1 ? "" : "s"} · ${multiCount} item${multiCount === 1 ? "" : "s"} na busca múltipla · ${escapeHtml(stateInfo.activeTab === "base" ? "Base" : "Executiva")}</span>
-          </div>
-          <div>
-            <button type="button" data-action="apply">Aplicar</button>
-            <button type="button" data-action="rename">Renomear</button>
-            <button type="button" data-action="delete">Excluir</button>
-          </div>
-        </article>`;
-    }).join("");
-
-    host.querySelectorAll(".saved-view-v99").forEach(card => {
-      const id = card.dataset.id;
-      card.querySelector('[data-action="apply"]').onclick = () => applySavedViewV99(id);
-      card.querySelector('[data-action="rename"]').onclick = () => renameSavedViewV99(id);
-      card.querySelector('[data-action="delete"]').onclick = () => deleteSavedViewV99(id);
-    });
-  }
 
   function columnLabelV99(column){
     if(typeof headerInfo === "function"){
@@ -705,118 +465,23 @@
     return String(row?._ROW_ID ?? "");
   }
 
-  function isRowSelectedV99(rowId){
-    return selectedRowsV99.has(String(rowId ?? ""));
-  }
-
-  function renderSelectionHeaderV99(rows){
-    const pageRows = Array.isArray(rows) ? rows : [];
-    const selected = pageRows.filter(row => isRowSelectedV99(row._ROW_ID)).length;
-    const checked = pageRows.length > 0 && selected === pageRows.length;
-    const indeterminate = selected > 0 && selected < pageRows.length;
-    return `
-      <th class="selection-column-v99 no-print">
-        <input
-          id="selectPageV99"
-          type="checkbox"
-          ${checked ? "checked" : ""}
-          data-indeterminate="${indeterminate ? "1" : "0"}"
-          aria-label="Selecionar registros desta página">
-      </th>`;
-  }
-
-  function renderRowCheckboxV99(row){
-    const id = rowIdV99(row);
-    return `
-      <td class="selection-column-v99 no-print">
-        <input
-          class="row-select-v99"
-          type="checkbox"
-          data-row-id="${escapeAttr(id)}"
-          ${isRowSelectedV99(id) ? "checked" : ""}
-          aria-label="Selecionar registro ${escapeAttr(row["Nº REQUISIÇÃO"] || id)}">
-      </td>`;
-  }
-
-  function setSelectedV99(row, selected){
-    const id = rowIdV99(row);
-    if(!id) return;
-    if(selected) selectedRowsV99.set(id, row);
-    else selectedRowsV99.delete(id);
-  }
-
-  function clearSelectionV99(options={}){
-    selectedRowsV99.clear();
-    updateSelectionUiV99();
-    if(options.reload !== false) loadRowsSafely();
-  }
-
-  function getSelectedRowsCountV100(){
-    return selectedRowsV99.size;
-  }
 
   function clearProductivityQueryContextV100(){
     state.multiSearchTerms = [];
     state.multiSearchMode = "ANY";
-    selectedRowsV99.clear();
-
-    const input = document.getElementById("multiSearchInputV99");
-    const mode = document.getElementById("multiSearchModeV99");
-    if(input) input.value = "";
-    if(mode) mode.value = "ANY";
-
-    updateMultiSearchUiV99();
-    updateSelectionUiV99();
-  }
-
-  function updateSelectionUiV99(){
-    const count = selectedRowsV99.size;
-    const bar = document.getElementById("selectionBarV99");
-    const counter = document.getElementById("selectedCountV99");
-    if(counter) counter.textContent = count.toLocaleString("pt-BR");
-    if(bar) bar.hidden = count === 0;
     updateProductivityStateV99();
   }
 
   function updateProductivityStateV99(){
     const host = document.getElementById("productivityStateV99");
     if(!host) return;
-    const parts = [];
-    const multi = (state.multiSearchTerms || []).length;
-    const selected = selectedRowsV99.size;
-    if(multi) parts.push(`${multi} item${multi === 1 ? "" : "s"} na busca múltipla`);
-    if(selected) parts.push(`${selected.toLocaleString("pt-BR")} selecionado${selected === 1 ? "" : "s"}`);
     const hidden = (columnPreferencesV99.hidden || []).length;
-    if(hidden) parts.push(`${hidden} coluna${hidden === 1 ? "" : "s"} oculta${hidden === 1 ? "" : "s"}`);
-    host.textContent = parts.length
-      ? parts.join(" · ")
-      : "Nenhuma busca múltipla ou seleção ativa";
+    host.textContent = hidden
+      ? `${hidden} coluna${hidden === 1 ? "" : "s"} oculta${hidden === 1 ? "" : "s"}`
+      : "Colunas padrão visíveis";
   }
 
-  function afterTableRenderV99(data, columns, tbody, thead){
-    const pageRows = Array.isArray(data?.rows) ? data.rows : [];
-    const byId = new Map(pageRows.map(row => [rowIdV99(row), row]));
-
-    const pageCheckbox = document.getElementById("selectPageV99");
-    if(pageCheckbox){
-      pageCheckbox.indeterminate = pageCheckbox.dataset.indeterminate === "1";
-      pageCheckbox.onchange = () => {
-        pageRows.forEach(row => setSelectedV99(row, pageCheckbox.checked));
-        updateSelectionUiV99();
-        loadRowsSafely();
-      };
-    }
-
-    tbody.querySelectorAll(".row-select-v99").forEach(checkbox => {
-      checkbox.onclick = event => event.stopPropagation();
-      checkbox.onchange = () => {
-        const row = byId.get(checkbox.dataset.rowId);
-        if(row) setSelectedV99(row, checkbox.checked);
-        checkbox.closest("tr")?.classList.toggle("is-selected-v99", checkbox.checked);
-        updateSelectionUiV99();
-      };
-    });
-
+  function afterTableRenderV99(data, columns, tbody){
     tbody.querySelectorAll("tr[data-row-id]").forEach(rowElement => {
       rowElement.onclick = event => {
         if(event.target.closest("input,button,a,select,textarea,label")) return;
@@ -830,27 +495,9 @@
       };
     });
 
-    updateSelectionUiV99();
+    updateProductivityStateV99();
   }
 
-  async function selectAllFilteredV99(){
-    try{
-      setLoading(true);
-      const data = await api("/api/rows", {
-        ...tableQuery(),
-        page: 1,
-        page_size: 100000,
-      });
-      (data.rows || []).forEach(row => setSelectedV99(row, true));
-      updateSelectionUiV99();
-      loadRowsSafely();
-      showToast(`${Number(data.total || 0).toLocaleString("pt-BR")} registros selecionados.`);
-    }catch(error){
-      showToast(error.message || "Não foi possível selecionar os resultados.", true);
-    }finally{
-      setLoading(false);
-    }
-  }
 
   function parseMoneyV99(row){
     const direct = Number(row?._VALOR_TOTAL);
@@ -947,12 +594,6 @@
   }
 
   async function rowsForCurrentActionV99(){
-    if(selectedRowsV99.size){
-      return {
-        rows: Array.from(selectedRowsV99.values()),
-        scope: "Registros selecionados",
-      };
-    }
     const data = await api("/api/rows", {
       ...tableQuery(),
       page: 1,
@@ -965,18 +606,6 @@
     };
   }
 
-  async function copySelectedSummaryV99(){
-    try{
-      setLoading(true);
-      const result = await rowsForCurrentActionV99();
-      const summary = buildOperationalSummaryV99(result.rows, result.scope);
-      await copyTextV99(summary.text, "Resumo operacional copiado.");
-    }catch(error){
-      showToast(error.message || "Não foi possível gerar o resumo.", true);
-    }finally{
-      setLoading(false);
-    }
-  }
 
   function exportFilenameV99(scope){
     const slug = String(scope || "visao")
@@ -1295,48 +924,8 @@
     ).text;
   }
 
-  async function shareCurrentViewV99(){
-    if((state.multiSearchTerms || []).length > 100){
-      showToast("Para compartilhar por URL, reduza a busca múltipla para até 100 itens.", true);
-      return;
-    }
-    const url = syncProductivityUrlV99({replace:true});
-    await copyTextV99(url, "Link da visão copiado.");
-  }
 
   function bindProductivityEventsV99(){
-    document.getElementById("btnOpenMultiSearchV99")?.addEventListener("click", () => {
-      hydrateProductivityUiV99();
-      openDialogV99(document.getElementById("multiSearchDialogV99"));
-      document.getElementById("multiSearchInputV99")?.focus();
-    });
-
-    document.getElementById("multiSearchInputV99")?.addEventListener(
-      "input",
-      debounce(handleMultiSearchPreviewV99, 120)
-    );
-    document.getElementById("multiSearchScopeV99")?.addEventListener(
-      "change",
-      handleMultiSearchPreviewV99
-    );
-    document.getElementById("btnApplyMultiSearchV99")?.addEventListener(
-      "click",
-      applyMultiSearchV99
-    );
-    document.getElementById("btnClearMultiSearchV99")?.addEventListener(
-      "click",
-      clearMultiSearchV99
-    );
-
-    document.getElementById("btnSavedViewsV99")?.addEventListener("click", () => {
-      renderSavedViewsV99();
-      openDialogV99(document.getElementById("savedViewsDialogV99"));
-    });
-    document.getElementById("btnSaveCurrentViewV99")?.addEventListener(
-      "click",
-      saveCurrentViewV99
-    );
-
     document.getElementById("btnColumnsV99")?.addEventListener(
       "click",
       openColumnsV99
@@ -1350,10 +939,6 @@
       resetColumnsV99
     );
 
-    document.getElementById("btnShareViewV99")?.addEventListener(
-      "click",
-      shareCurrentViewV99
-    );
     document.getElementById("btnExportExcelTableV99")?.addEventListener(
       "click",
       exportExcelFromCurrentViewV99
@@ -1362,23 +947,6 @@
       document.getElementById("exportDropdown")?.setAttribute("hidden", "");
       exportExcelFromCurrentViewV99();
     });
-
-    document.getElementById("btnSelectAllFilteredV99")?.addEventListener(
-      "click",
-      selectAllFilteredV99
-    );
-    document.getElementById("btnCopySummaryV99")?.addEventListener(
-      "click",
-      copySelectedSummaryV99
-    );
-    document.getElementById("btnExportSelectionV99")?.addEventListener(
-      "click",
-      exportExcelFromCurrentViewV99
-    );
-    document.getElementById("btnClearSelectionV99")?.addEventListener(
-      "click",
-      () => clearSelectionV99()
-    );
 
     document.getElementById("btnCloseDetailsV99")?.addEventListener(
       "click",
@@ -1415,11 +983,7 @@
     document.addEventListener("keydown", event => {
       if(event.key === "Escape"){
         closeDetailsV99();
-        [
-          "multiSearchDialogV99",
-          "savedViewsDialogV99",
-          "columnsDialogV99",
-        ].forEach(id => closeDialogV99(document.getElementById(id)));
+        closeDialogV99(document.getElementById("columnsDialogV99"));
       }
     });
 
@@ -1437,21 +1001,19 @@
   function resetProductivityStateV99(){
     state.multiSearchTerms = [];
     state.multiSearchMode = "ANY";
-    selectedRowsV99.clear();
     lastDetailQueryKeyV99 = "";
     detailRowsV99 = [];
-    const input = document.getElementById("multiSearchInputV99");
-    if(input) input.value = "";
-    updateMultiSearchUiV99();
-    updateSelectionUiV99();
+    updateProductivityStateV99();
   }
 
   function initProductivityV99(){
     if(productivityInitializedV99) return;
     productivityInitializedV99 = true;
+    state.multiSearchTerms = [];
+    state.multiSearchMode = "ANY";
     bindProductivityEventsV99();
     hydrateProductivityUiV99();
-    syncProductivityUrlV99({replace:true});
+    updateProductivityStateV99();
   }
 
   window.parseMultiSearchInputV99 = parseMultiSearchInputV99;
@@ -1461,12 +1023,8 @@
   window.restoreProductivityStateV99 = restoreProductivityStateV99;
   window.syncProductivityUrlV99 = syncProductivityUrlV99;
   window.resolveColumnsV99 = resolveColumnsV99;
-  window.isRowSelectedV99 = isRowSelectedV99;
-  window.renderSelectionHeaderV99 = renderSelectionHeaderV99;
-  window.renderRowCheckboxV99 = renderRowCheckboxV99;
   window.afterTableRenderV99 = afterTableRenderV99;
   window.buildOperationalSummaryV99 = buildOperationalSummaryV99;
-  window.getSelectedRowsCountV100 = getSelectedRowsCountV100;
   window.clearProductivityQueryContextV100 = clearProductivityQueryContextV100;
   window.exportExcelFromCurrentViewV99 = exportExcelFromCurrentViewV99;
   window.openDetailsV99 = openDetailsV99;
