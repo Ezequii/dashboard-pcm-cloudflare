@@ -5,6 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <meta name="description" content="Painel executivo e operacional para controle de requisições PCM em 2026." />
   <meta name="theme-color" content="#123c2f" />
+  <meta name="color-scheme" content="light" />
+  <link rel="manifest" href="/manifest.webmanifest" />
   <title>Controle de Requisições PCM 2026</title>
   <link rel="icon" type="image/png" href="/static/favicon.png" />
   <link rel="stylesheet" href="/static/styles_v50_corrigido.css?v=9946" />
@@ -24,8 +26,26 @@
   <link rel="stylesheet" href="/static/styles_v100_base_table.css?v=10050" />
   <link rel="stylesheet" href="/static/styles_v100_executive_composed.css?v=10100" />
   <link rel="stylesheet" href="/static/styles_v100_1_usability.css?v=10010" />
+  <link rel="stylesheet" href="/static/styles_v101_resilience.css?v=10100" />
+  <link rel="stylesheet" href="/static/styles_v102_delivery.css?v=10200" />
+  <link rel="stylesheet" href="/static/styles_v103_ops.css?v=10300">
 </head>
 <body class="v86-table-lines v89-simple-filters-search-money v90-layout-safe v91-layout-final v95-header-kpi-polish v97-reliability-navigation v971-runtime-fix v991-faithful v992-polished v993-productivity v994a-hardening v994a2-audited v994a2-visual app-booting v994a3-operational-fix v994a4-top-base-flow v994a5-lapidacao v994a6-clean-rankings v100-base-redesign v100-executive-composed">
+  <section id="appStatusV103" class="app-status-v103 no-print" aria-label="Status do aplicativo" aria-live="polite">
+    <div id="offlineNoticeV103" class="app-status-v103__item" role="status" hidden>
+      <p class="app-status-v103__text"><strong>Sem conexão.</strong> Os dados atuais não serão substituídos por uma cópia antiga.</p>
+    </div>
+    <div id="updateNoticeV103" class="app-status-v103__item" role="status" hidden>
+      <p class="app-status-v103__text"><strong>Nova versão disponível.</strong> Atualize para receber as correções mais recentes.</p>
+      <button id="applyUpdateV103" class="app-status-v103__action" type="button">Atualizar</button>
+    </div>
+  </section>
+
+  <noscript>
+    <div class="noscript-banner-v102" role="alert">
+      Este dashboard precisa de JavaScript habilitado para carregar e filtrar os dados.
+    </div>
+  </noscript>
   <a class="skip-link-v994a" href="#mainContent">Pular para o conteúdo</a>
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
   <div id="drawerBackdrop" class="drawer-backdrop no-print" hidden></div>
@@ -34,23 +54,23 @@
     <div class="topbar-row topbar-row-main topbar-main-v994a4">
       <div class="brand brand-amaggi brand-panel brand-v994a4">
         <div class="brand-logo-box">
-          <img src="/static/logo_amaggi.png" alt="AMAGGI" />
+          <img src="/static/logo_amaggi.png" alt="AMAGGI" width="512" height="512" decoding="async" />
         </div>
         <div class="brand-copy-v994a4">
           <div class="brand-title-line">
             <h1>Controle de Requisições PCM</h1>
-            <span class="version-pill-v34" aria-label="Versão atual">V100.1</span>
+            <span class="version-pill-v34" aria-label="Versão atual">V106</span>
           </div>
           <p class="subtitle-top">Controle de lançamento e acompanhamento — 2026</p>
         </div>
       </div>
 
       <nav class="dashboard-tabs no-print prominent-tabs inline-tabs tabs-v994a4" role="tablist" aria-label="Navegação do dashboard">
-        <button class="tab-btn active" role="tab" aria-selected="true" data-tab="visao">
+        <button class="tab-btn active" type="button" role="tab" aria-selected="true" data-tab="visao">
           <span>Visão Executiva</span>
           <small>decisão e prioridade</small>
         </button>
-        <button class="tab-btn" role="tab" aria-selected="false" data-tab="base">
+        <button class="tab-btn" type="button" role="tab" aria-selected="false" data-tab="base">
           <span>Base de Tratativa</span>
           <small>registros operacionais</small>
         </button>
@@ -72,7 +92,7 @@
         </div>
 
         <div class="action-cluster-v994a4">
-          <button id="btnRefresh" class="btn btn-primary" aria-label="Recarregar dados da planilha">Recarregar</button>
+          <button id="btnRefresh" type="button" class="btn btn-primary" aria-label="Recarregar dados da planilha">Recarregar</button>
           <div id="exportMenu" class="export-menu">
             <button id="btnExportMenu" class="btn btn-soft" type="button" aria-label="Abrir opções de exportação" aria-expanded="false">Exportar</button>
             <div id="exportDropdown" class="export-dropdown" hidden>
@@ -97,7 +117,7 @@
     <div class="drawer-body">
       <p class="drawer-helper">Confira o contexto aplicado ao painel e à Base de Tratativa.</p>
       <div id="drawerFilterSummary" class="drawer-filter-summary-v97" aria-live="polite">Nenhum filtro ativo.</div>
-      <button id="btnClear" class="btn btn-soft btn-compact" aria-label="Limpar todos os filtros">Limpar filtros</button>
+      <button id="btnClear" type="button" class="btn btn-soft btn-compact" aria-label="Limpar todos os filtros">Limpar filtros</button>
     </div>
   </aside>
 
@@ -240,7 +260,7 @@
 
     </section>
 
-    <section class="operations-grid-v991" data-panel="visao">
+    <section class="operations-grid-v991" data-panel="visao" aria-label="Indicadores operacionais">
       <article class="operations-panel-v991 flow-panel-v991">
         <header class="panel-title-v991">
           <div>
@@ -270,7 +290,7 @@
       </article>
 
     </section>
-    <section class="executive-lower-v100" data-panel="visao">
+    <section class="executive-lower-v100" data-panel="visao" aria-label="Análises executivas complementares">
     <section class="ranking-grid-v991 ranking-grid-v994a6">
       <div class="ranking-scopebar-v994a6">
         <div class="ranking-scope-copy-v994a6">
@@ -323,7 +343,7 @@
     </section>
     </section>
 
-<section class="base-overview-v991" data-panel="base" hidden>
+<section class="base-overview-v991" data-panel="base" aria-label="Resumo da base de tratativa" hidden>
       <div class="base-overview-copy-v991">
         <span id="basePanelTitle" tabindex="-1">Base de Tratativa</span>
         <strong>Registros operacionais</strong>
@@ -375,9 +395,9 @@
           <div class="pager">
             <label>Exibir</label>
             <select id="pageSize"><option>50</option><option>100</option><option selected>200</option><option>300</option></select>
-            <button id="prevPage" class="btn btn-small">Anterior</button>
+            <button id="prevPage" type="button" class="btn btn-small" aria-label="Ir para a página anterior">Anterior</button>
             <span id="pageInfo">1/1</span>
-            <button id="nextPage" class="btn btn-small">Próxima</button>
+            <button id="nextPage" type="button" class="btn btn-small" aria-label="Ir para a próxima página">Próxima</button>
           </div>
         </div>
       </div>
@@ -550,6 +570,7 @@
   <script src="/static/js/xlsx-v99.js?v=9946"></script>
   <script src="/static/js/productivity-v99.js?v=10050"></script>
   <script src="/static/js/core.js?v=10040"></script>
-  <script src="/static/js/main.js?v=9946"></script>
+  <script src="/static/js/main.js?v=10200"></script>
+  <script src="/static/js/pwa-v103.js?v=10300"></script>
 </body>
 </html>

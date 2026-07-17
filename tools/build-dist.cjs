@@ -3,12 +3,14 @@
 
 const fs = require("node:fs");
 const path = require("node:path");
+const crypto = require("node:crypto");
 
 const ROOT = path.resolve(__dirname, "..");
 const OUTPUT = path.join(ROOT, "dist");
-const ROOT_FILES = ["index.html", "404.html", "_headers"];
+const ROOT_FILES = ["index.html", "404.html", "_headers", "manifest.webmanifest", "sw.js"];
 const STATIC_RULES = [
   { directory: "static", extension: ".css" },
+  { directory: "static", extension: ".png" },
   { directory: "static/js", extension: ".js" },
   { directory: "static/config", extension: ".json" },
 ];
@@ -63,6 +65,53 @@ function walk(directory) {
   });
 }
 
+
+function expandServiceWorkerPrecache() {
+  const html = fs.readFileSync(path.join(OUTPUT, "index.html"), "utf8");
+  const urls = [...html.matchAll(/\b(?:src|href)="([^"]+)"/g)]
+    .map((match) => match[1])
+    .filter((url) => url.startsWith("/") && !url.startsWith("//"))
+    .map((url) => url.split("#")[0]);
+  const required = ["/", "/index.html", "/404.html", "/manifest.webmanifest", ...urls];
+  const shell = [...new Set(required)].filter((url) => {
+    const relative = url.split("?")[0].replace(/^\/+/, "");
+    return !relative || fs.existsSync(path.join(OUTPUT, relative));
+  });
+  const swPath = path.join(OUTPUT, "sw.js");
+  let sw = fs.readFileSync(swPath, "utf8");
+  sw = sw.replace(/const SHELL = \[[\s\S]*?\];/, `const SHELL = ${JSON.stringify(shell, null, 2)};`);
+  fs.writeFileSync(swPath, sw);
+  return shell;
+}
+
+
+function writeBuildManifest() {
+  const files = walk(OUTPUT)
+    .filter((file) => path.basename(file) !== "build-manifest.json")
+    .sort();
+  const entries = {};
+  for (const file of files) {
+    const relative = path.relative(OUTPUT, file).split(path.sep).join("/");
+    const buffer = fs.readFileSync(file);
+    entries[relative] = {
+      bytes: buffer.byteLength,
+      sha256: crypto.createHash("sha256").update(buffer).digest("hex"),
+    };
+  }
+  const manifest = {
+    schema: 1,
+    application: "dashboard-pcm-cloudflare",
+    version: "106.0.0",
+    generatedAt: new Date().toISOString(),
+    files: entries,
+  };
+  fs.writeFileSync(
+    path.join(OUTPUT, "build-manifest.json"),
+    `${JSON.stringify(manifest, null, 2)}\n`
+  );
+  return Object.keys(entries).length;
+}
+
 function buildDist() {
   ensureInsideProject(OUTPUT);
   fs.rmSync(OUTPUT, { recursive: true, force: true });
@@ -75,6 +124,8 @@ function buildDist() {
     ),
     ...DATA_FILES.map(copyRequired),
   ];
+
+  const precached = expandServiceWorkerPrecache();
 
   const forbidden = walk(OUTPUT).filter((file) =>
     FORBIDDEN_EXTENSIONS.has(path.extname(file).toLowerCase())
@@ -91,6 +142,10 @@ function buildDist() {
     "index.html",
     "404.html",
     "_headers",
+    "manifest.webmanifest",
+    "sw.js",
+    "static/favicon.png",
+    "static/logo_amaggi.png",
     ...DATA_FILES,
     "static/js/security-v994a.js",
     "static/js/api.js",
@@ -102,7 +157,8 @@ function buildDist() {
     }
   }
 
-  console.log(`dist criado com ${copied.length} arquivos em ${OUTPUT}`);
+  const manifested = writeBuildManifest();
+  console.log(`dist criado com ${copied.length} arquivos, ${precached.length} recursos no precache e ${manifested} itens auditados em ${OUTPUT}`);
   return copied;
 }
 

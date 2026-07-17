@@ -6,13 +6,13 @@
   },
   {
     "name": "versionamento_9946",
-    "passed": true,
+    "passed": false,
     "detail": "HTML, configuração e runtime usam 9946"
   },
   {
     "name": "ordem_scripts",
     "passed": false,
-    "detail": "{'app-config.js': 27721, 'state.js': 27779, 'utils.js': 27832, 'security-v994a.js': 27885, 'api.js': 27947, 'filters.js': -1, 'dashboard.js': 28054, 'table.js': -1, 'xlsx-v99.js': 28165, 'productivity-v99.js': -1, 'core.js': -1, 'main.js': 28339}"
+    "detail": "{'app-config.js': 29240, 'state.js': 29298, 'utils.js': 29351, 'security-v994a.js': 29404, 'api.js': 29466, 'filters.js': -1, 'dashboard.js': 29573, 'table.js': -1, 'xlsx-v99.js': 29684, 'productivity-v99.js': -1, 'core.js': -1, 'main.js': -1}"
   },
   {
     "name": "ids_unicos",
@@ -107,7 +107,7 @@
   {
     "name": "dados_publicados_validos",
     "passed": true,
-    "detail": "versão 20260716201827"
+    "detail": "versão 20260717111747"
   },
   {
     "name": "pacote_sem_legado_executavel",

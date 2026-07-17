@@ -90,8 +90,41 @@ async function fetchJsonV994a(
       );
     }
 
+    const contentType = String(response.headers.get("content-type") || "").toLowerCase();
+    if(contentType && !contentType.includes("application/json") && !contentType.includes("+json")){
+      throw new DataSchemaError(
+        `O arquivo ${url} retornou um tipo de conteúdo inesperado (${contentType}).`
+      );
+    }
+
+    const maxJsonBytes = Number(
+      window.PCM_APP_CONFIG?.runtime?.maxJsonPayloadBytes || 12582912
+    );
+    const declaredBytes = Number(response.headers.get("content-length") || 0);
+    if(declaredBytes > maxJsonBytes){
+      throw new DataSchemaError(
+        `O arquivo ${url} excede o limite seguro de ${(maxJsonBytes / 1048576).toFixed(0)} MB.`
+      );
+    }
+
+    let rawText = "";
     try{
-      return await response.json();
+      rawText = await response.text();
+    }catch(error){
+      throw new DataNetworkError(
+        `Não foi possível ler a resposta de ${url}.`
+      );
+    }
+
+    const receivedBytes = new TextEncoder().encode(rawText).byteLength;
+    if(receivedBytes > maxJsonBytes){
+      throw new DataSchemaError(
+        `O arquivo ${url} excede o limite seguro de ${(maxJsonBytes / 1048576).toFixed(0)} MB.`
+      );
+    }
+
+    try{
+      return JSON.parse(rawText);
     }catch(error){
       throw new DataSchemaError(
         `O arquivo ${url} não contém JSON válido.`
@@ -131,6 +164,18 @@ function validateDataPayloadV994a(payload, expectedVersion, kind){
   if(!payload || !Array.isArray(payload.rows)){
     throw new DataSchemaError(
       `${kind} não contém uma lista de registros.`
+    );
+  }
+
+  const isExecutive = kind === "executive-data.json";
+  const rowLimit = Number(
+    isExecutive
+      ? window.PCM_APP_CONFIG?.runtime?.maxExecutiveRowsInMemory || 10000
+      : window.PCM_APP_CONFIG?.runtime?.maxOperationalRowsInMemory || 25000
+  );
+  if(payload.rows.length > rowLimit){
+    throw new DataSchemaError(
+      `${kind} possui ${payload.rows.length.toLocaleString("pt-BR")} registros e excede o limite de ${rowLimit.toLocaleString("pt-BR")}.`
     );
   }
 
@@ -291,6 +336,16 @@ async function fetchExecutiveBundleV994a(expectedVersion){
     "executive-data.json"
   );
   validatePublicationStatusV994a(publication, expectedVersion);
+  const publishedRecords = Number(publication.records);
+  if(
+    Number.isFinite(publishedRecords)
+    && publishedRecords >= 0
+    && publishedRecords !== executive.rows.length
+  ){
+    throw new DataSchemaError(
+      `A publicação informa ${publishedRecords.toLocaleString("pt-BR")} registros, mas executive-data.json contém ${executive.rows.length.toLocaleString("pt-BR")}.`
+    );
+  }
   refreshDynamicAging(executive.rows);
   return {executive, publication};
 }
@@ -309,15 +364,6 @@ async function fetchOperationalPayloadV994a(expectedVersion){
     expectedVersion,
     "operational-data.json"
   );
-
-  const limit = Number(
-    window.PCM_APP_CONFIG?.runtime?.maxOperationalRowsInMemory || 25000
-  );
-  if(payload.rows.length > limit){
-    throw new DataSchemaError(
-      `A base possui ${payload.rows.length.toLocaleString("pt-BR")} registros e excede o limite de ${limit.toLocaleString("pt-BR")}.`
-    );
-  }
 
   refreshDynamicAging(payload.rows);
   return payload;
