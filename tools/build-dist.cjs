@@ -6,6 +6,7 @@ const path = require("node:path");
 const crypto = require("node:crypto");
 
 const ROOT = path.resolve(__dirname, "..");
+const PACKAGE = JSON.parse(fs.readFileSync(path.join(ROOT, "package.json"), "utf8"));
 const OUTPUT = path.join(ROOT, "dist");
 const ROOT_FILES = ["index.html", "404.html", "_headers", "manifest.webmanifest", "sw.js"];
 const STATIC_RULES = [
@@ -101,7 +102,7 @@ function writeBuildManifest() {
   const manifest = {
     schema: 1,
     application: "dashboard-pcm-cloudflare",
-    version: "108.0.0",
+    version: PACKAGE.version,
     generatedAt: new Date().toISOString(),
     files: entries,
   };

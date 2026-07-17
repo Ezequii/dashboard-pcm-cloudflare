@@ -51,7 +51,7 @@ test("paginação possui rótulos acessíveis", () => {
 test("versões de pacote, PWA e manifesto do build estão sincronizadas", () => {
   assert.equal(packageJson.version, "108.0.0");
   assert.match(sw, /const VERSION = "v108"/);
-  assert.match(build, /version:\s*"108\.0\.0"/);
+  assert.match(build, /version:\s*PACKAGE\.version/);
   assert.match(html, />V108<\/span>/);
   assert.match(html, /styles_v108_layout_flow\.css\?v=10800/);
 });

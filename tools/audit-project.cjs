@@ -66,6 +66,42 @@ for (const file of ["version.json", "publication-status.json", "executive-data.j
   catch { errors.push(`JSON inválido: static/data/${file}`); }
 }
 
+
+// Coerência de versão entre os arquivos críticos de inicialização.
+const packageJson = JSON.parse(fs.readFileSync(path.join(ROOT, "package.json"), "utf8"));
+const appConfigSource = fs.readFileSync(path.join(ROOT, "static", "js", "app-config.js"), "utf8");
+const coreSource = fs.readFileSync(path.join(ROOT, "static", "js", "core.js"), "utf8");
+const serviceWorkerSource = fs.readFileSync(path.join(ROOT, "sw.js"), "utf8");
+const buildSource = fs.readFileSync(path.join(ROOT, "tools", "build-dist.cjs"), "utf8");
+
+const appVersion = appConfigSource.match(/\bversion:\s*"([^"]+)"/)?.[1];
+const assetVersion = appConfigSource.match(/\bassetVersion:\s*"([^"]+)"/)?.[1];
+const coreAssetVersion = coreSource.match(/String\(config\.assetVersion \|\| ""\) !== "([^"]+)"/)?.[1];
+const appConfigQuery = html.match(/\/static\/js\/app-config\.js\?v=([^"]+)/)?.[1];
+const coreQuery = html.match(/\/static\/js\/core\.js\?v=([^"]+)/)?.[1];
+const visualVersion = html.match(/aria-label="Versão atual">V([^<]+)<\/span>/)?.[1];
+const swVersion = serviceWorkerSource.match(/const VERSION = "v([^"]+)"/)?.[1];
+const packageMajor = String(packageJson.version || "").split(".")[0];
+
+if (appVersion !== packageJson.version) {
+  errors.push(`Versão divergente: package.json=${packageJson.version}, app-config.js=${appVersion || "ausente"}`);
+}
+if (!assetVersion || assetVersion !== coreAssetVersion) {
+  errors.push(`Token de ativos divergente: app-config.js=${assetVersion || "ausente"}, core.js=${coreAssetVersion || "ausente"}`);
+}
+if (appConfigQuery !== assetVersion || coreQuery !== assetVersion) {
+  errors.push(`Cache-busting divergente: app-config=${appConfigQuery || "ausente"}, core=${coreQuery || "ausente"}, esperado=${assetVersion || "ausente"}`);
+}
+if (visualVersion !== packageMajor) {
+  errors.push(`Versão visual divergente: interface=V${visualVersion || "ausente"}, pacote=${packageJson.version}`);
+}
+if (swVersion !== packageMajor) {
+  errors.push(`Versão do service worker divergente: sw=v${swVersion || "ausente"}, pacote=${packageJson.version}`);
+}
+if (!/version:\s*PACKAGE\.version/.test(buildSource)) {
+  errors.push("Manifesto de build não deriva a versão diretamente do package.json.");
+}
+
 if (errors.length) {
   console.error(errors.map((e) => `- ${e}`).join("\n"));
   process.exit(1);
