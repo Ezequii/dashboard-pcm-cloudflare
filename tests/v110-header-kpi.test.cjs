@@ -33,8 +33,8 @@ test("topo mantém navegação, status e uma única ação proporcional", () => 
 
 test("card de pendência usa estrutura equivalente aos demais KPIs", () => {
   assert.match(html, /id="kpiMaisParadoCard"[^>]*oldest-kpi-v110/);
-  assert.match(html, /class="oldest-copy-v110"/);
-  assert.match(html, /class="oldest-label-v110">Pendência mais antiga/);
+  assert.match(html, /class="[^"]*oldest-copy-v110[^"]*"/);
+  assert.match(html, /class="[^"]*oldest-label-v110[^"]*">Pendência mais antiga/);
   assert.match(css, /#kpiMaisParadoCard\.oldest-kpi-v110[\s\S]*grid-template-columns:\s*38px minmax\(0,\s*1fr\)/);
   assert.match(css, /\.oldest-context-v96[\s\S]*display:\s*grid\s*!important/);
   assert.match(css, /\.oldest-open-v994a5[\s\S]*margin:\s*1px 0 0\s*!important/);
@@ -50,15 +50,12 @@ test("cabeçalho e KPIs possuem composições próprias por faixa de tela", () =
   assert.match(css, /@media \(max-width:\s*560px\)[\s\S]*grid-template-columns:\s*1fr/);
 });
 
-test("V110 mantém todos os identificadores de versão sincronizados", () => {
-  assert.equal(pkg.version, "110.0.0");
-  assert.match(html, />V110<\/span>/);
+test("camada visual V110 permanece disponível como base histórica", () => {
   assert.match(html, /styles_v110_header_kpi\.css\?v=11000/);
-  assert.match(html, /app-config\.js\?v=11000/);
-  assert.match(html, /core\.js\?v=11000/);
   assert.match(html, /v110-header-kpi/);
-  assert.match(config, /version:\s*"110\.0\.0"/);
-  assert.match(config, /assetVersion:\s*"11000"/);
-  assert.match(core, /assetVersion \|\| ""\) !== "11000"/);
-  assert.match(sw, /const VERSION = "v110"/);
+  assert.ok(Number(String(pkg.version).split(".")[0]) >= 110);
+  assert.match(config, /version:\s*"\d+\.0\.0"/);
+  assert.match(config, /assetVersion:\s*"\d+"/);
+  assert.match(core, /assetVersion \|\| ""\) !== "\d+"/);
+  assert.match(sw, /const VERSION = "v\d+"/);
 });

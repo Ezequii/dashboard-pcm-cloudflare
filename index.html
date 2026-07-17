@@ -33,8 +33,9 @@
   <link rel="stylesheet" href="/static/styles_v108_layout_flow.css?v=10800">
   <link rel="stylesheet" href="/static/styles_v109_professional_responsive.css?v=10900">
   <link rel="stylesheet" href="/static/styles_v110_header_kpi.css?v=11000">
+  <link rel="stylesheet" href="/static/styles_v111_kpi_system.css?v=11100">
 </head>
-<body class="v86-table-lines v89-simple-filters-search-money v90-layout-safe v91-layout-final v95-header-kpi-polish v97-reliability-navigation v971-runtime-fix v991-faithful v992-polished v993-productivity v994a-hardening v994a2-audited v994a2-visual app-booting v994a3-operational-fix v994a4-top-base-flow v994a5-lapidacao v994a6-clean-rankings v100-base-redesign v100-executive-composed v107-base-cleanup v108-layout-flow v109-professional-responsive v110-header-kpi">
+<body class="v86-table-lines v89-simple-filters-search-money v90-layout-safe v91-layout-final v95-header-kpi-polish v97-reliability-navigation v971-runtime-fix v991-faithful v992-polished v993-productivity v994a-hardening v994a2-audited v994a2-visual app-booting v994a3-operational-fix v994a4-top-base-flow v994a5-lapidacao v994a6-clean-rankings v100-base-redesign v100-executive-composed v107-base-cleanup v108-layout-flow v109-professional-responsive v110-header-kpi v111-kpi-system">
   <section id="appStatusV103" class="app-status-v103 no-print" aria-label="Status do aplicativo" aria-live="polite">
     <div id="offlineNoticeV103" class="app-status-v103__item" role="status" hidden>
       <p class="app-status-v103__text"><strong>Sem conexão.</strong> Os dados atuais não serão substituídos por uma cópia antiga.</p>
@@ -63,7 +64,7 @@
         <div class="brand-copy-v994a4">
           <div class="brand-title-line">
             <h1>Controle de Requisições PCM</h1>
-            <span class="version-pill-v34" aria-label="Versão atual">V110</span>
+            <span class="version-pill-v34" aria-label="Versão atual">V111</span>
           </div>
           <p class="subtitle-top">Controle de lançamento e acompanhamento — 2026</p>
         </div>
@@ -171,33 +172,33 @@
     </section>
 
         <section class="executive-primary-v991" data-panel="visao" aria-label="Indicadores executivos">
-      <button id="kpiValorAndamentoCard" type="button" class="hero-metric-v991 is-value" aria-label="Abrir valor em andamento na Base de Tratativa">
+      <button id="kpiValorAndamentoCard" type="button" class="hero-metric-v991 is-value kpi-card-v111" aria-label="Abrir valor em andamento na Base de Tratativa">
         <span class="hero-icon-v991" aria-hidden="true">
           <svg viewBox="0 0 24 24"><path d="M12 2v20M17 6.5c0-1.9-1.8-3.2-5-3.2S7 4.6 7 6.5s1.8 3 5 3 5 1.2 5 3.2-1.8 3.5-5 3.5-5-1.4-5-3.5"/></svg>
         </span>
-        <span class="hero-copy-v991">
+        <span class="hero-copy-v991 kpi-copy-v111">
           <small>Valor em andamento</small>
           <strong id="kValorPendente">R$ —</strong>
           <em id="kValorPendenteSub">Carregando dados…</em>
         </span>
       </button>
 
-      <button id="kpiPendenciasCard" type="button" class="hero-metric-v991 is-pending" aria-label="Abrir ORCs e OSs em andamento na Base de Tratativa">
+      <button id="kpiPendenciasCard" type="button" class="hero-metric-v991 is-pending kpi-card-v111" aria-label="Abrir ORCs e OSs em andamento na Base de Tratativa">
         <span class="hero-icon-v991" aria-hidden="true">
           <svg viewBox="0 0 24 24"><path d="M7 3h8l4 4v14H7zM15 3v5h5M10 12h6M10 16h6"/></svg>
         </span>
-        <span class="hero-copy-v991">
+        <span class="hero-copy-v991 kpi-copy-v111">
           <small>ORCs/OSs em andamento</small>
           <strong id="kPendencias">—</strong>
           <em id="kPendenciasSub">Carregando composição…</em>
         </span>
       </button>
 
-      <button id="kpiConcluidoCard" type="button" class="hero-metric-v991 is-complete" aria-label="Abrir registros concluídos">
+      <button id="kpiConcluidoCard" type="button" class="hero-metric-v991 is-complete kpi-card-v111" aria-label="Abrir registros concluídos">
         <span class="hero-icon-v991" aria-hidden="true">
           <svg viewBox="0 0 24 24"><path d="M4 20V10M10 20V5M16 20v-8M3 6l6-3 5 4 7-5M18 2h3v3"/></svg>
         </span>
-        <span class="hero-copy-v991">
+        <span class="hero-copy-v991 kpi-copy-v111">
           <small>Processo concluído</small>
           <strong id="kPctConcluido">—%</strong>
           <em id="kConcluidoSub">Carregando dados…</em>
@@ -205,11 +206,11 @@
         </span>
       </button>
 
-      <button id="firstFocusV991" type="button" class="hero-focus-v991" disabled>
+      <button id="firstFocusV991" type="button" class="hero-focus-v991 kpi-card-v111 kpi-focus-v111" disabled>
         <span class="hero-icon-v991 focus" aria-hidden="true">
           <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M1 12h4M19 12h4"/></svg>
         </span>
-        <span class="hero-copy-v991 focus-copy">
+        <span class="hero-copy-v991 focus-copy kpi-copy-v111">
           <small>Primeiro foco recomendado</small>
           <strong id="focusSupplierV991">Carregando prioridade…</strong>
           <em id="focusActionV991">Aguardando dados</em>
@@ -218,12 +219,12 @@
         <span class="hero-open-v991">Abrir na base <b aria-hidden="true">→</b></span>
       </button>
 
-      <button id="kpiMaisParadoCard" type="button" class="alert-item-v991 is-oldest oldest-kpi-v110">
-        <span class="alert-icon-v991" aria-hidden="true">
+      <button id="kpiMaisParadoCard" type="button" class="hero-metric-v991 is-oldest oldest-kpi-v110 kpi-card-v111 kpi-oldest-v111">
+        <span class="hero-icon-v991 alert-icon-v991 oldest-icon-v111" aria-hidden="true">
           <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v6l4 2"/></svg>
         </span>
-        <span class="oldest-copy-v110">
-          <small class="oldest-label-v110">Pendência mais antiga</small>
+        <span class="hero-copy-v991 oldest-copy-v110 kpi-copy-v111 oldest-copy-v111">
+          <small class="oldest-label-v110 kpi-label-v111">Pendência mais antiga</small>
           <strong id="kMaiorAtraso" class="oldest-value-v96">
             <span class="oldest-days-number-v96">—</span>
             <span class="oldest-days-unit-v96">dias</span>
@@ -467,7 +468,7 @@
     <div id="detailsContentV99" class="details-content-v99"></div>
   </aside>
 
-  <script src="/static/js/app-config.js?v=11000"></script>
+  <script src="/static/js/app-config.js?v=11100"></script>
   <script src="/static/js/state.js?v=9946"></script>
   <script src="/static/js/utils.js?v=9946"></script>
   <script src="/static/js/security-v994a.js?v=9946"></script>
@@ -477,7 +478,7 @@
   <script src="/static/js/table.js?v=10050"></script>
   <script src="/static/js/xlsx-v99.js?v=9946"></script>
   <script src="/static/js/productivity-v99.js?v=10050"></script>
-  <script src="/static/js/core.js?v=11000"></script>
+  <script src="/static/js/core.js?v=11100"></script>
   <script src="/static/js/main.js?v=10200"></script>
   <script src="/static/js/pwa-v103.js?v=10300"></script>
 </body>
