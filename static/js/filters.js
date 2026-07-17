@@ -49,6 +49,7 @@ function createSmartSelect(definition){
       ...(state.filters[definition.key] || []),
       ...displayedOptions
     ]));
+    window.invalidateOperationalViewContextV114?.(definition.key);
     updateFilterUI();
     state.page = 1;
     scheduleDashboard();
@@ -58,6 +59,7 @@ function createSmartSelect(definition){
   wrapper.querySelector('[data-action="clear"]').onclick = event => {
     event.stopPropagation();
     state.filters[definition.key] = [];
+    window.invalidateOperationalViewContextV114?.(definition.key);
     search.value = '';
     updateFilterUI();
     state.page = 1;
@@ -137,6 +139,7 @@ async function loadOptions(wrapper){
         if(set.has(value)) set.delete(value);
         else set.add(value);
         state.filters[key] = Array.from(set);
+        window.invalidateOperationalViewContextV114?.(key);
         updateFilterUI();
         state.page = 1;
         scheduleDashboard();
@@ -230,6 +233,7 @@ function clearFilterEntry(key){
     hydrateAdvancedSearch();
   }else{
     state.filters[key] = [];
+    window.invalidateOperationalViewContextV114?.(key);
   }
 
   state.page = 1;

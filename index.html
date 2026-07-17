@@ -36,8 +36,9 @@
   <link rel="stylesheet" href="/static/styles_v111_kpi_system.css?v=11100">
   <link rel="stylesheet" href="/static/styles_v112_kpi_refinement.css?v=11200">
   <link rel="stylesheet" href="/static/styles_v113_kpi_content_alignment.css?v=11300">
+  <link rel="stylesheet" href="/static/styles_v114_context_base.css?v=11400">
 </head>
-<body class="v86-table-lines v89-simple-filters-search-money v90-layout-safe v91-layout-final v95-header-kpi-polish v97-reliability-navigation v971-runtime-fix v991-faithful v992-polished v993-productivity v994a-hardening v994a2-audited v994a2-visual app-booting v994a3-operational-fix v994a4-top-base-flow v994a5-lapidacao v994a6-clean-rankings v100-base-redesign v100-executive-composed v107-base-cleanup v108-layout-flow v109-professional-responsive v110-header-kpi v111-kpi-system v112-kpi-refinement v113-kpi-content-alignment">
+<body class="v86-table-lines v89-simple-filters-search-money v90-layout-safe v91-layout-final v95-header-kpi-polish v97-reliability-navigation v971-runtime-fix v991-faithful v992-polished v993-productivity v994a-hardening v994a2-audited v994a2-visual app-booting v994a3-operational-fix v994a4-top-base-flow v994a5-lapidacao v994a6-clean-rankings v100-base-redesign v100-executive-composed v107-base-cleanup v108-layout-flow v109-professional-responsive v110-header-kpi v111-kpi-system v112-kpi-refinement v113-kpi-content-alignment v114-context-base">
   <section id="appStatusV103" class="app-status-v103 no-print" aria-label="Status do aplicativo" aria-live="polite">
     <div id="offlineNoticeV103" class="app-status-v103__item" role="status" hidden>
       <p class="app-status-v103__text"><strong>Sem conexão.</strong> Os dados atuais não serão substituídos por uma cópia antiga.</p>
@@ -66,7 +67,7 @@
         <div class="brand-copy-v994a4">
           <div class="brand-title-line">
             <h1>Controle de Requisições PCM</h1>
-            <span class="version-pill-v34" aria-label="Versão atual">V113</span>
+            <span class="version-pill-v34" aria-label="Versão atual">V114</span>
           </div>
           <p class="subtitle-top">Controle de lançamento e acompanhamento — 2026</p>
         </div>
@@ -158,7 +159,7 @@
       </button>
     </section>
 
-    <section id="quickChips" class="quick-filter-bar-v100 no-print" aria-labelledby="quickFiltersTitle">
+    <section id="quickChips" class="quick-filter-bar-v100 no-print" data-panel="visao" aria-labelledby="quickFiltersTitle">
       <div class="quick-filter-heading-v100">
         <strong id="quickFiltersTitle">Atalhos de visão</strong>
         <span>Aplicam um único contexto operacional e mantêm os demais filtros.</span>
@@ -342,25 +343,13 @@
     </section>
     </section>
 
-<section class="base-overview-v991" data-panel="base" aria-label="Resumo da base de tratativa" hidden>
-      <div class="base-overview-copy-v991">
-        <span id="basePanelTitle" tabindex="-1">Base de Tratativa</span>
-        <strong>Registros operacionais</strong>
-        <small id="baseOverviewHintV991">Priorize sem lançamento; acompanhe pedido e NF.</small>
-      </div>
-      <div class="base-overview-legend-v991" aria-label="Legenda de prioridade">
-        <span class="is-critical"><i></i>Muito parado</span>
-        <span class="is-warning"><i></i>Prioridade</span>
-        <span class="is-routine"><i></i>Rotina</span>
-      </div>
-    </section>
-
-<section id="baseTableRegion" class="table-card table-card-compact" data-panel="base" aria-busy="false" hidden>
+<section id="baseTableRegion" class="table-card table-card-compact" data-panel="base" aria-labelledby="basePanelTitle" aria-busy="false" hidden>
       <div class="table-head">
-        <div>
-          <h3>Registros</h3>
+        <div class="base-title-summary-v114">
+          <h3 id="basePanelTitle" tabindex="-1">Registros</h3>
           <p id="tableCounter">0 registros</p>
           <p id="baseTableStatusLive" class="sr-only-v100" aria-live="polite" aria-atomic="true"></p>
+          <small id="baseOverviewHintV991" class="base-operational-summary-v114">Carregando resumo operacional…</small>
           <small class="leader-table-note">Use busca e filtros para localizar a tratativa necessária.</small>
         </div>
         <div class="table-tools no-print">
@@ -470,7 +459,7 @@
     <div id="detailsContentV99" class="details-content-v99"></div>
   </aside>
 
-  <script src="/static/js/app-config.js?v=11300"></script>
+  <script src="/static/js/app-config.js?v=11400"></script>
   <script src="/static/js/state.js?v=9946"></script>
   <script src="/static/js/utils.js?v=9946"></script>
   <script src="/static/js/security-v994a.js?v=9946"></script>
@@ -480,7 +469,7 @@
   <script src="/static/js/table.js?v=10050"></script>
   <script src="/static/js/xlsx-v99.js?v=9946"></script>
   <script src="/static/js/productivity-v99.js?v=10050"></script>
-  <script src="/static/js/core.js?v=11300"></script>
+  <script src="/static/js/core.js?v=11400"></script>
   <script src="/static/js/main.js?v=10200"></script>
   <script src="/static/js/pwa-v103.js?v=10300"></script>
 </body>

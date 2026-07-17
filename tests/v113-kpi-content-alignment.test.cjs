@@ -45,13 +45,15 @@ test("tablet e celular preservam legibilidade sem corte", () => {
   assert.match(css, /@media \(max-width:\s*560px\)[\s\S]*\.oldest-context-v96[\s\S]*overflow:\s*visible/);
 });
 
-test("V113 mantém versão, ativos e cache sincronizados", () => {
-  assert.equal(pkg.version, "113.0.0");
-  assert.match(html, />V113<\/span>/);
-  assert.match(html, /app-config\.js\?v=11300/);
-  assert.match(html, /core\.js\?v=11300/);
-  assert.match(config, /version:\s*"113\.0\.0"/);
-  assert.match(config, /assetVersion:\s*"11300"/);
-  assert.match(core, /assetVersion \|\| ""\) !== "11300"/);
-  assert.match(sw, /const VERSION = "v113"/);
+test("V113 permanece integrada e a versão atual continua sincronizada", () => {
+  const major = Number(String(pkg.version).split(".")[0]);
+  const assetToken = `${major}00`;
+  assert.ok(major >= 113);
+  assert.match(html, />V\d+<\/span>/);
+  assert.match(html, new RegExp(`app-config\\.js\\?v=${assetToken}`));
+  assert.match(html, new RegExp(`core\\.js\\?v=${assetToken}`));
+  assert.match(config, new RegExp(`version:\\s*"${major}\\.0\\.0"`));
+  assert.match(config, new RegExp(`assetVersion:\\s*"${assetToken}"`));
+  assert.match(core, new RegExp(`assetVersion \\|\\| ""\\) !== "${assetToken}"`));
+  assert.match(sw, new RegExp(`const VERSION = "v${major}"`));
 });

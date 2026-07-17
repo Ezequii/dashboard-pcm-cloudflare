@@ -83,7 +83,7 @@ function allTags(node, output = []) {
 test("DOM possui título focalizável e live region persistente", () => {
   assert.match(
     INDEX,
-    /id="basePanelTitle"\s+tabindex="-1">Base de Tratativa/
+    /id="basePanelTitle"\s+tabindex="-1">Registros/
   );
   assert.match(
     INDEX,

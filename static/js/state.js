@@ -36,6 +36,7 @@ const state = {
   securityRole: '',
   securityVerified: false,
   publicationStatus: null,
+  operationalViewContext: null,
 };
 
 const DESC_FIRST_COLUMNS = new Set([
@@ -80,6 +81,17 @@ function loadPreferences(){
     state.dateTo = prefs.dateTo || '';
     state.valueMin = prefs.valueMin || '';
     state.valueMax = prefs.valueMax || '';
+    const storedView = prefs.operationalViewContext;
+    state.operationalViewContext = storedView
+      && typeof storedView === 'object'
+      && typeof storedView.label === 'string'
+      && typeof storedView.signature === 'string'
+      ? {
+          id: String(storedView.id || 'PERSONALIZADA'),
+          label: storedView.label.trim(),
+          signature: storedView.signature
+        }
+      : null;
   }catch(e){}
 }
 
@@ -96,7 +108,8 @@ function savePreferences(){
       dateFrom: state.dateFrom,
       dateTo: state.dateTo,
       valueMin: state.valueMin,
-      valueMax: state.valueMax
+      valueMax: state.valueMax,
+      operationalViewContext: state.operationalViewContext
     }));
     window.syncProductivityUrlV99?.({replace:true});
   }catch(e){}

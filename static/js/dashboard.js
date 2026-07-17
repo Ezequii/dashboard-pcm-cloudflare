@@ -264,6 +264,11 @@ function renderOldestPending(k){
 
       if(stage) state.filters.ETAPA = [stage];
       if(supplier) state.filters.FORNECEDOR = [supplier];
+      window.setOperationalViewContextV114?.(
+        'PENDENCIA_MAIS_ANTIGA',
+        'Pendência mais antiga',
+        state.filters
+      );
 
       state.search = searchValue;
       state.searchScope = searchScope;
@@ -312,6 +317,7 @@ function clearKpiNavigationState(){
   state.filters['SLA STATUS'] = [];
   state.filters['FAIXA ATRASO'] = [];
   state.filters['DONO DA AÇÃO'] = [];
+  window.invalidateOperationalViewContextV114?.();
   const search = $('globalSearch');
   const scope = $('searchScope');
   if(search) search.value = '';
@@ -319,10 +325,23 @@ function clearKpiNavigationState(){
   updateSearchUI?.();
 }
 
-function openBaseFromKpi(etapas=null){
+function openBaseFromKpi(etapas=null, viewContext=null){
   clearKpiNavigationState();
   const values = Array.isArray(etapas) ? etapas.filter(Boolean) : (etapas ? [etapas] : []);
   state.filters.ETAPA = values;
+
+  const fallbackContext = values.length === 1
+    ? window.stageViewContextV114?.(values[0])
+    : values.length
+      ? {id:'EM_ANDAMENTO', label:'Em andamento'}
+      : {id:'TODAS', label:'Geral'};
+  const resolvedContext = viewContext || fallbackContext || {id:'PERSONALIZADA', label:'Personalizada'};
+  window.setOperationalViewContextV114?.(
+    resolvedContext.id,
+    resolvedContext.label,
+    state.filters
+  );
+
   updateFilterUI();
   savePreferences();
   switchTab('base');
@@ -348,10 +367,38 @@ function makeKpiActionable(id, label, handler){
 
 function bindSmartKpiActions(){
   const pendingStages = ['SEM LANÇAMENTO','SEM PEDIDO','SEM NF'];
-  makeKpiActionable('kpiValorAndamentoCard', 'Abrir somente as ORCs e OSs em andamento na Base de Tratativa', () => openBaseFromKpi(pendingStages));
-  makeKpiActionable('kpiPendenciasCard', 'Abrir somente as ORCs e OSs em andamento na Base de Tratativa', () => openBaseFromKpi(pendingStages));
-  makeKpiActionable('kpiConcluidoCard', 'Abrir as ORCs e OSs concluídas na Base de Tratativa', () => openBaseFromKpi('CONCLUÍDO'));
-  makeKpiActionable('kpiFocoPcmCard', 'Abrir as ORCs e OSs sem lançamento, foco direto do PCM', () => openBaseFromKpi('SEM LANÇAMENTO'));
+  makeKpiActionable(
+    'kpiValorAndamentoCard',
+    'Abrir somente as ORCs e OSs em andamento na Base de Tratativa',
+    () => openBaseFromKpi(
+      pendingStages,
+      {id:'VALOR_ANDAMENTO', label:'Valor em andamento'}
+    )
+  );
+  makeKpiActionable(
+    'kpiPendenciasCard',
+    'Abrir somente as ORCs e OSs em andamento na Base de Tratativa',
+    () => openBaseFromKpi(
+      pendingStages,
+      {id:'ORCS_OSS_ANDAMENTO', label:'ORÇs/OSs em andamento'}
+    )
+  );
+  makeKpiActionable(
+    'kpiConcluidoCard',
+    'Abrir as ORCs e OSs concluídas na Base de Tratativa',
+    () => openBaseFromKpi(
+      'CONCLUÍDO',
+      {id:'PROCESSO_CONCLUIDO', label:'Processo concluído'}
+    )
+  );
+  makeKpiActionable(
+    'kpiFocoPcmCard',
+    'Abrir as ORCs e OSs sem lançamento, foco direto do PCM',
+    () => openBaseFromKpi(
+      'SEM LANÇAMENTO',
+      {id:'PRIMEIRO_FOCO', label:'Primeiro foco recomendado'}
+    )
+  );
 }
 
 
@@ -424,7 +471,18 @@ function renderProcess(etapas, hostId=null){
 
 function toggleProcessFilter(etapa){
   const current = state.filters.ETAPA || [];
-  state.filters.ETAPA = current.includes(etapa) ? [] : [etapa];
+  const removing = current.includes(etapa);
+  state.filters.ETAPA = removing ? [] : [etapa];
+
+  const viewContext = removing
+    ? {id:'TODAS', label:'Geral'}
+    : window.stageViewContextV114?.(etapa);
+  window.setOperationalViewContextV114?.(
+    viewContext?.id || 'PERSONALIZADA',
+    viewContext?.label || 'Personalizada',
+    state.filters
+  );
+
   state.page = 1;
   updateFilterUI();
   refreshAll(false).catch(error => console.error('Falha ao aplicar filtro de etapa:', error));
@@ -435,6 +493,16 @@ function filterContextAndOpenBase({etapa='', fornecedor='', owner='' } = {}){
   if(etapa) state.filters.ETAPA = [etapa];
   if(fornecedor) state.filters.FORNECEDOR = [fornecedor];
   if(owner) state.filters['DONO DA AÇÃO'] = [owner];
+
+  const viewContext = etapa
+    ? window.stageViewContextV114?.(etapa)
+    : {id:'TODAS', label:'Geral'};
+  window.setOperationalViewContextV114?.(
+    viewContext?.id || 'TODAS',
+    viewContext?.label || 'Geral',
+    state.filters
+  );
+
   state.page = 1;
   updateFilterUI();
   savePreferences();
@@ -499,8 +567,18 @@ function filterDimensionAndOpenBase(column, value, scope="all"){
       "SEM PEDIDO",
       "SEM NF"
     ];
+    window.setOperationalViewContextV114?.(
+      'EM_ANDAMENTO',
+      'Em andamento',
+      state.filters
+    );
   }else{
     state.filters.ETAPA = [];
+    window.setOperationalViewContextV114?.(
+      'TODAS',
+      'Geral',
+      state.filters
+    );
   }
 
   state.page = 1;
@@ -689,6 +767,11 @@ function compactCurrency(value){
   function openCriticalV991(){
     clearKpiNavigationState();
     state.filters["FAIXA ATRASO"] = ["30+ dias"];
+    window.setOperationalViewContextV114?.(
+      'ATRASO_30_MAIS',
+      'Pendências com 30+ dias',
+      state.filters
+    );
     updateFilterUI();
     savePreferences();
     switchTab("base");
@@ -1148,8 +1231,18 @@ function compactCurrency(value){
         "SEM PEDIDO",
         "SEM NF"
       ];
+      window.setOperationalViewContextV114?.(
+        'EM_ANDAMENTO',
+        'Em andamento',
+        state.filters
+      );
     }else{
       state.filters.ETAPA = [];
+      window.setOperationalViewContextV114?.(
+        'TODAS',
+        'Geral',
+        state.filters
+      );
     }
     state.page = 1;
     updateFilterUI();
@@ -1163,7 +1256,8 @@ function compactCurrency(value){
     const allRequesters = document.getElementById("openAllRequestersV991");
 
     if(allPriorities) allPriorities.onclick = () => openBaseFromKpi(
-      ["SEM LANÇAMENTO", "SEM PEDIDO", "SEM NF"]
+      ["SEM LANÇAMENTO", "SEM PEDIDO", "SEM NF"],
+      {id:'EM_ANDAMENTO', label:'Em andamento'}
     );
     if(allSuppliers) allSuppliers.onclick = openRankingContextV994a6;
     if(allRequesters) allRequesters.onclick = openRankingContextV994a6;

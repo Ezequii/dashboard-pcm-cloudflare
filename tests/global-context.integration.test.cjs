@@ -25,9 +25,10 @@ test("sincronização da barra ocorre no ponto central updateFilterUI", () => {
   );
 });
 
-test("chips e barra compartilham o mesmo derivador de Visão", () => {
+test("chips usam o derivador puro e a barra resolve a origem conhecida", () => {
   assert.match(core, /function quickFilterKindFromState\(\)[\s\S]*deriveOperationalViewV100\(state\.filters\)/);
-  assert.match(core, /function deriveGlobalContextItemsV100[\s\S]*deriveOperationalViewV100\(filters\)/);
+  assert.match(core, /function resolveOperationalViewV114[\s\S]*deriveOperationalViewV100\(filters\)/);
+  assert.match(core, /function deriveGlobalContextItemsV100[\s\S]*resolveOperationalViewV114\(currentState\)/);
   assert.equal((core.match(/function deriveOperationalViewV100/g) || []).length, 1);
 });
 

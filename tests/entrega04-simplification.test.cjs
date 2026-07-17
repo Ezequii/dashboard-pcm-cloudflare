@@ -31,7 +31,7 @@ test("limpeza redefine contexto e atualiza a interface", () => {
 });
 
 test("Barra volta ao estado Geral e desabilita limpeza sem contexto ativo", () => {
-  assert.match(CORE, /view\.id\s*!==\s*"GERAL"/);
+  assert.match(CORE, /view\.id\s*!==\s*"TODAS"/);
   assert.match(CORE, /clearButton\.disabled\s*=\s*!active/);
   assert.match(CORE, /deriveGlobalContextItemsV100/);
 });

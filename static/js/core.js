@@ -5,7 +5,7 @@ function validateRuntimeConfiguration(){
   if(!rules || !rules.aging || !rules.targets || !rules.priorityWeights){
     throw new Error("Configuração de regras de negócio indisponível. Recarregue a página.");
   }
-  if(!config || String(config.assetVersion || "") !== "11300"){
+  if(!config || String(config.assetVersion || "") !== "11400"){
     throw new Error("Os arquivos da aplicação estão em versões diferentes. Recarregue sem cache.");
   }
 
@@ -627,6 +627,20 @@ function applyQuickFilter(kind){
     state.filters['ETAPA'] = ['SEM NF'];
   }
 
+  const quickLabels = {
+    TODAS: "Geral",
+    FORA_SLA: "Fora do SLA",
+    CRITICO: "Críticos",
+    SEM_LANCAMENTO: "Sem lançamento",
+    SEM_PEDIDO: "Sem pedido",
+    SEM_NF: "Sem NF"
+  };
+  setOperationalViewContextV114(
+    selectedKind,
+    quickLabels[selectedKind] || "Geral",
+    state.filters
+  );
+
   state.page = 1;
   updateFilterUI();
   scheduleDashboard();
@@ -647,6 +661,90 @@ function normalizeContextValuesV100(values){
   });
 
   return normalized;
+}
+
+
+const OPERATIONAL_CONTEXT_KEYS_V114 = Object.freeze([
+  "ETAPA",
+  "SLA STATUS",
+  "FAIXA ATRASO"
+]);
+
+function operationalFilterSignatureV114(filters={}){
+  return OPERATIONAL_CONTEXT_KEYS_V114
+    .map(key => {
+      const values = normalizeContextValuesV100(filters?.[key])
+        .map(value => value.toLocaleUpperCase("pt-BR"))
+        .sort();
+      return `${key}:${values.join("|")}`;
+    })
+    .join(";");
+}
+
+function setOperationalViewContextV114(id, label, filters=state.filters){
+  const cleanLabel = String(label || "").replace(/\s+/g, " ").trim();
+  if(!cleanLabel){
+    state.operationalViewContext = null;
+    return null;
+  }
+
+  const context = {
+    id: String(id || "PERSONALIZADA"),
+    label: cleanLabel,
+    signature: operationalFilterSignatureV114(filters)
+  };
+  state.operationalViewContext = context;
+  return context;
+}
+
+function invalidateOperationalViewContextV114(changedKey=""){
+  if(!changedKey || OPERATIONAL_CONTEXT_KEYS_V114.includes(String(changedKey))){
+    state.operationalViewContext = null;
+  }
+}
+
+function resolveOperationalViewV114(currentState=state){
+  const filters = currentState?.filters || {};
+  const derived = deriveOperationalViewV100(filters);
+  const context = currentState?.operationalViewContext;
+
+  if(
+    context
+    && typeof context.label === "string"
+    && context.label.trim()
+    && context.signature === operationalFilterSignatureV114(filters)
+  ){
+    return {
+      id: String(context.id || derived.id),
+      label: context.label.trim()
+    };
+  }
+
+  return derived;
+}
+
+function stageViewContextV114(etapa){
+  const normalized = String(etapa || "")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .trim()
+    .toLocaleUpperCase("pt-BR");
+
+  if(normalized === "SEM LANCAMENTO"){
+    return {id:"SEM_LANCAMENTO", label:"Sem lançamento"};
+  }
+  if(normalized === "SEM PEDIDO"){
+    return {id:"SEM_PEDIDO", label:"Sem pedido"};
+  }
+  if(normalized === "SEM NF"){
+    return {id:"SEM_NF", label:"Sem NF"};
+  }
+  if(normalized === "CONCLUIDO"){
+    return {id:"PROCESSO_CONCLUIDO", label:"Processo concluído"};
+  }
+  return normalized
+    ? {id:"ETAPA", label:String(etapa).trim()}
+    : {id:"TODAS", label:"Geral"};
 }
 
 function deriveOperationalViewV100(filters=state.filters){
@@ -711,7 +809,7 @@ function formatGlobalContextDateV100(value){
 
 function deriveGlobalContextItemsV100(currentState=state){
   const filters = currentState?.filters || {};
-  const view = deriveOperationalViewV100(filters);
+  const view = resolveOperationalViewV114(currentState);
   const items = [{key:"view", label:"Visão", value:view.label}];
 
   const supplier = formatGlobalContextSelectionV100(filters.FORNECEDOR);
@@ -743,8 +841,8 @@ function deriveGlobalContextItemsV100(currentState=state){
 
 function hasActiveGlobalContextV100(currentState=state){
   const items = deriveGlobalContextItemsV100(currentState);
-  const view = deriveOperationalViewV100(currentState?.filters || {});
-  return view.id !== "GERAL" || items.some(item => item.key !== "view");
+  const view = resolveOperationalViewV114(currentState);
+  return view.id !== "TODAS" || items.some(item => item.key !== "view");
 }
 
 function renderGlobalContextV100(){
@@ -826,6 +924,7 @@ async function clearAll(options={}){
   state.dateFrom = state.dateTo = state.valueMin = state.valueMax = '';
   window.resetProductivityStateV99?.();
   state.page = 1;
+  setOperationalViewContextV114('TODAS', 'Geral', state.filters);
 
   const globalSearch = $('globalSearch');
   if(globalSearch) globalSearch.value = '';
@@ -956,6 +1055,11 @@ function setLoading(on){
 window.syncQuickChips = syncQuickChips;
 window.applyQuickFilter = applyQuickFilter;
 window.deriveOperationalViewV100 = deriveOperationalViewV100;
+window.operationalFilterSignatureV114 = operationalFilterSignatureV114;
+window.setOperationalViewContextV114 = setOperationalViewContextV114;
+window.invalidateOperationalViewContextV114 = invalidateOperationalViewContextV114;
+window.resolveOperationalViewV114 = resolveOperationalViewV114;
+window.stageViewContextV114 = stageViewContextV114;
 window.deriveGlobalContextItemsV100 = deriveGlobalContextItemsV100;
 window.renderGlobalContextV100 = renderGlobalContextV100;
 window.hasActiveGlobalContextV100 = hasActiveGlobalContextV100;

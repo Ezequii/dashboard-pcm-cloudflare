@@ -24,7 +24,7 @@ test("ações de navegação possuem tipo explícito e nomes acessíveis", () =>
 test("seções principais recebem nomes semânticos", () => {
   assert.match(html, /operations-grid-v991"[^>]+aria-label="Indicadores operacionais"/);
   assert.match(html, /executive-lower-v100"[^>]+aria-label="Análises executivas complementares"/);
-  assert.match(html, /base-overview-v991"[^>]+aria-label="Resumo da base de tratativa"/);
+  assert.match(html, /id="baseTableRegion"[^>]+aria-labelledby="basePanelTitle"/);
 });
 
 test("camada V101 cobre mobile, contraste forçado e impressão", () => {
