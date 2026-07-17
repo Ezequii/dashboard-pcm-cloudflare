@@ -11,7 +11,7 @@ const html = read("index.html");
 const coreSource = read("static/js/core.js");
 const dashboard = read("static/js/dashboard.js");
 const filters = read("static/js/filters.js");
-const css = read("static/styles_v114_context_base.css");
+const css = read("static/styles_v115_context_base.css");
 const pkg = JSON.parse(read("package.json"));
 const config = read("static/js/app-config.js");
 const sw = read("sw.js");
@@ -143,19 +143,10 @@ test("KPIs e etapas registram nomes de contexto explícitos", () => {
   assert.match(filters, /invalidateOperationalViewContextV114\?\.\(key\)/);
 });
 
-test("atalhos pertencem à Visão Executiva e não aparecem na Base", () => {
-  assert.match(
-    html,
-    /id="quickChips"[^>]+data-panel="visao"/
-  );
-  assert.match(
-    css,
-    /active-tab-visao[\s\S]*#quickChips\[data-panel="visao"\]:not\(\[hidden\]\)[\s\S]*display:\s*grid\s*!important/
-  );
-  assert.match(
-    css,
-    /active-tab-base\s+#quickChips[\s\S]*display:\s*none\s*!important/
-  );
+test("atalhos de visão foram removidos das duas abas", () => {
+  assert.doesNotMatch(html, /id="quickChips"/);
+  assert.doesNotMatch(html, />Atalhos de visão</);
+  assert.doesNotMatch(css, /#quickChips/);
 });
 
 test("Base inicia pela busca sem o card Registros operacionais", () => {
@@ -169,14 +160,14 @@ test("Base inicia pela busca sem o card Registros operacionais", () => {
   assert.match(css, /table-search input:focus[\s\S]*box-shadow:/);
 });
 
-test("V114 mantém pacote, configuração, runtime e cache sincronizados", () => {
-  assert.equal(pkg.version, "114.0.0");
-  assert.match(html, />V114<\/span>/);
-  assert.match(html, /styles_v114_context_base\.css\?v=11400/);
-  assert.match(html, /app-config\.js\?v=11400/);
-  assert.match(html, /core\.js\?v=11400/);
-  assert.match(config, /version:\s*"114\.0\.0"/);
-  assert.match(config, /assetVersion:\s*"11400"/);
-  assert.match(coreSource, /assetVersion \|\| ""\) !== "11400"/);
-  assert.match(sw, /const VERSION = "v114"/);
+test("V115 mantém pacote, configuração, runtime e cache sincronizados", () => {
+  assert.equal(pkg.version, "115.0.0");
+  assert.match(html, />V115<\/span>/);
+  assert.match(html, /styles_v115_context_base\.css\?v=11500/);
+  assert.match(html, /app-config\.js\?v=11500/);
+  assert.match(html, /core\.js\?v=11500/);
+  assert.match(config, /version:\s*"115\.0\.0"/);
+  assert.match(config, /assetVersion:\s*"11500"/);
+  assert.match(coreSource, /assetVersion \|\| ""\) !== "11500"/);
+  assert.match(sw, /const VERSION = "v115"/);
 });

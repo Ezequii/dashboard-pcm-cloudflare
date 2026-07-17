@@ -7,9 +7,9 @@ const ROOT = path.join(__dirname, "..");
 const INDEX = fs.readFileSync(path.join(ROOT, "index.html"), "utf8");
 const CSS = fs.readFileSync(path.join(ROOT, "static", "styles_v100_executive_composed.css"), "utf8");
 
-test("atalhos não duplicam a visão executiva e permanecem no DOM", () => {
-  assert.match(INDEX, /id="quickChips"/);
-  assert.match(CSS, /active-tab-visao\s+#quickChips\s*\{[\s\S]*display:\s*none\s*!important/);
+test("atalhos de visão não permanecem no DOM", () => {
+  assert.doesNotMatch(INDEX, /id="quickChips"/);
+  assert.doesNotMatch(INDEX, />Atalhos de visão</);
 });
 
 test("alertas redundantes permanecem compatíveis no DOM e ficam ocultos visualmente", () => {

@@ -1,6 +1,6 @@
 "use strict";
 
-const VERSION = "v114";
+const VERSION = "v115";
 const SHELL_CACHE = `dashboard-pcm-${VERSION}-shell`;
 // BUILD_PRECACHE: o build amplia esta lista com todos os recursos locais referenciados no HTML.
 const SHELL = [

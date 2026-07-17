@@ -26,11 +26,8 @@ test("cabeçalho não é sticky e não sobrepõe o conteúdo ao rolar", () => {
   );
 });
 
-test("atalhos ficam ocultos somente na visão executiva", () => {
-  assert.match(
-    CSS,
-    /active-tab-visao\s+#quickChips\s*\{[\s\S]*display:\s*none\s*!important/
-  );
+test("atalhos de visão foram removidos da interface", () => {
+  assert.doesNotMatch(INDEX, /id="quickChips"/);
 });
 
 test("KPIs, fluxo, fila e rankings usam grades explícitas", () => {
