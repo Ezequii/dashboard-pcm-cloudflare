@@ -30,8 +30,9 @@
   <link rel="stylesheet" href="/static/styles_v102_delivery.css?v=10200" />
   <link rel="stylesheet" href="/static/styles_v103_ops.css?v=10300">
   <link rel="stylesheet" href="/static/styles_v107_base_cleanup.css?v=10700">
+  <link rel="stylesheet" href="/static/styles_v108_layout_flow.css?v=10800">
 </head>
-<body class="v86-table-lines v89-simple-filters-search-money v90-layout-safe v91-layout-final v95-header-kpi-polish v97-reliability-navigation v971-runtime-fix v991-faithful v992-polished v993-productivity v994a-hardening v994a2-audited v994a2-visual app-booting v994a3-operational-fix v994a4-top-base-flow v994a5-lapidacao v994a6-clean-rankings v100-base-redesign v100-executive-composed v107-base-cleanup">
+<body class="v86-table-lines v89-simple-filters-search-money v90-layout-safe v91-layout-final v95-header-kpi-polish v97-reliability-navigation v971-runtime-fix v991-faithful v992-polished v993-productivity v994a-hardening v994a2-audited v994a2-visual app-booting v994a3-operational-fix v994a4-top-base-flow v994a5-lapidacao v994a6-clean-rankings v100-base-redesign v100-executive-composed v107-base-cleanup v108-layout-flow">
   <section id="appStatusV103" class="app-status-v103 no-print" aria-label="Status do aplicativo" aria-live="polite">
     <div id="offlineNoticeV103" class="app-status-v103__item" role="status" hidden>
       <p class="app-status-v103__text"><strong>Sem conexão.</strong> Os dados atuais não serão substituídos por uma cópia antiga.</p>
@@ -60,7 +61,7 @@
         <div class="brand-copy-v994a4">
           <div class="brand-title-line">
             <h1>Controle de Requisições PCM</h1>
-            <span class="version-pill-v34" aria-label="Versão atual">V107</span>
+            <span class="version-pill-v34" aria-label="Versão atual">V108</span>
           </div>
           <p class="subtitle-top">Controle de lançamento e acompanhamento — 2026</p>
         </div>
@@ -383,6 +384,13 @@
               <button id="btnToggleAdvancedSearch" class="btn btn-small btn-soft advanced-toggle" type="button" aria-expanded="false">Filtros avançados</button>
               <button id="btnClearSearch" class="btn btn-small btn-soft search-clear-v89" type="button" hidden>Limpar</button>
             </div>
+            <div class="pager pager-v108" role="group" aria-label="Paginação da base">
+              <label for="pageSize">Exibir</label>
+              <select id="pageSize" aria-label="Quantidade de registros por página"><option>50</option><option>100</option><option selected>200</option><option>300</option></select>
+              <button id="prevPage" type="button" class="btn btn-small" aria-label="Ir para a página anterior">Anterior</button>
+              <span id="pageInfo" aria-live="polite">1/1</span>
+              <button id="nextPage" type="button" class="btn btn-small" aria-label="Ir para a próxima página">Próxima</button>
+            </div>
             <small id="searchHelp" class="search-help-v89">Escolha o tipo e digite o dado. Para ORC, OS, pedido ou NF, prefira o número completo.</small>
           </div>
           <div id="advancedSearchPanel" class="advanced-search no-print" aria-label="Busca avançada" hidden>
@@ -391,13 +399,6 @@
             <label><span>Valor mín.</span><input id="advValueMin" type="number" min="0" step="0.01" placeholder="R$" /></label>
             <label><span>Valor máx.</span><input id="advValueMax" type="number" min="0" step="0.01" placeholder="R$" /></label>
             <button id="btnClearAdvanced" class="btn btn-small btn-soft" type="button">Limpar busca avançada</button>
-          </div>
-          <div class="pager">
-            <label>Exibir</label>
-            <select id="pageSize"><option>50</option><option>100</option><option selected>200</option><option>300</option></select>
-            <button id="prevPage" type="button" class="btn btn-small" aria-label="Ir para a página anterior">Anterior</button>
-            <span id="pageInfo">1/1</span>
-            <button id="nextPage" type="button" class="btn btn-small" aria-label="Ir para a próxima página">Próxima</button>
           </div>
         </div>
       </div>

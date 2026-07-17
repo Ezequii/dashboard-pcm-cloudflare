@@ -101,7 +101,7 @@ function writeBuildManifest() {
   const manifest = {
     schema: 1,
     application: "dashboard-pcm-cloudflare",
-    version: "106.0.0",
+    version: "108.0.0",
     generatedAt: new Date().toISOString(),
     files: entries,
   };

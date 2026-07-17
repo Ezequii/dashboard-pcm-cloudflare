@@ -34,7 +34,8 @@ test("build gera manifesto de integridade com hashes SHA-256 válidos", () => {
   execFileSync(process.execPath, [path.join(ROOT, "tools", "build-dist.cjs")], { cwd: ROOT });
   const manifestPath = path.join(ROOT, "dist", "build-manifest.json");
   const manifest = JSON.parse(fs.readFileSync(manifestPath, "utf8"));
-  assert.equal(manifest.version, "106.0.0");
+  const pkg = JSON.parse(fs.readFileSync(path.join(ROOT, "package.json"), "utf8"));
+  assert.equal(manifest.version, pkg.version);
   assert.ok(Object.keys(manifest.files).length >= 50);
   const target = "index.html";
   const buffer = fs.readFileSync(path.join(ROOT, "dist", target));
