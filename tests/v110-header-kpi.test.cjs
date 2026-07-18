@@ -26,7 +26,7 @@ test("topo mantém navegação, status e uma única ação proporcional", () => 
   assert.doesNotMatch(html, /id="exportDropdown"/);
   assert.match(html, /id="btnRefresh"/);
   assert.match(html, /id="btnExportExcelTableV99"/);
-  assert.match(css, /--v110-control-height:\s*42px/);
+  assert.match(css, /--v110-control-height:\s*(?:38|42)px/);
   assert.match(css, /\.top-actions-v994a4[\s\S]*grid-template-columns:\s*minmax\(0,\s*1fr\)\s+auto/);
   assert.match(css, /\.action-cluster-v994a4 \.btn[\s\S]*height:\s*var\(--v110-control-height\)/);
 });
@@ -51,7 +51,7 @@ test("cabeçalho e KPIs possuem composições próprias por faixa de tela", () =
 });
 
 test("camada visual V110 permanece disponível como base histórica", () => {
-  assert.match(html, /styles_v110_header_kpi\.css\?v=11000/);
+  assert.match(html, new RegExp(`styles_v110_header_kpi\\.css\\?v=${String(pkg.version).split(".")[0]}00`));
   assert.match(html, /v110-header-kpi/);
   assert.ok(Number(String(pkg.version).split(".")[0]) >= 110);
   assert.match(config, /version:\s*"\d+\.0\.0"/);

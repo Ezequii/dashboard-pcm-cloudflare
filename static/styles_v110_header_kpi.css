@@ -1,12 +1,13 @@
 /* ==========================================================================
    V110 — topo executivo e KPI de pendência
+   Cabeçalho consolidado na V118 após validação da camada experimental V117.
    Refinamento visual sem alterar regras de negócio.
    ========================================================================== */
 
 body.v110-header-kpi {
   --v110-header-line: #dbe4ec;
   --v110-header-shadow: 0 3px 14px rgba(20, 42, 68, .045);
-  --v110-control-height: 42px;
+  --v110-control-height: 38px;
 }
 
 /* --------------------------------------------------------------------------
@@ -27,12 +28,12 @@ body.v110-header-kpi .topbar-main-v994a4 {
   display: grid !important;
   grid-template-columns:
     minmax(360px, 1fr)
-    minmax(310px, 340px)
-    minmax(430px, 1fr) !important;
+    minmax(280px, 300px)
+    minmax(400px, 1fr) !important;
   align-items: center !important;
-  gap: clamp(16px, 1.35vw, 24px) !important;
-  min-height: 74px !important;
-  padding: 10px 0 !important;
+  gap: clamp(14px, 1.1vw, 20px) !important;
+  min-height: 68px !important;
+  padding: 8px 0 !important;
 }
 
 body.v110-header-kpi .brand-v994a4 {
@@ -60,10 +61,12 @@ body.v110-header-kpi .tabs-v994a4 {
   min-width: 0 !important;
   display: grid !important;
   grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
-  gap: 4px !important;
-  padding: 4px !important;
+  max-width: 300px !important;
+  justify-self: center !important;
+  gap: 3px !important;
+  padding: 3px !important;
   border: 1px solid #d7e1e9 !important;
-  border-radius: 11px !important;
+  border-radius: 10px !important;
   background: #f3f6f8 !important;
   box-shadow: none !important;
 }
@@ -71,30 +74,30 @@ body.v110-header-kpi .tabs-v994a4 {
 body.v110-header-kpi .tabs-v994a4 .tab-btn {
   width: 100% !important;
   min-width: 0 !important;
-  min-height: 48px !important;
-  padding: 7px 12px !important;
-  border-radius: 8px !important;
+  min-height: 42px !important;
+  padding: 5px 10px !important;
+  border-radius: 7px !important;
 }
 
 body.v110-header-kpi .tabs-v994a4 .tab-btn > span {
-  font-size: 12.5px !important;
+  font-size: 12px !important;
   line-height: 1.15 !important;
 }
 
 body.v110-header-kpi .tabs-v994a4 .tab-btn > small {
-  margin-top: 2px !important;
-  font-size: 10px !important;
+  margin-top: 1px !important;
+  font-size: 9.75px !important;
   line-height: 1.1 !important;
 }
 
 body.v110-header-kpi .top-actions-v994a4 {
-  width: 100% !important;
+  width: min(100%, 500px) !important;
   min-width: 0 !important;
-  justify-self: stretch !important;
+  justify-self: end !important;
   display: grid !important;
   grid-template-columns: minmax(0, 1fr) auto !important;
   align-items: center !important;
-  gap: 8px !important;
+  gap: 7px !important;
 }
 
 body.v110-header-kpi .status-cluster-v994a4 {
@@ -107,7 +110,7 @@ body.v110-header-kpi .data-status-group-v994a4 {
   display: grid !important;
   grid-template-columns: minmax(0, 1fr) auto !important;
   align-items: stretch !important;
-  gap: 6px !important;
+  gap: 5px !important;
 }
 
 body.v110-header-kpi .meta-inline-v95,
@@ -117,13 +120,13 @@ body.v110-header-kpi .data-freshness-v97 {
   box-sizing: border-box !important;
   display: inline-flex !important;
   align-items: center !important;
-  padding: 0 11px !important;
+  padding: 0 9px !important;
   border: 1px solid #dce5ec !important;
-  border-radius: 9px !important;
+  border-radius: 8px !important;
   background: #f8fafb !important;
   box-shadow: none !important;
   font-size: 10px !important;
-  line-height: 1.2 !important;
+  line-height: 1.15 !important;
 }
 
 body.v110-header-kpi .meta-inline-v95 {
@@ -147,10 +150,10 @@ body.v110-header-kpi .action-cluster-v994a4 {
 body.v110-header-kpi .action-cluster-v994a4 .btn {
   height: var(--v110-control-height) !important;
   min-height: var(--v110-control-height) !important;
-  min-width: 96px !important;
-  padding: 0 16px !important;
-  border-radius: 9px !important;
-  font-size: 11px !important;
+  min-width: 88px !important;
+  padding: 0 13px !important;
+  border-radius: 8px !important;
+  font-size: 10.5px !important;
   line-height: 1 !important;
 }
 
@@ -352,8 +355,8 @@ body.v110-header-kpi #kpiMaisParadoCard.oldest-gray-v93 .oldest-value-v96 {
     grid-template-areas:
       "brand tabs"
       "actions actions" !important;
-    gap: 9px 16px !important;
-    padding: 10px 0 11px !important;
+    gap: 8px 14px !important;
+    padding: 8px 0 9px !important;
   }
 
   body.v110-header-kpi .brand-v994a4 {
@@ -362,24 +365,36 @@ body.v110-header-kpi #kpiMaisParadoCard.oldest-gray-v93 .oldest-value-v96 {
 
   body.v110-header-kpi .tabs-v994a4 {
     grid-area: tabs !important;
+    max-width: 300px !important;
     justify-self: end !important;
+  }
+
+  body.v110-header-kpi .tabs-v994a4 .tab-btn {
+    min-height: 42px !important;
+    padding: 5px 9px !important;
   }
 
   body.v110-header-kpi .top-actions-v994a4 {
     grid-area: actions !important;
-    width: min(100%, 660px) !important;
+    width: min(100%, 590px) !important;
     justify-self: end !important;
+    gap: 7px !important;
   }
 }
 
 @media (max-width: 800px) {
+  body.v110-header-kpi {
+    --v110-control-height: 40px;
+  }
+
   body.v110-header-kpi .topbar-main-v994a4 {
     grid-template-columns: 1fr !important;
     grid-template-areas:
       "brand"
       "tabs"
       "actions" !important;
-    gap: 9px !important;
+    gap: 8px !important;
+    padding: 8px 0 !important;
   }
 
   body.v110-header-kpi .tabs-v994a4,
@@ -389,6 +404,23 @@ body.v110-header-kpi #kpiMaisParadoCard.oldest-gray-v93 .oldest-value-v96 {
     justify-self: stretch !important;
   }
 
+  body.v110-header-kpi .tabs-v994a4 .tab-btn {
+    min-height: 44px !important;
+    padding: 6px 9px !important;
+  }
+
+  body.v110-header-kpi .meta-inline-v95,
+  body.v110-header-kpi .data-freshness-v97 {
+    height: 40px !important;
+    min-height: 40px !important;
+    padding-inline: 9px !important;
+  }
+
+  body.v110-header-kpi .action-cluster-v994a4 .btn {
+    height: 44px !important;
+    min-height: 44px !important;
+  }
+
   body.v110-header-kpi .brand-title-line h1 {
     white-space: normal !important;
   }
@@ -396,7 +428,7 @@ body.v110-header-kpi #kpiMaisParadoCard.oldest-gray-v93 .oldest-value-v96 {
 
 @media (max-width: 560px) {
   body.v110-header-kpi {
-    --v110-control-height: 44px;
+    --v110-control-height: 40px;
   }
 
   body.v110-header-kpi .brand-v994a4 {
@@ -418,8 +450,28 @@ body.v110-header-kpi #kpiMaisParadoCard.oldest-gray-v93 .oldest-value-v96 {
   }
 
   body.v110-header-kpi .tabs-v994a4 .tab-btn {
-    min-height: 46px !important;
+    min-height: 44px !important;
+    padding: 6px 8px !important;
+  }
+
+  body.v110-header-kpi .tabs-v994a4 .tab-btn > span {
+    font-size: 11.5px !important;
+  }
+
+  body.v110-header-kpi .tabs-v994a4 .tab-btn > small {
+    font-size: 9.25px !important;
+  }
+
+  body.v110-header-kpi .meta-inline-v95,
+  body.v110-header-kpi .data-freshness-v97 {
+    height: 40px !important;
+    min-height: 40px !important;
     padding-inline: 8px !important;
+  }
+
+  body.v110-header-kpi .action-cluster-v994a4 .btn {
+    height: 44px !important;
+    min-height: 44px !important;
   }
 
   body.v110-header-kpi .top-actions-v994a4 {
@@ -451,5 +503,14 @@ body.v110-header-kpi #kpiMaisParadoCard.oldest-gray-v93 .oldest-value-v96 {
   body.v110-header-kpi .topbar-v994a4 {
     box-shadow: none !important;
     backdrop-filter: none !important;
+  }
+}
+
+
+/* Dispositivos de toque com tela larga preservam área mínima confortável. */
+@media (pointer: coarse) {
+  body.v110-header-kpi .tabs-v994a4 .tab-btn,
+  body.v110-header-kpi .action-cluster-v994a4 .btn {
+    min-height: 44px !important;
   }
 }
