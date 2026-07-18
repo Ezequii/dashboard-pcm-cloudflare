@@ -563,51 +563,6 @@ function hydrateAdvancedSearch(){
   [['advDateFrom', state.dateFrom], ['advDateTo', state.dateTo], ['advValueMin', state.valueMin], ['advValueMax', state.valueMax]].forEach(([id,value])=>{ const el=$(id); if(el) el.value=value||''; });
 }
 
-function exportSlug(value){
-  return String(value || '')
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, '_')
-    .replace(/^_+|_+$/g, '')
-    .slice(0, 42);
-}
-
-function exportFilename(){
-  const parts = ['pcm'];
-  const etapa = (state.filters.ETAPA || [])[0];
-  const fornecedor = (state.filters.FORNECEDOR || [])[0];
-  const solicitante = (state.filters.SOLICITANTE || [])[0];
-  if(etapa) parts.push(exportSlug(etapa));
-  if(fornecedor) parts.push(exportSlug(fornecedor));
-  else if(solicitante) parts.push(exportSlug(solicitante));
-  const date = new Date().toISOString().slice(0,10);
-  return `${parts.filter(Boolean).join('_')}_${date}.csv`;
-}
-
-async function exportFile(kind='csv'){
-  try{
-    setLoading(true);
-    const blob = await api('/api/export/csv', tableQuery(), true);
-    const url = URL.createObjectURL(blob);
-    const anchor = document.createElement('a');
-    anchor.href = url;
-    anchor.download = exportFilename();
-    document.body.appendChild(anchor);
-    anchor.click();
-    anchor.remove();
-    URL.revokeObjectURL(url);
-    showToast('CSV da visão atual exportado com sucesso.');
-  }catch(error){
-    showToast(error.message || 'Não foi possível exportar o CSV.', true);
-    showDataStatus('Falha na exportação', error.message || 'Tente novamente.', 'error');
-  }finally{
-    setLoading(false);
-  }
-}
-
-async function uploadWorkbook(){ throw new Error('Atualização da base no Cloudflare Pages é via GitHub.'); }
-
 const STAGE_ORDER_STATIC = ['SEM LANÇAMENTO','SEM PEDIDO','SEM NF','CONCLUÍDO'];
 const STAGE_COLORS_STATIC = {'SEM LANÇAMENTO':'#D32F2F','SEM PEDIDO':'#F2A900','SEM NF':'#00629E','CONCLUÍDO':'#23A067'};
 function normalizeText(v){ return String(v ?? '').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toUpperCase(); }
@@ -1166,12 +1121,6 @@ function stageActionTitle(etapa){
   if(etapa === 'SEM LANÇAMENTO') return 'Conferir lançamento';
   return 'Tratar pendência';
 }
-function stageActionKind(etapa){
-  if(etapa === 'SEM NF') return 'nf';
-  if(etapa === 'SEM PEDIDO') return 'pedido';
-  if(etapa === 'SEM LANÇAMENTO') return 'lancamento';
-  return 'acao';
-}
 function stageOwnerDefault(etapa){
   if(etapa === 'SEM NF') return 'Fornecedor';
   if(etapa === 'SEM PEDIDO') return 'Compras';
@@ -1283,7 +1232,6 @@ function priorityRows(rows, count=5){
     .sort((a,b) => b.score - a.score || b.valor - a.valor || b.dias - a.dias)
     .slice(0, count);
 }
-function topPendingByStage(rows, etapa){ const subset=rows.filter(r=>r.ETAPA===etapa); return topSum(subset,'FORNECEDOR',1)[0] || null; }
 function executiveActions(rows){
   const actions=[];
   const pend = pendingRows(rows);

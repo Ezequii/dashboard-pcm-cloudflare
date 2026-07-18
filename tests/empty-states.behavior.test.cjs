@@ -9,12 +9,10 @@ const SOURCE = fs.readFileSync(
   "utf8"
 );
 
-function loadTable({ selectedCount = 0 } = {}) {
+function loadTable() {
   const context = {
     console,
-    window: {
-      getSelectedRowsCountV100: () => selectedCount,
-    },
+    window: {},
     state: { activeTab: "base" },
     document: {
       createElement() {
@@ -135,20 +133,20 @@ test("assinatura considera escopo, modo múltiplo e ignora datas inválidas", ()
   ), "BASE_EMPTY");
 });
 
-test("rótulo da limpeza ampla informa remoção da seleção", () => {
-  const runtime = loadTable({ selectedCount: 3 });
+test("limpeza ampla não menciona a seleção de linhas removida", () => {
+  const runtime = loadTable();
   const snapshot = runtime.createTableQuerySnapshotV100(
     query({ filters: { ETAPA: ["SEM NF"] } })
   );
   const descriptor = runtime.createEmptyStateDescriptorV100(snapshot, 0);
 
   assert.equal(descriptor.action, "clear-context");
-  assert.equal(descriptor.actionLabel, "Limpar filtros, buscas e seleção");
-  assert.match(descriptor.description, /seleção atual também será removida/i);
+  assert.equal(descriptor.actionLabel, "Limpar filtros e buscas");
+  assert.doesNotMatch(descriptor.description, /seleção/i);
 });
 
-test("busca simples limpa apenas a busca, mesmo com seleção existente", () => {
-  const runtime = loadTable({ selectedCount: 2 });
+test("busca simples limpa apenas a busca", () => {
+  const runtime = loadTable();
   const snapshot = runtime.createTableQuerySnapshotV100(
     query({ search: "RC-123" })
   );

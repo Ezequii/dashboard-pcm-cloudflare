@@ -84,15 +84,6 @@ function renderDashboardData(data){
   syncQuickChips();
 }
 
-function deferCharts(data){
-  if(state.activeTab !== 'visao') return;
-  const job = () => {
-    renderBars('chartFornecedoresPendentes', data.charts?.top_fornecedores_pendentes || data.charts?.top_fornecedores || [], 'green');
-  };
-  if('requestIdleCallback' in window) requestIdleCallback(job, {timeout: 500});
-  else requestAnimationFrame(job);
-}
-
 function setText(id, text, title=null){
   const el = $(id);
   if(!el) return;
@@ -295,20 +286,6 @@ function renderOldestPending(k){
   }
 }
 
-function renderFarol(farol, context={}){
-  const card = $('farolRegional');
-  if(!card) return;
-  const status = String(farol.status || 'BOM').toUpperCase();
-  card.classList.remove('farol-ok','farol-atencao','farol-critico','farol-revisar','farol-excelente');
-  const cls = status.includes('REV') ? 'farol-revisar' : (status.includes('AT') ? 'farol-atencao' : (status.includes('EXC') ? 'farol-excelente' : 'farol-ok'));
-  card.classList.add(cls);
-  setText('kFarolStatus', status);
-  const pendentes = Number(context.pendentes || 0).toLocaleString('pt-BR');
-  const semLanc = Number(context.semLancamento || 0).toLocaleString('pt-BR');
-  const subtitle = `${pendentes} em andamento · ${semLanc} no PCM`;
-  setText('kFarolSub', subtitle, `${farol.label || 'Operação saudável'} · ${farol.detail || ''}`);
-}
-
 function clearKpiNavigationState(){
   state.search = '';
   state.searchScope = 'ALL';
@@ -402,73 +379,6 @@ function bindSmartKpiActions(){
 }
 
 
-function renderExecutiveComment(text){
-  const el = $('executiveComment');
-  if(!el) return;
-  el.textContent = normalizeExecutiveComment(text);
-}
-
-function normalizeExecutiveComment(text){
-  const raw = String(text || '').replace(/^Resumo do dia:\s*/i, '').trim();
-  return raw
-    .replace(/maior concentração em /i, 'Maior gargalo: ')
-    .replace(/, com /i, ' — ')
-    .replace(/ parado\. Fornecedor crítico:/i, ' parado. Cobrar:')
-    .replace(/\. Prioridade:/i, '. Prioridade:')
-    .replace(/ · SEM LANÇAMENTO · /i, ' · ')
-    .replace(/ · SEM PEDIDO · /i, ' · ')
-    .replace(/ · SEM NF · /i, ' · ')
-    .replace(/ · dono /i, ' · Dono: ');
-}
-
-function stageReviewText(etapa, qtd){
-  const n = Number(qtd || 0).toLocaleString('pt-BR');
-  if(!Number(qtd || 0)) return 'na rotina';
-  if(etapa === 'SEM LANÇAMENTO') return `${n} para conferir lançamento`;
-  if(etapa === 'SEM PEDIDO') return `${n} em acompanhamento`;
-  if(etapa === 'SEM NF') return `${n} para conferir NF`;
-  return `${n} em tratativa`;
-}
-function stageTopBadgeText(etapa, qtd){
-  // V80: removido para evitar duas contagens diferentes no mesmo card.
-  // O número oficial da etapa fica no título e no rodapé do card.
-  return '';
-}
-
-function renderProcess(etapas, hostId=null){
-  const selected = new Set(state.filters.ETAPA || []);
-  const markup = etapas.map(e => {
-    const active = selected.has(e.etapa);
-    const cls = stageClass(e.etapa);
-    const stageQty = Number(e.qtd || 0);
-    const crit = Number(e.criticas || 0);
-    const prazoTexto = e.etapa === 'CONCLUÍDO' ? 'concluído' : stageReviewText(e.etapa, stageQty);
-    return `
-    <button type="button" class="process-card ${cls} ${active ? 'active' : ''}" data-etapa="${escapeAttr(e.etapa)}" aria-pressed="${active ? 'true' : 'false'}" title="Clique para filtrar: ${escapeAttr(e.etapa)} | Valor: ${escapeAttr(e.valor_completo || e.valor_formatado || '')}">
-      <div class="process-top">
-        <span class="stage-dot" aria-hidden="true"></span>
-        <span class="stage">${escapeHtml(e.etapa)}</span>
-      </div>
-      <div class="process-main">
-        <strong class="num">${Number(e.qtd).toLocaleString('pt-BR')}</strong>
-        <span>${escapeHtml(e.valor_formatado || '')}</span>
-      </div>
-      <div class="process-foot">
-        <span>${escapeHtml(e.percentual_formatado)}</span>
-        <strong>${escapeHtml(prazoTexto)}</strong>
-      </div>
-      ${stageTopBadgeText(e.etapa, crit) ? `<div class="stage-critical-badge">${stageTopBadgeText(e.etapa, crit)}</div>` : ''}
-    </button>`;
-  }).join('');
-  const hosts = hostId ? [$(hostId)].filter(Boolean) : Array.from(document.querySelectorAll('.process-cards-host:not(#processCardsBase)'));
-  hosts.forEach(host => {
-    host.innerHTML = markup;
-    host.querySelectorAll('.process-card').forEach(card => {
-      card.onclick = () => toggleProcessFilter(card.dataset.etapa);
-    });
-  });
-}
-
 function toggleProcessFilter(etapa){
   const current = state.filters.ETAPA || [];
   const removing = current.includes(etapa);
@@ -509,50 +419,8 @@ function filterContextAndOpenBase({etapa='', fornecedor='', owner='' } = {}){
   switchTab('base');
 }
 
-function filterStageAndOpenBase(etapa){
-  filterContextAndOpenBase({etapa});
-}
-
-function toneColor(name){
-  const n = String(name || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
-  if(n.includes('sem-lancamento') || n.includes('sem lancamento')) return '#D32F2F';
-  if(n.includes('sem-pedido') || n.includes('sem pedido')) return '#F2A900';
-  if(n.includes('sem-nf') || n.includes('sem nf')) return '#00629E';
-  return '#23A067';
-}
 
 
-function hasUsefulAction(x){
-  const kind = String(x?.kind || '');
-  const main = String(x?.main || '');
-  const value = String(x?.value || '');
-  const text = `${main} ${value}`.toLowerCase();
-  if(kind === 'old') return !text.includes('0 dias') && !main.toLowerCase().includes('sem pend');
-  if(text.includes('sem pendência')) return false;
-  if(text.includes('0 rc')) return false;
-  if(value.trim() === 'R$ 0,00') return false;
-  return true;
-}
-
-function shortOwnerLabel(label){
-  const raw = String(label || '').trim();
-  const n = raw.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
-  if(n.includes('fornecedor')) return 'Depende do fornecedor';
-  if(n.includes('compras') || n.includes('coupa')) return 'Depende de compras';
-  if(n.includes('pcm')) return 'Depende do PCM';
-  if(n.includes('responsavel')) return 'Depende da etapa';
-  return raw.length > 22 ? `${raw.slice(0, 22)}…` : raw;
-}
-
-
-
-function validValueRanking(items){
-  return (items || []).filter(item => {
-    const label = String(item?.label || '').trim();
-    const normalized = label.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toUpperCase();
-    return label && normalized !== 'NAO INFORMADO' && Number(item?.value || 0) > 0;
-  });
-}
 
 function filterDimensionAndOpenBase(column, value, scope="all"){
   const label = String(value || '').trim();
@@ -587,146 +455,6 @@ function filterDimensionAndOpenBase(column, value, scope="all"){
   switchTab('base');
 }
 
-function renderRankingRows(host, items, dimension){
-  const rows = validValueRanking(items).slice(0, 3);
-  if(!rows.length){
-    host.innerHTML = `<div class="empty-state">Sem ${dimension === 'FORNECEDOR' ? 'fornecedores' : 'solicitantes'} para o filtro atual</div>`;
-    return;
-  }
-  const maxValue = Math.max(...rows.map(item => Number(item.value || 0)), 1);
-  host.innerHTML = rows.map((item, index) => {
-    const value = Number(item.value || 0);
-    const width = Math.max(8, Math.min(100, value / maxValue * 100));
-    const qtd = Number(item.qtd || 0);
-    return `
-      <button type="button" class="ranking-row-v88" data-ranking-value="${escapeAttr(item.label || '')}" title="Filtrar ${dimension === 'FORNECEDOR' ? 'fornecedor' : 'solicitante'}: ${escapeAttr(item.label || '')} · ${escapeAttr(item.full || item.formatted || '')}">
-        <span class="ranking-position-v88">${index + 1}</span>
-        <span class="ranking-content-v88">
-          <strong>${escapeHtml(item.display_label || item.label || '')}</strong>
-          <small>${qtd.toLocaleString('pt-BR')} ORC${qtd === 1 ? '' : 's'}/OS</small>
-          <span class="ranking-track-v88"><progress class="ranking-progress-v88" max="100" value="${width.toFixed(2)}"></progress></span>
-        </span>
-        <em>${escapeHtml(item.formatted || compactCurrency(value))}</em>
-      </button>`;
-  }).join('');
-  host.querySelectorAll('.ranking-row-v88').forEach(button => {
-    button.onclick = () => filterDimensionAndOpenBase(dimension, button.dataset.rankingValue || '');
-  });
-}
-
-function renderTopSuppliers(items){
-  const host = $('actionNowList');
-  if(!host) return;
-  renderRankingRows(host, items, 'FORNECEDOR');
-}
-
-function renderTopRequesters(items){
-  const host = $('ownersCriticos');
-  if(!host) return;
-  renderRankingRows(host, items, 'SOLICITANTE');
-}
-
-function renderActionNow(actions){
-  const host = $('actionNowList');
-  if(!host) return;
-  const useful = (actions || []).filter(hasUsefulAction);
-  const rows = useful.length ? useful.slice(0, 4) : (actions || []).slice(0, 2);
-  if(!rows.length){
-    host.innerHTML = '<div class="empty-state">Sem ação pendente no filtro atual</div>';
-    return;
-  }
-  host.innerHTML = rows.map(x => `
-    <button type="button" class="action-card-v33 ${escapeAttr(x.kind || '')}" data-etapa="${escapeAttr(x.etapa || '')}" title="Abrir base filtrada: ${escapeAttr(x.detail || x.title || '')}">
-      <span>${escapeHtml(x.title || '')}</span>
-      <strong>${escapeHtml(x.main || '')}</strong>
-      <em>${escapeHtml(x.value || '')}</em>
-      <small title="${escapeAttr(x.owner || x.detail || '')}">${escapeHtml(shortOwnerLabel(x.owner || x.detail || ''))}</small>
-    </button>`).join('');
-  host.querySelectorAll('.action-card-v33').forEach(btn => {
-    btn.onclick = () => filterStageAndOpenBase(btn.dataset.etapa || '');
-  });
-}
-
-function renderTopPriorities(rows){
-  const host = $('topPrioridades');
-  if(!host) return;
-  const items = (rows || []).slice(0, 4);
-  if(!items.length){ host.innerHTML = '<div class="empty-state">Sem prioridade pendente</div>'; return; }
-  host.innerHTML = items.map((x, idx) => `
-    <button
-      type="button"
-      class="priority-row-v33 ${stageClass(x.etapa)}"
-      data-etapa="${escapeAttr(x.etapa || '')}"
-      data-fornecedor="${escapeAttr(x.fornecedor_filter || x.fornecedor || '')}"
-      data-owner="${escapeAttr(x.owner_filter || '')}"
-      title="Abrir ${escapeAttr(x.etapa || 'pendência')} de ${escapeAttr(x.fornecedor_filter || x.fornecedor || '')} · ${escapeAttr(x.valor_full || x.valor_fmt || '')}">
-      <div class="priority-rank">${idx + 1}</div>
-      <div class="priority-main"><strong>${escapeHtml(x.action || x.codigo || '')}</strong><span>${escapeHtml(x.fornecedor || '')}</span></div>
-      <div class="priority-meta"><b>${escapeHtml(x.valor_fmt || '')}</b><span>${escapeHtml(x.reason || `${Number(x.dias || 0).toLocaleString('pt-BR')} dias`)}</span></div>
-      <div class="priority-owner" title="${escapeAttr(x.owner_team || '')}">${escapeHtml(shortOwnerLabel(x.owner_team || ''))}</div>
-    </button>`).join('');
-  host.querySelectorAll('.priority-row-v33').forEach(button => {
-    button.onclick = () => filterContextAndOpenBase({
-      etapa:button.dataset.etapa || '',
-      fornecedor:button.dataset.fornecedor || '',
-      owner:button.dataset.owner || ''
-    });
-  });
-}
-
-function renderOwners(items){
-  const host = $('ownersCriticos');
-  if(!host) return;
-  const rows = (items || []).slice(0, 4);
-  if(!rows.length){ host.innerHTML = '<span class="empty-mini">Sem responsáveis críticos</span>'; return; }
-  host.innerHTML = rows.map(x => `
-    <div class="owner-row-v33" title="${escapeAttr(x.full || x.formatted || '')}">
-      <span>${escapeHtml(shortOwnerLabel(x.label || ''))}</span>
-      <strong>${escapeHtml(x.formatted || String(x.value || 0))}</strong>
-    </div>`).join('');
-}
-
-function renderInsights(alerts){
-  const attention = $('attentionList');
-  const aging = $('agingList');
-  if(attention){
-    const items = alerts?.atencao || [];
-    attention.innerHTML = items.length ? items.map(x => `
-      <div class="attention-item tone-${escapeAttr(String(x.tone || x.label || "default").toLowerCase().replace(/[^a-z0-9]+/g, "-"))}" title="${escapeAttr(x.full || x.detail || '')}">
-        <span>${escapeHtml(x.label)}</span>
-        <strong>${escapeHtml(x.value || '0')}</strong>
-        <small>${escapeHtml(x.detail || '')}</small>
-      </div>`).join('') : '<div class="empty-state">Sem pendências no filtro atual</div>';
-  }
-  if(aging){
-    const rows = alerts?.idade_pendencias || [];
-    aging.innerHTML = rows.length ? rows.map(x => `
-      <div class="aging-row tone-${escapeAttr(String(x.tone || x.label || "default").toLowerCase().replace(/[^a-z0-9]+/g, "-"))}" title="Mais antiga: ${escapeAttr(x.maximo || '')}">
-        <div class="aging-stage">${escapeHtml(x.label)}</div>
-        <div class="aging-metric"><span>Média</span><strong>${escapeHtml(x.media || '0 dias')}</strong></div>
-        <div class="aging-metric"><span>Mais antiga</span><strong>${escapeHtml(x.maximo || '0 dias')}</strong></div>
-      </div>`).join('') : '<div class="empty-state">Sem idade de pendência</div>';
-  }
-}
-
-function renderBars(id, items, tone){
-  const el = $(id);
-  if(!el) return;
-  const rows = (items || []).slice(0, 6);
-  if(!rows.length){ el.innerHTML = '<div class="empty-state">Sem dados para o filtro atual</div>'; return; }
-  const max = Math.max(...rows.map(x => Number(x.value)||0), 1);
-  el.innerHTML = rows.map((x, idx) => {
-    const w = Math.max(3, (Number(x.value)||0) / max * 100);
-    const detail = x.meta || (x.qtd ? `${Number(x.qtd).toLocaleString('pt-BR')} ORCs/OSs` : '');
-    return `<div class="bar-row ${tone}" title="${escapeAttr(`${x.label} - ${x.full || x.formatted || x.value}`)}">
-      <div class="bar-rank">${idx + 1}</div>
-      <div class="bar-label-group"><div class="bar-label" title="${escapeAttr(x.label)}">${escapeHtml(x.label)}</div>${detail ? `<small>${escapeHtml(detail)}</small>` : ''}</div>
-      <div class="bar-track"><progress class="bar-progress-v994a ${escapeAttr(tone || "")}" max="100" value="${w.toFixed(2)}"></progress></div>
-      <div class="bar-value">${escapeHtml(x.formatted || String(x.value))}</div>
-    </div>`;
-  }).join('');
-}
-
 function compactCurrency(value){
   const val = Number(value) || 0;
   const abs = Math.abs(val);
@@ -757,12 +485,6 @@ function compactCurrency(value){
     "CONCLUÍDO": `
       <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="m8 12 2.5 2.5L16 9"/></svg>`
   };
-
-  function stageByNameV991(data, name){
-    return (data?.etapas || []).find(
-      (item) => String(item.etapa || "").toUpperCase() === name
-    ) || {};
-  }
 
   function openCriticalV991(){
     clearKpiNavigationState();
@@ -1192,37 +914,6 @@ function compactCurrency(value){
       });
   }
 
-  function renderBaseStagesV991(data){
-    const host = document.getElementById("processCardsBase");
-    if(!host) return;
-
-    const stages = data?.etapas || [];
-    if(!stages.length){
-      host.innerHTML = '<div class="empty-state">Nenhuma etapa disponível</div>';
-      return;
-    }
-
-    host.innerHTML = stages.map((stage) => `
-      <button
-        type="button"
-        class="base-stage-v991 ${stageClass(stage.etapa)}"
-        data-etapa="${escapeAttr(stage.etapa || "")}">
-        <i aria-hidden="true"></i>
-        <span class="base-stage-copy-v991">
-          <small>${escapeHtml(stage.etapa || "")}</small>
-          <strong>${intV991(stage.qtd)}</strong>
-        </span>
-        <span class="base-stage-value-v991">
-          ${escapeHtml(stage.valor_formatado || compactCurrency(stage.valor))}
-        </span>
-      </button>`
-    ).join("");
-
-    host.querySelectorAll(".base-stage-v991").forEach((button) => {
-      button.onclick = () => toggleProcessFilter(button.dataset.etapa || "");
-    });
-  }
-
   function openRankingContextV994a6(){
     clearKpiNavigationState();
     if(rankingScopeV994a6 === "pending"){
@@ -1275,7 +966,6 @@ function compactCurrency(value){
   };
 
   window.renderBaseV991 = function renderBaseV991(data){
-    renderBaseStagesV991(data);
     const kpis = data?.kpis || {};
     const hint = document.getElementById("baseOverviewHintV991");
     if(hint){

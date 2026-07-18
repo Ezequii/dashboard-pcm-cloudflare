@@ -5,6 +5,8 @@ const path = require("node:path");
 const { execFileSync } = require("node:child_process");
 const ROOT = path.resolve(__dirname, "..");
 const html = fs.readFileSync(path.join(ROOT, "index.html"), "utf8");
+const html404 = fs.readFileSync(path.join(ROOT, "404.html"), "utf8");
+const htmlDocuments = [html, html404];
 const errors = [];
 
 function localPath(url) {
@@ -12,9 +14,13 @@ function localPath(url) {
   return url.split(/[?#]/)[0].replace(/^\/+/, "");
 }
 
-const refs = [...html.matchAll(/\b(?:src|href)="([^"]+)"/g)]
-  .map((m) => localPath(m[1])).filter(Boolean);
-for (const ref of new Set(refs)) {
+const refs = htmlDocuments.flatMap((documentSource) =>
+  [...documentSource.matchAll(/\b(?:src|href)="([^"]+)"/g)]
+    .map((match) => localPath(match[1]))
+    .filter(Boolean)
+);
+const uniqueRefs = new Set(refs);
+for (const ref of uniqueRefs) {
   if (!fs.existsSync(path.join(ROOT, ref))) errors.push(`Referência ausente: ${ref}`);
 }
 
@@ -40,6 +46,62 @@ jsFiles.push(path.join(ROOT, "sw.js"));
 for (const file of jsFiles) {
   try { execFileSync(process.execPath, ["--check", file], { stdio: "pipe" }); }
   catch { errors.push(`JavaScript inválido: ${path.relative(ROOT, file)}`); }
+}
+
+// V116: ativos publicáveis precisam estar ligados a uma página real.
+const referencedLocalPaths = new Set([...uniqueRefs].map((ref) => ref.replace(/^\/+/, "")));
+for (const [directory, extension] of [["static", ".css"], ["static/js", ".js"]]) {
+  const absoluteDirectory = path.join(ROOT, directory);
+  const files = fs.readdirSync(absoluteDirectory, { withFileTypes: true })
+    .filter((entry) => entry.isFile() && path.extname(entry.name).toLowerCase() === extension);
+  for (const entry of files) {
+    const relative = path.join(directory, entry.name).split(path.sep).join("/");
+    if (!referencedLocalPaths.has(relative)) {
+      errors.push(`Ativo órfão fora do arquivo histórico: ${relative}`);
+    }
+  }
+}
+
+// V116: referências literais a elementos removidos não podem permanecer silenciosamente.
+const htmlIdSet = new Set(ids);
+const dynamicIds = new Set();
+const literalDomRefs = new Map();
+for (const file of jsFiles.filter((file) => file.startsWith(path.join(ROOT, "static", "js")))) {
+  const source = fs.readFileSync(file, "utf8");
+  for (const match of source.matchAll(/\.id\s*=\s*["']([^"']+)["']/g)) {
+    dynamicIds.add(match[1]);
+  }
+  for (const pattern of [
+    /\$\(\s*["']([^"']+)["']\s*\)/g,
+    /getElementById\(\s*["']([^"']+)["']\s*\)/g,
+  ]) {
+    for (const match of source.matchAll(pattern)) {
+      if (!literalDomRefs.has(match[1])) literalDomRefs.set(match[1], new Set());
+      literalDomRefs.get(match[1]).add(path.relative(ROOT, file));
+    }
+  }
+}
+for (const [id, files] of literalDomRefs) {
+  if (!htmlIdSet.has(id) && !dynamicIds.has(id)) {
+    errors.push(`Referência a ID inexistente: ${id} (${[...files].join(", ")})`);
+  }
+}
+
+const retiredUiIds = [
+  "filterDrawer",
+  "btnOpenFilters",
+  "btnExportMenu",
+  "exportDropdown",
+  "btnUploadWorkbook",
+  "workbookUpload",
+  "processCardsBase",
+  "getSelectedRowsCountV100",
+];
+const activeUiSource = [html, ...jsFiles.map((file) => fs.readFileSync(file, "utf8"))].join("\n");
+for (const marker of retiredUiIds) {
+  if (activeUiSource.includes(marker)) {
+    errors.push(`Resíduo de interface removida: ${marker}`);
+  }
 }
 
 
@@ -106,4 +168,7 @@ if (errors.length) {
   console.error(errors.map((e) => `- ${e}`).join("\n"));
   process.exit(1);
 }
-console.log(`Auditoria concluída: ${new Set(refs).size} referências, ${ids.length} IDs e ${jsFiles.length} scripts verificados.`);
+console.log(
+  `Auditoria concluída: ${uniqueRefs.size} referências, ${ids.length} IDs, ` +
+  `${jsFiles.length} scripts e ${literalDomRefs.size} vínculos DOM verificados.`
+);

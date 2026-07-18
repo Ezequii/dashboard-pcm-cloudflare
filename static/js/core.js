@@ -5,7 +5,7 @@ function validateRuntimeConfiguration(){
   if(!rules || !rules.aging || !rules.targets || !rules.priorityWeights){
     throw new Error("Configuração de regras de negócio indisponível. Recarregue a página.");
   }
-  if(!config || String(config.assetVersion || "") !== "11500"){
+  if(!config || String(config.assetVersion || "") !== "11700"){
     throw new Error("Os arquivos da aplicação estão em versões diferentes. Recarregue sem cache.");
   }
 
@@ -265,9 +265,6 @@ async function init(){
 
     updateHeaderMetadata(boot.metadata || {}, boot.generated_at || '');
 
-    const uploadButton = $('btnUploadWorkbook');
-    if(uploadButton) uploadButton.hidden = !boot.can_upload;
-
     buildSmartFilters();
     bindEvents();
     window.initProductivityV99?.();
@@ -380,22 +377,14 @@ function bindEvents(){
     scheduleDashboard();
   });
 
-  $('btnClear').onclick = clearAll;
   $('globalContextClearAll')?.addEventListener('click', () => clearAll());
-  bindFilterDrawer();
   bindQuickChips();
   $('btnRefresh').onclick = refreshData;
-  bindWorkbookUpload();
-  $('btnExportCsv')?.addEventListener('click', () => {
-    closeExportMenu();
-    exportFile('csv');
-  });
     const retryDataButton = $('btnRetryData');
   if(retryDataButton){
     retryDataButton.dataset.bootRecoveryBound = '0';
     retryDataButton.onclick = refreshData;
   }
-  bindExportMenu();
   bindAdvancedSearchPanel();
   if($('pageSize')){ $('pageSize').value = String(state.pageSize || 50); $('pageSize').onchange = (e) => { state.pageSize = Number(e.target.value); state.page = 1; savePreferences(); loadRowsSafely(); }; }
   $('prevPage').onclick = () => { if(state.page > 1){ state.page--; loadRowsSafely(); } };
@@ -403,11 +392,10 @@ function bindEvents(){
 
   document.addEventListener('click', (e) => {
     if(!e.target.closest('.smart-select')) closeAllPopovers();
-    if(!e.target.closest('#exportMenu')) closeExportMenu();
   });
 
   document.addEventListener('keydown', (e) => {
-    if(e.key === 'Escape'){ closeAllPopovers(); closeFilterDrawer(); closeExportMenu(); closeAdvancedSearchPanel(); }
+    if(e.key === 'Escape'){ closeAllPopovers(); closeAdvancedSearchPanel(); }
     const cmd = e.ctrlKey || e.metaKey;
     if(e.altKey && e.key === '1'){ e.preventDefault(); switchTab('visao'); }
     if(e.altKey && e.key === '2'){ e.preventDefault(); switchTab('base'); }
@@ -415,7 +403,7 @@ function bindEvents(){
     if(cmd && e.key.toLowerCase() === 'e'){ e.preventDefault(); window.exportExcelFromCurrentViewV99?.(); }
     if(cmd && e.key === 'Backspace'){ e.preventDefault(); clearAll(); }
     if(e.key === '?' && !['INPUT','TEXTAREA','SELECT'].includes(document.activeElement?.tagName || '')){
-      showToast('Atalhos: Alt+1 visão, Alt+2 tabela, Ctrl+K busca, Ctrl+E Excel, Esc fecha gavetas.');
+      showToast('Atalhos: Alt+1 visão, Alt+2 tabela, Ctrl+K busca, Ctrl+E Excel, Esc fecha painéis.');
     }
   });
 
@@ -474,53 +462,6 @@ function updateSearchUI(total=null){
   help.classList.add('has-results');
 }
 
-function bindWorkbookUpload(){
-  const btn = $('btnUploadWorkbook');
-  const input = $('workbookUpload');
-  if(!btn || !input || btn.dataset.boundUpload === '1') return;
-  btn.dataset.boundUpload = '1';
-  btn.addEventListener('click', () => input.click());
-  input.addEventListener('change', async () => {
-    const file = input.files && input.files[0];
-    if(!file) return;
-    const ok = confirm(`Atualizar a base Excel com o arquivo:
-
-${file.name}
-
-A base anterior será salva em backup.`);
-    if(!ok){ input.value = ''; return; }
-    try{
-      setLoading(true);
-      const data = await uploadWorkbook(file);
-      showToast(`${data.message}. ${Number(data.linhas || 0).toLocaleString('pt-BR')} registros carregados.`);
-      state.page = 1;
-      state.search = '';
-      await refreshAll(true);
-    }catch(err){ showToast(err.message, true); }
-    finally{ input.value = ''; setLoading(false); }
-  });
-}
-
-function bindExportMenu(){
-  const btn = $('btnExportMenu');
-  const menu = $('exportDropdown');
-  if(!btn || !menu) return;
-  btn.addEventListener('click', (ev) => {
-    ev.stopPropagation();
-    const open = menu.hidden;
-    menu.hidden = !open;
-    btn.setAttribute('aria-expanded', open ? 'true' : 'false');
-    btn.classList.toggle('active', open);
-  });
-}
-
-function closeExportMenu(){
-  const btn = $('btnExportMenu');
-  const menu = $('exportDropdown');
-  if(menu) menu.hidden = true;
-  if(btn){ btn.setAttribute('aria-expanded','false'); btn.classList.remove('active'); }
-}
-
 function bindAdvancedSearchPanel(){
   const btn = $('btnToggleAdvancedSearch');
   const panel = $('advancedSearchPanel');
@@ -548,46 +489,6 @@ function closeAdvancedSearchPanel(){
   btn.setAttribute('aria-expanded','false');
   btn.classList.remove('active');
   document.body.classList.remove('advanced-search-open');
-}
-
-function bindFilterDrawer(){
-  $('btnOpenFilters')?.addEventListener('click', openFilterDrawer);
-  $('btnCloseFilters')?.addEventListener('click', closeFilterDrawer);
-  $('drawerBackdrop')?.addEventListener('click', closeFilterDrawer);
-}
-
-function openFilterDrawer(){
-  state.lastFocus = document.activeElement;
-  const drawer = $('filterDrawer');
-  const backdrop = $('drawerBackdrop');
-  const openButton = $('btnOpenFilters');
-  if(!drawer) return;
-  drawer.classList.add('open');
-  drawer.setAttribute('aria-hidden','false');
-  openButton?.setAttribute('aria-expanded','true');
-  if(backdrop){
-    backdrop.hidden = false;
-    requestAnimationFrame(() => backdrop.classList.add('show'));
-  }
-  setTimeout(() => $('btnCloseFilters')?.focus(), 60);
-}
-
-function closeFilterDrawer(){
-  const drawer = $('filterDrawer');
-  const backdrop = $('drawerBackdrop');
-  const openButton = $('btnOpenFilters');
-  if(drawer){
-    drawer.classList.remove('open');
-    drawer.setAttribute('aria-hidden','true');
-  }
-  openButton?.setAttribute('aria-expanded','false');
-  if(backdrop){
-    backdrop.classList.remove('show');
-    setTimeout(() => { backdrop.hidden = true; }, 180);
-  }
-  if(state.lastFocus && typeof state.lastFocus.focus === 'function'){
-    setTimeout(() => state.lastFocus.focus(), 80);
-  }
 }
 
 function bindQuickChips(){
@@ -901,7 +802,6 @@ function switchTab(tab, options={}){
   }
 
   closeAllPopovers();
-  closeFilterDrawer();
   updateFilterUI();
 
   if(selected === 'base' && loadRowsNow){
@@ -933,7 +833,6 @@ async function clearAll(options={}){
   hydrateAdvancedSearch();
   updateFilterUI();
   closeAllPopovers();
-  closeFilterDrawer();
   savePreferences();
 
   try{
@@ -942,7 +841,7 @@ async function clearAll(options={}){
     console.error('Falha ao limpar filtros:', error);
   }finally{
     updateFilterUI();
-    const focusTarget = $('btnOpenFilters') || globalSearch;
+    const focusTarget = globalSearch;
     if(options.restoreFocus !== false) focusTarget?.focus();
     showToast('Filtros redefinidos.');
   }
@@ -1037,11 +936,7 @@ function setLoading(on){
 
   [
     'btnRefresh',
-    'btnUploadWorkbook',
-    'btnExportCsv',
-    'btnClear',
     'globalContextClearAll',
-    'btnExportMenu',
     'btnToggleAdvancedSearch',
     'btnClearSearch',
     'btnRetryData'

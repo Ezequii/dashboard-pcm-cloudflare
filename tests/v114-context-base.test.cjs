@@ -160,14 +160,15 @@ test("Base inicia pela busca sem o card Registros operacionais", () => {
   assert.match(css, /table-search input:focus[\s\S]*box-shadow:/);
 });
 
-test("V115 mantém pacote, configuração, runtime e cache sincronizados", () => {
-  assert.equal(pkg.version, "115.0.0");
-  assert.match(html, />V115<\/span>/);
+test("versão atual mantém pacote, configuração, runtime e cache sincronizados", () => {
+  const major = String(pkg.version).split(".")[0];
+  const token = `${major}00`;
+  assert.match(html, new RegExp(`>V${major}<\\/span>`));
   assert.match(html, /styles_v115_context_base\.css\?v=11500/);
-  assert.match(html, /app-config\.js\?v=11500/);
-  assert.match(html, /core\.js\?v=11500/);
-  assert.match(config, /version:\s*"115\.0\.0"/);
-  assert.match(config, /assetVersion:\s*"11500"/);
-  assert.match(coreSource, /assetVersion \|\| ""\) !== "11500"/);
-  assert.match(sw, /const VERSION = "v115"/);
+  assert.match(html, new RegExp(`app-config\\.js\\?v=${token}`));
+  assert.match(html, new RegExp(`core\\.js\\?v=${token}`));
+  assert.match(config, new RegExp(`version:\\s*"${pkg.version.replaceAll(".", "\\.")}"`));
+  assert.match(config, new RegExp(`assetVersion:\\s*"${token}"`));
+  assert.match(coreSource, new RegExp(`assetVersion \\|\\| ""\\) !== "${token}"`));
+  assert.match(sw, new RegExp(`const VERSION = "v${major}"`));
 });

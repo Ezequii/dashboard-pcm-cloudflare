@@ -136,14 +136,7 @@ function createEmptyStateDescriptorV100(snapshot, total=0){
   const kind = classifyEmptyStateV100(snapshot, total);
   if(!kind) return null;
 
-  const selectedCount = Number(window.getSelectedRowsCountV100?.() || 0);
-  const clearsSelection = selectedCount > 0 && kind !== "SIMPLE_SEARCH" && kind !== "BASE_EMPTY";
-  const clearLabel = clearsSelection
-    ? "Limpar filtros, buscas e seleção"
-    : "Limpar filtros e buscas";
-  const selectionNotice = clearsSelection
-    ? " A seleção atual também será removida ao limpar o contexto."
-    : "";
+  const clearLabel = "Limpar filtros e buscas";
 
   const descriptors = {
     BASE_EMPTY: {
@@ -167,7 +160,7 @@ function createEmptyStateDescriptorV100(snapshot, total=0){
     MULTI_SEARCH: {
       kind,
       title: "Nenhum registro corresponde à busca múltipla atual",
-      description: `Revise os códigos ou termos informados ou limpe o contexto de pesquisa.${selectionNotice}`,
+      description: "Revise os códigos ou termos informados ou limpe o contexto de pesquisa.",
       action: "clear-context",
       actionLabel: clearLabel,
       announcement: "Nenhum registro corresponde à busca múltipla atual."
@@ -175,7 +168,7 @@ function createEmptyStateDescriptorV100(snapshot, total=0){
     FILTERS: {
       kind,
       title: "Nenhum registro corresponde aos filtros atuais",
-      description: `Os dados foram carregados, mas o contexto selecionado não retornou resultados.${selectionNotice}`,
+      description: "Os dados foram carregados, mas o contexto selecionado não retornou resultados.",
       action: "clear-context",
       actionLabel: clearLabel,
       announcement: "Nenhum registro corresponde aos filtros atuais."
@@ -183,7 +176,7 @@ function createEmptyStateDescriptorV100(snapshot, total=0){
     COMBINATION: {
       kind,
       title: "Nenhum registro corresponde à busca e aos filtros atuais",
-      description: `A combinação dos critérios aplicados não retornou resultados.${selectionNotice}`,
+      description: "A combinação dos critérios aplicados não retornou resultados.",
       action: "clear-context",
       actionLabel: clearLabel,
       announcement: "Nenhum registro corresponde à busca e aos filtros atuais."
@@ -426,21 +419,6 @@ async function loadRows(seq=null){
     }
 
     state.page = data.page;
-
-    const preferredOrder = [
-      ...V100_DEFAULT_BASE_COLUMNS,
-      "Nº PEDIDO DE COMPRA",
-      "DATA DO PEDIDO",
-      "Nº NFS/DANFE",
-      "DATA LANÇAMENTO NFS",
-      "DONO DA AÇÃO",
-      "Nº REQUISIÇÃO",
-      "VALOR TOTAL",
-      "PREFIXO",
-      "EQUIPAMENTO",
-      "Nº ORDEM SERVIÇO",
-      "FAIXA ATRASO"
-    ];
 
     const sourceColumns = Array.isArray(data.columns) ? data.columns : [];
     const defaultColumns = V100_DEFAULT_BASE_COLUMNS

@@ -84,26 +84,6 @@
     return unique.slice(0, MAX_MULTI_TERMS_V99);
   }
 
-  function toBase64UrlV99(value){
-    const bytes = new TextEncoder().encode(JSON.stringify(value));
-    let binary = "";
-    bytes.forEach(byte => { binary += String.fromCharCode(byte); });
-    return btoa(binary)
-      .replace(/\+/g, "-")
-      .replace(/\//g, "_")
-      .replace(/=+$/g, "");
-  }
-
-  function fromBase64UrlV99(value){
-    const normalized = String(value || "")
-      .replace(/-/g, "+")
-      .replace(/_/g, "/");
-    const padded = normalized + "=".repeat((4 - normalized.length % 4) % 4);
-    const binary = atob(padded);
-    const bytes = Uint8Array.from(binary, character => character.charCodeAt(0));
-    return JSON.parse(new TextDecoder().decode(bytes));
-  }
-
   function safeFiltersV99(filters){
     const result = {};
     Object.entries(filters || {}).forEach(([key, values]) => {
@@ -943,11 +923,6 @@
       "click",
       exportExcelFromCurrentViewV99
     );
-    document.getElementById("btnExportExcelV99")?.addEventListener("click", () => {
-      document.getElementById("exportDropdown")?.setAttribute("hidden", "");
-      exportExcelFromCurrentViewV99();
-    });
-
     document.getElementById("btnCloseDetailsV99")?.addEventListener(
       "click",
       closeDetailsV99

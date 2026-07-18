@@ -1,0 +1,242 @@
+/* ==========================================================================
+   V117 — ETAPA 1 EXPERIMENTAL
+   Compactação controlada do cabeçalho.
+
+   Escopo deliberadamente restrito:
+   - navegação Visão Executiva / Base de Tratativa;
+   - status da base;
+   - botão Recarregar;
+   - composição responsiva do cabeçalho.
+
+   Esta camada é temporária para validação visual. Não altera KPIs, filtros,
+   tabela, dados, regras de negócio ou JavaScript.
+   ========================================================================== */
+
+body.v117-header-preview {
+  --v117-header-control-height: 38px;
+  --v117-header-tab-height: 42px;
+}
+
+/* Monitor e desktop: redução moderada, sem mudar a estrutura. */
+@media (min-width: 1180px) {
+  body.v117-header-preview .topbar-main-v994a4 {
+    grid-template-columns:
+      minmax(360px, 1fr)
+      minmax(280px, 300px)
+      minmax(400px, 1fr) !important;
+    gap: clamp(14px, 1.1vw, 20px) !important;
+    min-height: 68px !important;
+    padding: 8px 0 !important;
+  }
+
+  body.v117-header-preview .tabs-v994a4 {
+    width: 100% !important;
+    max-width: 300px !important;
+    justify-self: center !important;
+    gap: 3px !important;
+    padding: 3px !important;
+    border-radius: 10px !important;
+  }
+
+  body.v117-header-preview .tabs-v994a4 .tab-btn {
+    min-height: var(--v117-header-tab-height) !important;
+    padding: 5px 10px !important;
+    border-radius: 7px !important;
+  }
+
+  body.v117-header-preview .tabs-v994a4 .tab-btn > span {
+    font-size: 12px !important;
+    line-height: 1.15 !important;
+  }
+
+  body.v117-header-preview .tabs-v994a4 .tab-btn > small {
+    margin-top: 1px !important;
+    font-size: 9.75px !important;
+    line-height: 1.1 !important;
+  }
+
+  body.v117-header-preview .top-actions-v994a4 {
+    width: min(100%, 500px) !important;
+    justify-self: end !important;
+    grid-template-columns: minmax(0, 1fr) auto !important;
+    gap: 7px !important;
+  }
+
+  body.v117-header-preview .data-status-group-v994a4 {
+    grid-template-columns: minmax(0, 1fr) auto !important;
+    gap: 5px !important;
+  }
+
+  body.v117-header-preview .meta-inline-v95,
+  body.v117-header-preview .data-freshness-v97 {
+    height: var(--v117-header-control-height) !important;
+    min-height: var(--v117-header-control-height) !important;
+    padding: 0 9px !important;
+    border-radius: 8px !important;
+    font-size: 10px !important;
+    line-height: 1.15 !important;
+  }
+
+  body.v117-header-preview .action-cluster-v994a4 .btn {
+    height: var(--v117-header-control-height) !important;
+    min-height: var(--v117-header-control-height) !important;
+    min-width: 88px !important;
+    padding: 0 13px !important;
+    border-radius: 8px !important;
+    font-size: 10.5px !important;
+    line-height: 1 !important;
+  }
+}
+
+/* Notebook: preserva as duas faixas já estabilizadas no projeto. */
+@media (min-width: 801px) and (max-width: 1179px) {
+  body.v117-header-preview .topbar-main-v994a4 {
+    gap: 8px 14px !important;
+    padding: 8px 0 9px !important;
+  }
+
+  body.v117-header-preview .tabs-v994a4 {
+    width: 100% !important;
+    max-width: 300px !important;
+    gap: 3px !important;
+    padding: 3px !important;
+    border-radius: 10px !important;
+  }
+
+  body.v117-header-preview .tabs-v994a4 .tab-btn {
+    min-height: 42px !important;
+    padding: 5px 9px !important;
+    border-radius: 7px !important;
+  }
+
+  body.v117-header-preview .tabs-v994a4 .tab-btn > span {
+    font-size: 12px !important;
+  }
+
+  body.v117-header-preview .tabs-v994a4 .tab-btn > small {
+    margin-top: 1px !important;
+    font-size: 9.75px !important;
+  }
+
+  body.v117-header-preview .top-actions-v994a4 {
+    width: min(100%, 590px) !important;
+    gap: 7px !important;
+  }
+
+  body.v117-header-preview .data-status-group-v994a4 {
+    gap: 5px !important;
+  }
+
+  body.v117-header-preview .meta-inline-v95,
+  body.v117-header-preview .data-freshness-v97,
+  body.v117-header-preview .action-cluster-v994a4 .btn {
+    height: 38px !important;
+    min-height: 38px !important;
+  }
+
+  body.v117-header-preview .meta-inline-v95,
+  body.v117-header-preview .data-freshness-v97 {
+    padding-inline: 9px !important;
+    border-radius: 8px !important;
+  }
+
+  body.v117-header-preview .action-cluster-v994a4 .btn {
+    min-width: 88px !important;
+    padding-inline: 13px !important;
+    border-radius: 8px !important;
+  }
+}
+
+/* Tablet: compacta espaçamentos, mas mantém área confortável para toque. */
+@media (min-width: 561px) and (max-width: 800px) {
+  body.v117-header-preview .topbar-main-v994a4 {
+    gap: 8px !important;
+    padding: 8px 0 !important;
+  }
+
+  body.v117-header-preview .tabs-v994a4 {
+    gap: 3px !important;
+    padding: 3px !important;
+    border-radius: 10px !important;
+  }
+
+  body.v117-header-preview .tabs-v994a4 .tab-btn {
+    min-height: 44px !important;
+    padding: 6px 9px !important;
+    border-radius: 7px !important;
+  }
+
+  body.v117-header-preview .tabs-v994a4 .tab-btn > span {
+    font-size: 12px !important;
+  }
+
+  body.v117-header-preview .tabs-v994a4 .tab-btn > small {
+    margin-top: 1px !important;
+    font-size: 9.75px !important;
+  }
+
+  body.v117-header-preview .meta-inline-v95,
+  body.v117-header-preview .data-freshness-v97 {
+    min-height: 40px !important;
+    height: 40px !important;
+    padding-inline: 9px !important;
+    border-radius: 8px !important;
+  }
+
+  body.v117-header-preview .action-cluster-v994a4 .btn {
+    min-height: 44px !important;
+    height: 44px !important;
+    border-radius: 8px !important;
+  }
+}
+
+/* Celular: mantém legibilidade e toque; não força compactação excessiva. */
+@media (max-width: 560px) {
+  body.v117-header-preview .topbar-main-v994a4 {
+    gap: 8px !important;
+    padding: 8px 0 !important;
+  }
+
+  body.v117-header-preview .tabs-v994a4 {
+    gap: 3px !important;
+    padding: 3px !important;
+    border-radius: 10px !important;
+  }
+
+  body.v117-header-preview .tabs-v994a4 .tab-btn {
+    min-height: 44px !important;
+    padding: 6px 8px !important;
+    border-radius: 7px !important;
+  }
+
+  body.v117-header-preview .tabs-v994a4 .tab-btn > span {
+    font-size: 11.5px !important;
+  }
+
+  body.v117-header-preview .tabs-v994a4 .tab-btn > small {
+    margin-top: 1px !important;
+    font-size: 9.25px !important;
+  }
+
+  body.v117-header-preview .meta-inline-v95,
+  body.v117-header-preview .data-freshness-v97 {
+    min-height: 40px !important;
+    height: 40px !important;
+    padding-inline: 8px !important;
+    border-radius: 8px !important;
+  }
+
+  body.v117-header-preview .action-cluster-v994a4 .btn {
+    min-height: 44px !important;
+    height: 44px !important;
+    border-radius: 8px !important;
+  }
+}
+
+/* Dispositivos de toque com tela larga também preservam 44 px. */
+@media (pointer: coarse) {
+  body.v117-header-preview .tabs-v994a4 .tab-btn,
+  body.v117-header-preview .action-cluster-v994a4 .btn {
+    min-height: 44px !important;
+  }
+}

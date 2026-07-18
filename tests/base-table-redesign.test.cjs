@@ -7,6 +7,9 @@ const ROOT = path.join(__dirname, "..");
 const INDEX = fs.readFileSync(path.join(ROOT, "index.html"), "utf8");
 const TABLE = fs.readFileSync(path.join(ROOT, "static", "js", "table.js"), "utf8");
 const PRODUCTIVITY = fs.readFileSync(path.join(ROOT, "static", "js", "productivity-v99.js"), "utf8");
+const OPERATIONAL = JSON.parse(
+  fs.readFileSync(path.join(ROOT, "static", "data", "operational-data.json"), "utf8")
+);
 const CSS = fs.readFileSync(path.join(ROOT, "static", "styles_v100_base_table.css"), "utf8");
 
 test("carrega o CSS e os scripts versionados do redesign", () => {
@@ -33,8 +36,8 @@ test("define somente as oito colunas aprovadas como padrão", () => {
 });
 
 test("mantém colunas avançadas disponíveis somente por personalização", () => {
-  assert.match(TABLE, /"Nº PEDIDO DE COMPRA"/);
-  assert.match(TABLE, /"Nº NFS\/DANFE"/);
+  assert.ok(OPERATIONAL.columns.includes("Nº PEDIDO DE COMPRA"));
+  assert.ok(OPERATIONAL.columns.includes("Nº NFS/DANFE"));
   assert.match(PRODUCTIVITY, /openColumnsV99/);
   assert.match(PRODUCTIVITY, /available\.filter\(column => !defaults\.includes\(column\)\)/);
 });
