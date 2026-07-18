@@ -422,6 +422,31 @@ body.v994a2-visual .is-date-list-v994a2 .detail-token-v994a2{
 }
 
 /* --------------------------------------------------------------------------
+   Drawer: destaque semântico dos campos prioritários (consolidado na V120)
+   Mantém estrutura, ordem, dimensões, grade e rolagem existentes.
+   -------------------------------------------------------------------------- */
+body.v994a2-visual .detail-field-v994a2[data-detail-priority="true"]{
+  background:#F8FBFE;
+  border-color:#C7D9E9;
+  box-shadow:inset 3px 0 0 #0069C9;
+}
+
+body.v994a2-visual .detail-field-v994a2[data-detail-priority="true"]>span{
+  color:#075F9F;
+  font-weight:900;
+}
+
+body.v994a2-visual .detail-field-v994a2[data-detail-priority="true"]>strong{
+  color:#142B42;
+  font-weight:800;
+}
+
+body.v994a2-visual .detail-field-v994a2[data-detail-priority="true"]>strong.is-empty{
+  color:#8996A3;
+  font-weight:600;
+}
+
+/* --------------------------------------------------------------------------
    Legibilidade geral sem aumentar demais a altura
    -------------------------------------------------------------------------- */
 body.v994a2-visual .smart-title,

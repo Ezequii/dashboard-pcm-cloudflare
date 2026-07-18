@@ -17,6 +17,9 @@ A alteração experimental destaca somente:
 - Nº PEDIDO DE COMPRA
 - SOLICITANTE
 - PREFIXO
+- FORNECEDOR
+- Nº ORÇAMENTO FINAL
+- ETAPA
 
 ## Implementação
 
@@ -42,8 +45,10 @@ A alteração experimental destaca somente:
 - 48 recursos incluídos no precache;
 - 56 itens registrados no manifesto de integridade;
 - origem e `dist` conferidos para os arquivos modificados;
-- versão 119.0.0, token 11900 e service worker v119 sincronizados.
+- versão 119.0.0, token principal 11900 e service worker v119 sincronizados.
 
 ## Próxima etapa
 
 Após aprovação visual, o destaque será consolidado no CSS visual definitivo do drawer e a folha experimental será removida.
+
+- Os dois ativos modificados nesta revisão experimental usam cache-busting `11901` para evitar reutilização da versão anterior no navegador.

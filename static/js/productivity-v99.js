@@ -672,17 +672,20 @@
     ];
   }
 
-  const PRIORITY_DETAIL_FIELDS_V119 = new Set([
+  const PRIORITY_DETAIL_FIELDS = new Set([
     "DATA DE RECEBIMENTO",
     "Nº REQUISIÇÃO",
     "Nº PEDIDO DE COMPRA",
     "Nº PEDIDO",
     "SOLICITANTE",
     "PREFIXO",
+    "FORNECEDOR",
+    "Nº ORÇAMENTO FINAL",
+    "ETAPA",
   ]);
 
-  function isPriorityDetailFieldV119(field){
-    return PRIORITY_DETAIL_FIELDS_V119.has(
+  function isPriorityDetailField(field){
+    return PRIORITY_DETAIL_FIELDS.has(
       String(field || "").trim().toUpperCase()
     );
   }
@@ -798,7 +801,7 @@
     if(content){
       content.innerHTML = orderedDetailFieldsV99(row).map(field => {
         const display = detailDisplayV994a2(field, row[field], row);
-        const priorityAttribute = isPriorityDetailFieldV119(field)
+        const priorityAttribute = isPriorityDetailField(field)
           ? ' data-detail-priority="true"'
           : "";
         return `

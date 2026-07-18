@@ -18,3 +18,7 @@ Esta versão mantém integralmente a estrutura do drawer de detalhes e adiciona 
 ## Próxima etapa
 
 Após aprovação visual, as regras da folha experimental poderão ser consolidadas no CSS visual definitivo do drawer e a folha temporária será removida.
+
+## Revisão experimental A
+
+A etapa experimental passou a destacar também `FORNECEDOR`, `Nº ORÇAMENTO FINAL` e `ETAPA`, mantendo a mesma estrutura visual do drawer.
