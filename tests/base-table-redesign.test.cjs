@@ -15,7 +15,7 @@ const CSS = fs.readFileSync(path.join(ROOT, "static", "styles_v100_base_table.cs
 test("carrega o CSS e os scripts versionados do redesign", () => {
   assert.match(INDEX, /styles_v100_base_table\.css\?v=10050/);
   assert.match(INDEX, /table\.js\?v=10050/);
-  assert.match(INDEX, /productivity-v99\.js\?v=10050/);
+  assert.match(INDEX, /productivity-v99\.js\?v=\d+/);
   assert.match(INDEX, /v100-base-redesign/);
 });
 

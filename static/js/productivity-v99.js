@@ -672,6 +672,21 @@
     ];
   }
 
+  const PRIORITY_DETAIL_FIELDS_V119 = new Set([
+    "DATA DE RECEBIMENTO",
+    "Nº REQUISIÇÃO",
+    "Nº PEDIDO DE COMPRA",
+    "Nº PEDIDO",
+    "SOLICITANTE",
+    "PREFIXO",
+  ]);
+
+  function isPriorityDetailFieldV119(field){
+    return PRIORITY_DETAIL_FIELDS_V119.has(
+      String(field || "").trim().toUpperCase()
+    );
+  }
+
   function splitDetailValuesV994a2(value, includeSlash=false){
     const expression = includeSlash ? /[|;,/]+/ : /[|;,\n]+/;
     return String(value ?? "")
@@ -783,8 +798,11 @@
     if(content){
       content.innerHTML = orderedDetailFieldsV99(row).map(field => {
         const display = detailDisplayV994a2(field, row[field], row);
+        const priorityAttribute = isPriorityDetailFieldV119(field)
+          ? ' data-detail-priority="true"'
+          : "";
         return `
-          <div class="detail-field-v99 detail-field-v994a2">
+          <div class="detail-field-v99 detail-field-v994a2"${priorityAttribute}>
             <span>${escapeHtml(field)}</span>
             <strong
               class="${display.className}"

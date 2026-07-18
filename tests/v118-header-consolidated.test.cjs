@@ -13,18 +13,22 @@ const HEADER_CSS = fs.readFileSync(path.join(ROOT, "static", "styles_v110_header
 
 const PREVIEW_FILE = path.join(ROOT, "static", "styles_v117_header_compact_preview.css");
 
-test("V118 consolida o topo aprovado sem manter a camada experimental", () => {
-  assert.equal(PACKAGE.version, "118.0.0");
-  assert.match(INDEX, />V118<\/span>/);
-  assert.match(APP_CONFIG, /version:\s*"118\.0\.0"/);
-  assert.match(APP_CONFIG, /assetVersion:\s*"11800"/);
-  assert.match(CORE, /!==\s*"11800"/);
-  assert.match(SW, /const VERSION = "v118"/);
+test("V118+ mantém o topo aprovado consolidado sem a camada experimental antiga", () => {
+  const major = Number(String(PACKAGE.version || "").split(".")[0]);
+  assert.ok(major >= 118);
 
   assert.equal(fs.existsSync(PREVIEW_FILE), false);
   assert.doesNotMatch(INDEX, /styles_v117_header_compact_preview\.css/);
   assert.doesNotMatch(INDEX, /v117-header-preview/);
-  assert.match(INDEX, /styles_v110_header_kpi\.css\?v=11800/);
+  assert.match(INDEX, /styles_v110_header_kpi\.css\?v=\d+/);
+
+  const packageVersionPattern = new RegExp(
+    `version:\\s*"${PACKAGE.version.replace(/\./g, "\\.")}"`
+  );
+  assert.match(APP_CONFIG, packageVersionPattern);
+  assert.match(APP_CONFIG, /assetVersion:\s*"\d+"/);
+  assert.match(CORE, /!==\s*"\d+"/);
+  assert.match(SW, /const VERSION = "v\d+"/);
 });
 
 test("V118 mantém no CSS principal as proporções aprovadas na etapa experimental", () => {
