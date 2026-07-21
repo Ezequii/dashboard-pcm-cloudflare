@@ -40,12 +40,14 @@ interface OverviewPageProps {
   records: OsOrcRecord[];
   metadata: DatasetMetadata;
   onOpenRecord: (record: OsOrcRecord) => void;
+  onOpenConsulta: (preset: { supplier?: string; requester?: string; status?: string }) => void;
 }
 
 export function OverviewPage({
   records,
   metadata,
-  onOpenRecord
+  onOpenRecord,
+  onOpenConsulta
 }: OverviewPageProps) {
   const monthly = useMemo(() => buildMonthlySeries(records), [records]);
   const pendingByStatus = useMemo(
@@ -116,6 +118,51 @@ export function OverviewPage({
         />
       </section>
 
+
+      <section className="ranking-grid">
+        <article className="section-card ranking-card">
+          <div className="section-heading">
+            <div>
+              <span className="eyebrow">Liderança</span>
+              <h2>Solicitantes com mais pendências</h2>
+            </div>
+          </div>
+          <div className="ranking-list">
+            {suppliers.map((item, index) => (
+              <button type="button" className="ranking-row ranking-row--action" key={item.name} onClick={() => onOpenConsulta({ requester: item.name })}>
+                <span className="ranking-index">{String(index + 1).padStart(2, "0")}</span>
+                <div className="ranking-name">
+                  <strong>{item.name}</strong>
+                  <span>{formatInteger(item.count)} OS/ORCs · {formatCompactCurrency(item.value)}</span>
+                </div>
+                <strong className="ranking-value">{formatInteger(item.count)}</strong>
+              </button>
+            ))}
+          </div>
+        </article>
+
+        <article className="section-card ranking-card">
+          <div className="section-heading">
+            <div>
+              <span className="eyebrow">Financeiro</span>
+              <h2>Fornecedores com maior valor pendente</h2>
+            </div>
+          </div>
+          <div className="ranking-list">
+            {requesters.map((item, index) => (
+              <button type="button" className="ranking-row ranking-row--action" key={item.name} onClick={() => onOpenConsulta({ supplier: item.name })}>
+                <span className="ranking-index">{String(index + 1).padStart(2, "0")}</span>
+                <div className="ranking-name">
+                  <strong>{item.name}</strong>
+                  <span>{formatInteger(item.count)} OS/ORCs pendentes</span>
+                </div>
+                <strong className="ranking-value">{formatCurrency(item.value)}</strong>
+              </button>
+            ))}
+          </div>
+        </article>
+      </section>
+
       <section className="section-card process-card">
         <div className="section-heading">
           <div>
@@ -136,14 +183,14 @@ export function OverviewPage({
           ].map(([status, step, label]) => {
             const count = metadata.statusCounts[status] ?? 0;
             return (
-              <div className="process-step" key={status}>
+              <button type="button" className="process-step process-step--action" key={status} onClick={() => onOpenConsulta({ status })}>
                 <div className="process-step__number">{step}</div>
                 <div className="process-step__content">
                   <span>{label}</span>
                   <strong>{formatInteger(count)}</strong>
                   <small>{statusLabel(status)}</small>
                 </div>
-              </div>
+              </button>
             );
           })}
         </div>
@@ -219,49 +266,6 @@ export function OverviewPage({
         </article>
       </section>
 
-      <section className="ranking-grid">
-        <article className="section-card ranking-card">
-          <div className="section-heading">
-            <div>
-              <span className="eyebrow">Financeiro</span>
-              <h2>Fornecedores com maior valor pendente</h2>
-            </div>
-          </div>
-          <div className="ranking-list">
-            {suppliers.map((item, index) => (
-              <div className="ranking-row" key={item.name}>
-                <span className="ranking-index">{String(index + 1).padStart(2, "0")}</span>
-                <div className="ranking-name">
-                  <strong>{item.name}</strong>
-                  <span>Valor em andamento</span>
-                </div>
-                <strong className="ranking-value">{formatCurrency(item.value)}</strong>
-              </div>
-            ))}
-          </div>
-        </article>
-
-        <article className="section-card ranking-card">
-          <div className="section-heading">
-            <div>
-              <span className="eyebrow">Responsáveis</span>
-              <h2>Solicitantes com mais pendências</h2>
-            </div>
-          </div>
-          <div className="ranking-list">
-            {requesters.map((item, index) => (
-              <div className="ranking-row" key={item.name}>
-                <span className="ranking-index">{String(index + 1).padStart(2, "0")}</span>
-                <div className="ranking-name">
-                  <strong>{item.name}</strong>
-                  <span>OS/ORCs pendentes</span>
-                </div>
-                <strong className="ranking-value">{formatInteger(item.value)}</strong>
-              </div>
-            ))}
-          </div>
-        </article>
-      </section>
 
       <section className="section-card oldest-card">
         <div className="section-heading">

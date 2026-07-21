@@ -22,6 +22,8 @@ interface ConsultaPageProps {
   records: OsOrcRecord[];
   initialRecord: OsOrcRecord | null;
   onInitialRecordConsumed: () => void;
+  preset: { supplier?: string; requester?: string; status?: string } | null;
+  onPresetConsumed: () => void;
 }
 
 function csvEscape(value: unknown) {
@@ -32,7 +34,9 @@ function csvEscape(value: unknown) {
 export function ConsultaPage({
   records,
   initialRecord,
-  onInitialRecordConsumed
+  onInitialRecordConsumed,
+  preset,
+  onPresetConsumed
 }: ConsultaPageProps) {
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState("TODOS");
@@ -106,6 +110,16 @@ export function ConsultaPage({
     setSelected(initialRecord);
     onInitialRecordConsumed();
   }, [initialRecord, onInitialRecordConsumed]);
+
+  useEffect(() => {
+    if (!preset) return;
+    setSearch("");
+    setStatus(preset.status ?? "TODOS");
+    setSupplier(preset.supplier ?? "TODOS");
+    setRequester(preset.requester ?? "TODOS");
+    setPage(0);
+    onPresetConsumed();
+  }, [preset, onPresetConsumed]);
 
   const clearFilters = () => {
     setSearch("");

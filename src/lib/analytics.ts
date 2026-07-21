@@ -39,29 +39,31 @@ export function buildPendingStatusSeries(records: OsOrcRecord[]) {
 }
 
 export function topSuppliersByPendingValue(records: OsOrcRecord[], limit = 5) {
-  const totals = new Map<string, number>();
+  const totals = new Map<string, { count: number; value: number }>();
   for (const record of records) {
     if (!isPending(record)) continue;
     const key = record.fornecedor || "Não informado";
-    totals.set(key, (totals.get(key) ?? 0) + record.valorTotal);
+    const current = totals.get(key) ?? { count: 0, value: 0 };
+    totals.set(key, { count: current.count + 1, value: current.value + record.valorTotal });
   }
   return [...totals.entries()]
-    .sort((a, b) => b[1] - a[1])
+    .sort((a, b) => b[1].value - a[1].value)
     .slice(0, limit)
-    .map(([name, value]) => ({ name, value }));
+    .map(([name, metrics]) => ({ name, ...metrics }));
 }
 
 export function topRequestersByPending(records: OsOrcRecord[], limit = 5) {
-  const totals = new Map<string, number>();
+  const totals = new Map<string, { count: number; value: number }>();
   for (const record of records) {
     if (!isPending(record)) continue;
     const key = record.solicitante || "Não informado";
-    totals.set(key, (totals.get(key) ?? 0) + 1);
+    const current = totals.get(key) ?? { count: 0, value: 0 };
+    totals.set(key, { count: current.count + 1, value: current.value + record.valorTotal });
   }
   return [...totals.entries()]
-    .sort((a, b) => b[1] - a[1])
+    .sort((a, b) => b[1].count - a[1].count || b[1].value - a[1].value)
     .slice(0, limit)
-    .map(([name, value]) => ({ name, value }));
+    .map(([name, metrics]) => ({ name, ...metrics }));
 }
 
 export function oldestPending(records: OsOrcRecord[], limit = 5) {

@@ -14,6 +14,7 @@ export default function App() {
   const [error, setError] = useState("");
   const [page, setPage] = useState<AppPage>(pageFromHash);
   const [recordToOpen, setRecordToOpen] = useState<OsOrcRecord | null>(null);
+  const [consultaPreset, setConsultaPreset] = useState<{ supplier?: string; requester?: string; status?: string } | null>(null);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -60,6 +61,14 @@ export default function App() {
     [handlePageChange]
   );
 
+  const handleOpenConsulta = useCallback(
+    (preset: { supplier?: string; requester?: string; status?: string }) => {
+      setConsultaPreset(preset);
+      handlePageChange("consulta");
+    },
+    [handlePageChange]
+  );
+
   if (error) {
     return (
       <div className="app-state">
@@ -96,12 +105,15 @@ export default function App() {
           records={dataset.records}
           metadata={dataset.metadata}
           onOpenRecord={handleOpenRecord}
+          onOpenConsulta={handleOpenConsulta}
         />
       ) : (
         <ConsultaPage
           records={dataset.records}
           initialRecord={recordToOpen}
           onInitialRecordConsumed={() => setRecordToOpen(null)}
+          preset={consultaPreset}
+          onPresetConsumed={() => setConsultaPreset(null)}
         />
       )}
     </AppShell>

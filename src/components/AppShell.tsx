@@ -3,7 +3,9 @@ import {
   ClipboardList,
   LockKeyhole,
   Menu,
-  X
+  X,
+  PanelLeftClose,
+  PanelLeftOpen
 } from "lucide-react";
 import { useEffect, useState, type ReactNode } from "react";
 import type { AppPage, DatasetMetadata } from "../types/osOrc";
@@ -28,14 +30,23 @@ export function AppShell({
   children
 }: AppShellProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [collapsed, setCollapsed] = useState(() => {
+    const saved = window.localStorage.getItem("pcm-sidebar-collapsed");
+    if (saved !== null) return saved === "true";
+    return window.matchMedia("(max-width: 1280px)").matches;
+  });
+
+  useEffect(() => {
+    window.localStorage.setItem("pcm-sidebar-collapsed", String(collapsed));
+  }, [collapsed]);
 
   useEffect(() => {
     setMobileMenuOpen(false);
   }, [page]);
 
   return (
-    <div className="app-shell">
-      <aside className={`sidebar ${mobileMenuOpen ? "sidebar--open" : ""}`}>
+    <div className={`app-shell ${collapsed ? "app-shell--collapsed" : ""}`}>
+      <aside className={`sidebar ${collapsed ? "sidebar--collapsed" : ""} ${mobileMenuOpen ? "sidebar--open" : ""}`}>
         <div className="sidebar__brand">
           <div className="sidebar__brand-plate">
             <img
@@ -59,6 +70,7 @@ export function AppShell({
               className={`sidebar__nav-item ${page === id ? "is-active" : ""}`}
               onClick={() => onPageChange(id)}
               aria-current={page === id ? "page" : undefined}
+              title={collapsed ? label : undefined}
             >
               <Icon size={19} />
               <span>{label}</span>
@@ -67,6 +79,16 @@ export function AppShell({
         </nav>
 
         <div className="sidebar__footer">
+          <button
+            type="button"
+            className="sidebar__collapse"
+            onClick={() => setCollapsed((value) => !value)}
+            aria-label={collapsed ? "Expandir menu lateral" : "Recolher menu lateral"}
+            title={collapsed ? "Expandir menu" : "Recolher menu"}
+          >
+            {collapsed ? <PanelLeftOpen size={18} /> : <PanelLeftClose size={18} />}
+            <span>{collapsed ? "Expandir" : "Recolher menu"}</span>
+          </button>
           <div className="sidebar__security">
             <LockKeyhole size={17} />
             <div>
