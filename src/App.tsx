@@ -85,6 +85,7 @@ export default function App() {
 
   const handleOpenConsulta = useCallback(
     (preset: { supplier?: string; requester?: string; status?: string }) => {
+      window.sessionStorage.setItem("pcm-consulta-preset", JSON.stringify(preset));
       setConsultaPreset(preset);
       handlePageChange("consulta");
     },

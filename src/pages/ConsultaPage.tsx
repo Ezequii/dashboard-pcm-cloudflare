@@ -130,12 +130,45 @@ export function ConsultaPage({
     onPresetConsumed();
   }, [preset, onPresetConsumed]);
 
+  useEffect(() => {
+    const stored = window.sessionStorage.getItem("pcm-consulta-preset");
+    if (!stored || preset) return;
+    try {
+      const parsed = JSON.parse(stored) as { supplier?: string; requester?: string; status?: string };
+      if (parsed.requester) {
+        setRequester(parsed.requester);
+        setSupplier("TODOS");
+        setStatus("TODOS");
+        setContextLabel(`Solicitante: ${parsed.requester}`);
+      } else if (parsed.supplier) {
+        setSupplier(parsed.supplier);
+        setRequester("TODOS");
+        setStatus("TODOS");
+        setContextLabel(`Fornecedor: ${parsed.supplier}`);
+      } else if (parsed.status) {
+        setStatus(parsed.status);
+        setSupplier("TODOS");
+        setRequester("TODOS");
+        const label =
+          parsed.status === "FALTA O PEDIDO" ? "Falta pedido" :
+          parsed.status === "FALTA LANÇAMENTO" ? "Falta lançamento" :
+          parsed.status === "FALTA NF" ? "Falta NF" : "Concluído";
+        setContextLabel(`Etapa: ${label}`);
+      }
+      setPage(0);
+      window.sessionStorage.removeItem("pcm-consulta-preset");
+    } catch {
+      window.sessionStorage.removeItem("pcm-consulta-preset");
+    }
+  }, [preset]);
+
   const clearFilters = () => {
     setSearch("");
     setStatus("TODOS");
     setSupplier("TODOS");
     setRequester("TODOS");
     setContextLabel("");
+    window.sessionStorage.removeItem("pcm-consulta-preset");
   };
 
   const exportCsv = () => {

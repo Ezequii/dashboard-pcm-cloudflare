@@ -119,154 +119,84 @@ export function OverviewPage({
 
 
       <section className="ranking-grid">
-        <article className="section-card ranking-card">
+        <article className="section-card ranking-card ranking-card--premium">
           <div className="section-heading">
             <div>
               <span className="eyebrow">Liderança</span>
               <h2>Solicitantes com mais pendências</h2>
-              <small className="section-subcopy">Clique para abrir os registros na Consulta</small>
+              <small className="section-subcopy">Clique para abrir a Consulta já filtrada</small>
             </div>
           </div>
-          <div className="ranking-list">
-            {suppliers.map((item, index) => (
-              <button type="button" className="ranking-row ranking-row--action" key={item.name} onClick={() => onOpenConsulta({ requester: item.name })}>
-                <span className="ranking-index">{String(index + 1).padStart(2, "0")}</span>
-                <div className="ranking-name">
-                  <strong>{item.name}</strong>
-                  <span>{formatInteger(item.count)} orçamentos · {formatCompactCurrency(item.value)}</span>
-                </div>
-                <strong className="ranking-value">{formatInteger(item.count)}</strong>
-              </button>
-            ))}
+          <div className="ranking-list ranking-list--premium">
+            {requesters.map((item, index) => {
+              const max = Math.max(...requesters.map((entry) => entry.count), 1);
+              const width = Math.max(8, Math.round((item.count / max) * 100));
+              return (
+                <button
+                  type="button"
+                  className="ranking-premium-row"
+                  key={item.name}
+                  onClick={() => onOpenConsulta({ requester: item.name })}
+                >
+                  <span className="ranking-premium-row__index">{String(index + 1).padStart(2, "0")}</span>
+                  <div className="ranking-premium-row__body">
+                    <div className="ranking-premium-row__top">
+                      <strong>{item.name}</strong>
+                      <strong>{formatInteger(item.count)}</strong>
+                    </div>
+                    <div className="ranking-premium-row__meta">
+                      <span>{formatInteger(item.count)} orçamentos</span>
+                      <span>{formatCompactCurrency(item.value)}</span>
+                    </div>
+                    <div className="ranking-premium-row__bar">
+                      <span style={{ width: `${width}%` }} />
+                    </div>
+                  </div>
+                </button>
+              );
+            })}
           </div>
         </article>
 
-        <article className="section-card ranking-card">
+        <article className="section-card ranking-card ranking-card--premium">
           <div className="section-heading">
             <div>
               <span className="eyebrow">Financeiro</span>
               <h2>Fornecedores com maior valor pendente</h2>
-              <small className="section-subcopy">Clique para abrir os registros na Consulta</small>
+              <small className="section-subcopy">Clique para abrir a Consulta já filtrada</small>
             </div>
           </div>
-          <div className="ranking-list">
-            {requesters.map((item, index) => (
-              <button type="button" className="ranking-row ranking-row--action" key={item.name} onClick={() => onOpenConsulta({ supplier: item.name })}>
-                <span className="ranking-index">{String(index + 1).padStart(2, "0")}</span>
-                <div className="ranking-name">
-                  <strong>{item.name}</strong>
-                  <span>{formatInteger(item.count)} Orçamentos pendentes</span>
-                </div>
-                <strong className="ranking-value">{formatCurrency(item.value)}</strong>
-              </button>
-            ))}
+          <div className="ranking-list ranking-list--premium">
+            {suppliers.map((item, index) => {
+              const max = Math.max(...suppliers.map((entry) => entry.value), 1);
+              const width = Math.max(8, Math.round((item.value / max) * 100));
+              return (
+                <button
+                  type="button"
+                  className="ranking-premium-row"
+                  key={item.name}
+                  onClick={() => onOpenConsulta({ supplier: item.name })}
+                >
+                  <span className="ranking-premium-row__index">{String(index + 1).padStart(2, "0")}</span>
+                  <div className="ranking-premium-row__body">
+                    <div className="ranking-premium-row__top">
+                      <strong>{item.name}</strong>
+                      <strong>{formatCurrency(item.value)}</strong>
+                    </div>
+                    <div className="ranking-premium-row__meta">
+                      <span>{formatInteger(item.count)} orçamentos pendentes</span>
+                      <span>Valor em andamento</span>
+                    </div>
+                    <div className="ranking-premium-row__bar">
+                      <span style={{ width: `${width}%` }} />
+                    </div>
+                  </div>
+                </button>
+              );
+            })}
           </div>
         </article>
       </section>
-
-      <section className="section-card process-card">
-        <div className="section-heading">
-          <div>
-            <span className="eyebrow">Fluxo operacional</span>
-            <h2>Etapa atual dos registros</h2>
-          </div>
-          <span className="section-heading__note">
-            Cada OS/ORC aparece em uma única etapa
-          </span>
-        </div>
-
-        <div className="process-flow">
-          {[
-            ["FALTA LANÇAMENTO", "01", "Recebido"],
-            ["FALTA O PEDIDO", "02", "Lançado"],
-            ["FALTA NF", "03", "Pedido emitido"],
-            ["CONCLUÍDO", "04", "Finalizado"]
-          ].map(([status, step, label]) => {
-            const count = metadata.statusCounts[status] ?? 0;
-            return (
-              <button type="button" className="process-step process-step--action" key={status} onClick={() => onOpenConsulta({ status })}>
-                <div className="process-step__number">{step}</div>
-                <div className="process-step__content">
-                  <span>{label}</span>
-                  <strong>{formatInteger(count)}</strong>
-                  <small>{statusLabel(status)}</small>
-                </div>
-              </button>
-            );
-          })}
-        </div>
-      </section>
-
-      <section className="analytics-grid">
-        <article className="section-card chart-card">
-          <div className="section-heading">
-            <div>
-              <span className="eyebrow">Volume</span>
-              <h2>orçamentos recebidos por mês</h2>
-            </div>
-          </div>
-          <div className="chart-area">
-            <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={monthly} margin={{ top: 12, right: 10, left: -12, bottom: 0 }}>
-                <defs>
-                  <linearGradient id="monthlyArea" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#0874a6" stopOpacity={0.28} />
-                    <stop offset="100%" stopColor="#0874a6" stopOpacity={0.03} />
-                  </linearGradient>
-                </defs>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e5ebef" />
-                <XAxis dataKey="mes" tickLine={false} axisLine={false} />
-                <YAxis tickLine={false} axisLine={false} allowDecimals={false} />
-                <Tooltip
-                  formatter={(value) => [formatInteger(Number(value)), "Recebidos"]}
-                  contentStyle={{ borderRadius: 12, borderColor: "#dce5ea" }}
-                />
-                <Area
-                  type="monotone"
-                  dataKey="total"
-                  stroke="#0874a6"
-                  strokeWidth={2.5}
-                  fill="url(#monthlyArea)"
-                />
-              </AreaChart>
-            </ResponsiveContainer>
-          </div>
-        </article>
-
-        <article className="section-card chart-card">
-          <div className="section-heading">
-            <div>
-              <span className="eyebrow">Pendências</span>
-              <h2>Concentração por etapa</h2>
-            </div>
-          </div>
-          <div className="chart-area">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart
-                data={pendingByStatus}
-                layout="vertical"
-                margin={{ top: 12, right: 24, left: 18, bottom: 0 }}
-              >
-                <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#e5ebef" />
-                <XAxis type="number" tickLine={false} axisLine={false} allowDecimals={false} />
-                <YAxis
-                  dataKey="label"
-                  type="category"
-                  tickLine={false}
-                  axisLine={false}
-                  width={104}
-                />
-                <Tooltip
-                  formatter={(value) => [formatInteger(Number(value)), "Registros"]}
-                  contentStyle={{ borderRadius: 12, borderColor: "#dce5ea" }}
-                />
-                <Bar dataKey="total" fill="#e59f2b" radius={[0, 7, 7, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-        </article>
-      </section>
-
 
       <section className="section-card oldest-card">
         <div className="section-heading">
