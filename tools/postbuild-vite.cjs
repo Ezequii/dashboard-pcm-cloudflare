@@ -73,33 +73,6 @@ function writeIntegrityManifest() {
 }
 
 
-function makeWranglerConfigPortable() {
-  const wranglerPath = path.join(OUTPUT, "wrangler.json");
-  if (!fs.existsSync(wranglerPath)) {
-    throw new Error("Configuração Wrangler gerada pelo Vite não foi encontrada.");
-  }
-
-  const generated = JSON.parse(fs.readFileSync(wranglerPath, "utf8"));
-  const portable = {
-    name: generated.name || "dashboard-pcm-cloudflare",
-    compatibility_date: generated.compatibility_date || "2026-07-21",
-    compatibility_flags: Array.isArray(generated.compatibility_flags)
-      ? generated.compatibility_flags
-      : [],
-    assets: {
-      directory: ".",
-      not_found_handling:
-        generated.assets?.not_found_handling || "404-page",
-    },
-    observability: generated.observability || { enabled: true },
-  };
-
-  fs.writeFileSync(
-    wranglerPath,
-    `${JSON.stringify(portable, null, 2)}\n`
-  );
-}
-
 function verifyOutput() {
   const required = [
     "index.html",
@@ -136,7 +109,6 @@ function verifyOutput() {
 }
 
 try {
-  makeWranglerConfigPortable();
   verifyOutput();
   const shell = expandServiceWorkerPrecache();
   const manifested = writeIntegrityManifest();

@@ -1,17 +1,10 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
-import { cloudflare } from "@cloudflare/vite-plugin";
 import { resolve } from "node:path";
 
 export default defineConfig({
   publicDir: ".vite-public",
-  plugins: [
-    react(),
-    cloudflare({
-      configPath: "./wrangler.vite.toml",
-      inspectorPort: false,
-    }),
-  ],
+  plugins: [react()],
   build: {
     outDir: "dist-vite",
     emptyOutDir: true,
