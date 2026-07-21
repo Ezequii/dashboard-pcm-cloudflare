@@ -125,6 +125,7 @@ export function OverviewPage({
             <div>
               <span className="eyebrow">Liderança</span>
               <h2>Solicitantes com mais pendências</h2>
+              <small className="section-subcopy">Clique para abrir os registros na Consulta</small>
             </div>
           </div>
           <div className="ranking-list">
@@ -146,6 +147,7 @@ export function OverviewPage({
             <div>
               <span className="eyebrow">Financeiro</span>
               <h2>Fornecedores com maior valor pendente</h2>
+              <small className="section-subcopy">Clique para abrir os registros na Consulta</small>
             </div>
           </div>
           <div className="ranking-list">

@@ -50,9 +50,9 @@ export function AppShell({
         <div className="sidebar__brand">
           <div className="sidebar__brand-plate">
             <img
-              src="/branding/amaggi-logo.png"
+              src={collapsed ? "/branding/app-icon.png" : "/branding/amaggi-logo.png"}
               alt="AMAGGI"
-              className="sidebar__logo"
+              className={`sidebar__logo ${collapsed ? "sidebar__logo--icon" : ""}`}
             />
           </div>
           <div className="sidebar__product">

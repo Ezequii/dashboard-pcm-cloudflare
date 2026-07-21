@@ -1,9 +1,31 @@
-import { useCallback, useEffect, useState } from "react";
+import { Suspense, lazy, useCallback, useEffect, useState } from "react";
 import { AlertCircle, LoaderCircle } from "lucide-react";
 import { AppShell } from "./components/AppShell";
-import { OverviewPage } from "./pages/OverviewPage";
-import { ConsultaPage } from "./pages/ConsultaPage";
 import type { AppPage, OsOrcDataset, OsOrcRecord } from "./types/osOrc";
+
+
+const OverviewPage = lazy(() =>
+  import("./pages/OverviewPage").then((module) => ({ default: module.OverviewPage }))
+);
+
+const ConsultaPage = lazy(() =>
+  import("./pages/ConsultaPage").then((module) => ({ default: module.ConsultaPage }))
+);
+
+function PageFallback() {
+  return (
+    <div className="page-loading" role="status" aria-live="polite">
+      <div className="page-loading__bar" />
+      <div className="page-loading__grid">
+        <div className="page-loading__card" />
+        <div className="page-loading__card" />
+        <div className="page-loading__card" />
+        <div className="page-loading__card" />
+      </div>
+      <div className="page-loading__panel" />
+    </div>
+  );
+}
 
 function pageFromHash(): AppPage {
   return window.location.hash === "#consulta" ? "consulta" : "overview";
@@ -100,22 +122,24 @@ export default function App() {
       onPageChange={handlePageChange}
       metadata={dataset.metadata}
     >
-      {page === "overview" ? (
-        <OverviewPage
-          records={dataset.records}
-          metadata={dataset.metadata}
-          onOpenRecord={handleOpenRecord}
-          onOpenConsulta={handleOpenConsulta}
-        />
-      ) : (
-        <ConsultaPage
-          records={dataset.records}
-          initialRecord={recordToOpen}
-          onInitialRecordConsumed={() => setRecordToOpen(null)}
-          preset={consultaPreset}
-          onPresetConsumed={() => setConsultaPreset(null)}
-        />
-      )}
+      <Suspense fallback={<PageFallback />}>
+        {page === "overview" ? (
+          <OverviewPage
+            records={dataset.records}
+            metadata={dataset.metadata}
+            onOpenRecord={handleOpenRecord}
+            onOpenConsulta={handleOpenConsulta}
+          />
+        ) : (
+          <ConsultaPage
+            records={dataset.records}
+            initialRecord={recordToOpen}
+            onInitialRecordConsumed={() => setRecordToOpen(null)}
+            preset={consultaPreset}
+            onPresetConsumed={() => setConsultaPreset(null)}
+          />
+        )}
+      </Suspense>
     </AppShell>
   );
 }

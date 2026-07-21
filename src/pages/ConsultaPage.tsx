@@ -44,6 +44,7 @@ export function ConsultaPage({
   const [requester, setRequester] = useState("TODOS");
   const [page, setPage] = useState(0);
   const [selected, setSelected] = useState<OsOrcRecord | null>(null);
+  const [contextLabel, setContextLabel] = useState("");
 
   const suppliers = useMemo(
     () =>
@@ -118,6 +119,15 @@ export function ConsultaPage({
     setSupplier(preset.supplier ?? "TODOS");
     setRequester(preset.requester ?? "TODOS");
     setPage(0);
+
+    if (preset.requester) {
+      setContextLabel(`Solicitante: ${preset.requester}`);
+    } else if (preset.supplier) {
+      setContextLabel(`Fornecedor: ${preset.supplier}`);
+    } else if (preset.status) {
+      setContextLabel(`Etapa: ${preset.status === "FALTA O PEDIDO" ? "Falta pedido" : preset.status === "FALTA LANÇAMENTO" ? "Falta lançamento" : preset.status === "FALTA NF" ? "Falta NF" : "Concluído"}`);
+    }
+
     onPresetConsumed();
   }, [preset, onPresetConsumed]);
 
@@ -126,6 +136,7 @@ export function ConsultaPage({
     setStatus("TODOS");
     setSupplier("TODOS");
     setRequester("TODOS");
+    setContextLabel("");
   };
 
   const exportCsv = () => {
@@ -194,6 +205,18 @@ export function ConsultaPage({
           Exportar CSV
         </button>
       </header>
+
+      {contextLabel && (
+        <div className="consulta-context" role="status">
+          <div>
+            <span className="consulta-context__label">Contexto vindo da Visão Geral</span>
+            <strong>{contextLabel}</strong>
+          </div>
+          <button type="button" className="ghost-button" onClick={clearFilters}>
+            Limpar contexto
+          </button>
+        </div>
+      )}
 
       <section className="section-card filters-card">
         <div className="search-field">

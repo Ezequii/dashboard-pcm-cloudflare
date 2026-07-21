@@ -1562,3 +1562,151 @@ tr:focus-visible {
     display: none;
   }
 }
+
+
+/* =========================================================
+   V3 — performance percebida + acabamento premium
+   ========================================================= */
+
+.sidebar__logo--icon {
+  width: 36px;
+  height: 36px;
+  margin: 0 auto;
+  object-fit: contain;
+}
+
+.section-subcopy {
+  display: block;
+  margin-top: 4px;
+  color: #8a99a1;
+  font-size: 0.68rem;
+  font-weight: 500;
+}
+
+.consulta-context {
+  min-height: 58px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 10px 14px;
+  border: 1px solid #cfe1ea;
+  border-radius: 14px;
+  background:
+    linear-gradient(180deg, rgba(244, 250, 253, 0.96), rgba(249, 252, 253, 0.96));
+  box-shadow: 0 8px 24px rgba(18, 54, 73, 0.035);
+}
+
+.consulta-context > div {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.consulta-context__label {
+  color: #7f9099;
+  font-size: 0.66rem;
+}
+
+.consulta-context strong {
+  overflow: hidden;
+  color: #285065;
+  font-size: 0.78rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.data-table thead {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+}
+
+.data-table th {
+  box-shadow: inset 0 -1px 0 #e4eaee;
+}
+
+.page-loading {
+  width: min(100%, 1600px);
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding-top: 6px;
+}
+
+.page-loading__bar,
+.page-loading__card,
+.page-loading__panel {
+  overflow: hidden;
+  position: relative;
+  border: 1px solid #e4ebef;
+  background: #eef3f5;
+}
+
+.page-loading__bar::after,
+.page-loading__card::after,
+.page-loading__panel::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  transform: translateX(-100%);
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,.78), transparent);
+  animation: v3-shimmer 1.25s infinite;
+}
+
+.page-loading__bar {
+  width: 44%;
+  height: 72px;
+  border-radius: 16px;
+}
+
+.page-loading__grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0,1fr));
+  gap: 12px;
+}
+
+.page-loading__card {
+  height: 112px;
+  border-radius: 15px;
+}
+
+.page-loading__panel {
+  height: 320px;
+  border-radius: 18px;
+}
+
+@keyframes v3-shimmer {
+  100% { transform: translateX(100%); }
+}
+
+@media (max-width: 1100px) {
+  .page-loading__grid {
+    grid-template-columns: repeat(2, minmax(0,1fr));
+  }
+}
+
+@media (max-width: 760px) {
+  .consulta-context {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .page-loading__bar {
+    width: 78%;
+  }
+
+  .page-loading__grid {
+    grid-template-columns: 1fr;
+  }
+
+  .page-loading__card {
+    height: 96px;
+  }
+
+  .page-loading__panel {
+    height: 240px;
+  }
+}
