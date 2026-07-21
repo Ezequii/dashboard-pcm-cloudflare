@@ -70,12 +70,9 @@ export function daysSince(value: string | null, now = new Date()): number {
 }
 
 export function recordLabel(record: OsOrcRecord): string {
-  if (record.numeroOrdemServico && record.numeroOrcamento) {
-    return `OS ${record.numeroOrdemServico} · ORC ${record.numeroOrcamento}`;
-  }
-  if (record.numeroOrdemServico) return `OS ${record.numeroOrdemServico}`;
-  if (record.numeroOrcamento) return `ORC ${record.numeroOrcamento}`;
-  return `Registro ${record.sourceRow}`;
+  const os = record.numeroOrdemServico ? `OS ${record.numeroOrdemServico}` : "OS —";
+  const orc = record.numeroOrcamento ? `ORC ${record.numeroOrcamento}` : "ORC —";
+  return `${os} · ${orc}`;
 }
 
 export function statusLabel(status: string): string {

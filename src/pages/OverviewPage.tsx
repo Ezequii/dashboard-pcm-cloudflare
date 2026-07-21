@@ -30,7 +30,6 @@ import {
   formatCurrency,
   formatDate,
   formatInteger,
-  recordLabel,
   statusLabel
 } from "../lib/format";
 import { KpiCard } from "../components/KpiCard";
@@ -77,7 +76,7 @@ export function OverviewPage({
           <span className="eyebrow">PCM · OS &amp; Orçamentos</span>
           <h1>Visão Geral</h1>
           <p>
-            Acompanhamento executivo dos OS/ORCs recebidos e do avanço até
+            Acompanhamento executivo dos orçamentos recebidos e do avanço até
             pedido, NF e conclusão.
           </p>
         </div>
@@ -89,7 +88,7 @@ export function OverviewPage({
 
       <section className="kpi-grid" aria-label="Indicadores principais">
         <KpiCard
-          label="OS/ORCs pendentes"
+          label="Orçamentos pendentes"
           value={formatInteger(metadata.pendingCount)}
           detail={`${((metadata.pendingCount / metadata.recordCount) * 100).toLocaleString("pt-BR", { maximumFractionDigits: 1 })}% da base`}
           icon={AlertTriangle}
@@ -112,7 +111,7 @@ export function OverviewPage({
         <KpiCard
           label="Pendência mais antiga"
           value={oldestItem ? `${oldestItem.days} dias` : "—"}
-          detail={oldestItem ? recordLabel(oldestItem.record) : "Sem pendências"}
+          detail={oldestItem ? `ORC ${oldestItem.record.numeroOrcamento || "—"}` : "Sem pendências"}
           icon={Clock3}
           tone="orange"
         />
@@ -134,7 +133,7 @@ export function OverviewPage({
                 <span className="ranking-index">{String(index + 1).padStart(2, "0")}</span>
                 <div className="ranking-name">
                   <strong>{item.name}</strong>
-                  <span>{formatInteger(item.count)} OS/ORCs · {formatCompactCurrency(item.value)}</span>
+                  <span>{formatInteger(item.count)} orçamentos · {formatCompactCurrency(item.value)}</span>
                 </div>
                 <strong className="ranking-value">{formatInteger(item.count)}</strong>
               </button>
@@ -156,7 +155,7 @@ export function OverviewPage({
                 <span className="ranking-index">{String(index + 1).padStart(2, "0")}</span>
                 <div className="ranking-name">
                   <strong>{item.name}</strong>
-                  <span>{formatInteger(item.count)} OS/ORCs pendentes</span>
+                  <span>{formatInteger(item.count)} Orçamentos pendentes</span>
                 </div>
                 <strong className="ranking-value">{formatCurrency(item.value)}</strong>
               </button>
@@ -203,7 +202,7 @@ export function OverviewPage({
           <div className="section-heading">
             <div>
               <span className="eyebrow">Volume</span>
-              <h2>OS/ORCs recebidos por mês</h2>
+              <h2>orçamentos recebidos por mês</h2>
             </div>
           </div>
           <div className="chart-area">
@@ -287,7 +286,7 @@ export function OverviewPage({
               onClick={() => onOpenRecord(record)}
             >
               <div>
-                <strong>{recordLabel(record)}</strong>
+                <strong><span className="oldest-identity__orc">ORC {record.numeroOrcamento || "—"}</span></strong>
                 <span>
                   {record.fornecedor || "Fornecedor não informado"} ·{" "}
                   {formatDate(record.dataRecebimento)}

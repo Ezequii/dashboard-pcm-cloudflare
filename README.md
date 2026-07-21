@@ -1,4 +1,4 @@
-# PCM | Gestão de OS e Orçamentos — V1
+# PCM | Gestão de OS e Orçamentos — V4
 
 Projeto reconstruído do zero para acompanhamento dos OS/ORCs recebidos pelo PCM.
 
@@ -111,3 +111,13 @@ Também é recomendado manter o repositório Git como **privado**, porque o JSON
 - `npm run test`
 - `npm run verify`
 - `npm run data:update`
+
+
+## Regra importante: OS e ORC
+
+Na planilha, os campos são distintos:
+
+- `Nº ORDEM SERVIÇO` = OS
+- `Nº ORÇ. FINAL` = ORC / orçamento final
+
+Mesmo quando o ORC é chamado informalmente de OS no dia a dia, o dashboard preserva os dois campos separadamente na Consulta, no detalhe e na busca.

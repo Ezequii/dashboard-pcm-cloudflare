@@ -16,8 +16,7 @@ import { useEffect, useRef } from "react";
 import type { OsOrcRecord } from "../types/osOrc";
 import {
   formatCurrency,
-  formatDate,
-  recordLabel
+  formatDate
 } from "../lib/format";
 import { StatusBadge } from "./StatusBadge";
 
@@ -132,7 +131,14 @@ export function DetailDrawer({
         <header className="detail-drawer__header">
           <div>
             <span className="eyebrow">Detalhe do registro</span>
-            <h2 id="detail-drawer-title">{recordLabel(record)}</h2>
+            <span className="detail-drawer__eyebrow">Detalhe do orçamento</span>
+            <h2 id="detail-drawer-title" className="detail-drawer__orc">
+              ORC {record.numeroOrcamento || "—"}
+            </h2>
+            <div className="detail-drawer__identity">
+              <span className="detail-drawer__os"><strong>OS</strong> {record.numeroOrdemServico || "—"}</span>
+              <span className="detail-drawer__supplier">{record.fornecedor || "Fornecedor não informado"}</span>
+            </div>
             <div className="detail-drawer__status">
               <StatusBadge status={record.status} />
               <span>

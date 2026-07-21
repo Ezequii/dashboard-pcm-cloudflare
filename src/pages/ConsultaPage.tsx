@@ -10,8 +10,7 @@ import {
   formatCurrency,
   formatDate,
   formatInteger,
-  normalizeSearch,
-  recordLabel
+  normalizeSearch
 } from "../lib/format";
 import { StatusBadge } from "../components/StatusBadge";
 import { DetailDrawer } from "../components/DetailDrawer";
@@ -296,7 +295,7 @@ export function ConsultaPage({
             <thead>
               <tr>
                 <th>Recebimento</th>
-                <th>OS / ORC</th>
+                <th>ORC</th>
                 <th>Prefixo / Equipamento</th>
                 <th>Fornecedor</th>
                 <th>Requisição</th>
@@ -320,8 +319,8 @@ export function ConsultaPage({
                 >
                   <td>{formatDate(record.dataRecebimento)}</td>
                   <td>
-                    <strong className="table-primary">{recordLabel(record)}</strong>
-                    <span className="table-secondary">{record.solicitante || "—"}</span>
+                    <strong className="table-primary table-primary--orc">{record.numeroOrcamento || "—"}</strong>
+                    <span className="table-secondary">Orçamento</span>
                   </td>
                   <td>
                     <strong className="table-primary">{record.prefixo || "—"}</strong>
@@ -347,7 +346,10 @@ export function ConsultaPage({
               onClick={() => setSelected(record)}
             >
               <div className="mobile-result-card__top">
-                <strong>{recordLabel(record)}</strong>
+                <div className="mobile-result-card__identity">
+                  <span>Orçamento</span>
+                  <strong>ORC {record.numeroOrcamento || "—"}</strong>
+                </div>
                 <StatusBadge status={record.status} />
               </div>
               <span>{record.fornecedor || "Fornecedor não informado"}</span>
