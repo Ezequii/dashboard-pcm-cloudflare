@@ -5,7 +5,7 @@ function validateRuntimeConfiguration(){
   if(!rules || !rules.aging || !rules.targets || !rules.priorityWeights){
     throw new Error("Configuração de regras de negócio indisponível. Recarregue a página.");
   }
-  if(!config || String(config.assetVersion || "") !== "12200"){
+  if(!config || String(config.assetVersion || "") !== "12300"){
     throw new Error("Os arquivos da aplicação estão em versões diferentes. Recarregue sem cache.");
   }
 
