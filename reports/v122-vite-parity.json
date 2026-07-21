@@ -1,0 +1,296 @@
+{
+  "schema": 1,
+  "version": "122.0.0",
+  "legacyOutput": "dist",
+  "viteOutput": "dist-vite",
+  "sharedUserFacingFiles": 56,
+  "identicalFiles": 56,
+  "differentFiles": [],
+  "viteOnlyGeneratedFiles": [
+    ".assetsignore",
+    ".vite/manifest.json",
+    "wrangler.json"
+  ],
+  "files": {
+    "404.html": {
+      "legacySha256": "defd9c6cf4be58341281e39020a150c442542929fb44044c35dc9c70a7b82286",
+      "viteSha256": "defd9c6cf4be58341281e39020a150c442542929fb44044c35dc9c70a7b82286",
+      "identical": true
+    },
+    "_headers": {
+      "legacySha256": "e322854c3a8266a708e9c64da9a4e66d457382196a0213cfb6c5554c61e9e2a0",
+      "viteSha256": "e322854c3a8266a708e9c64da9a4e66d457382196a0213cfb6c5554c61e9e2a0",
+      "identical": true
+    },
+    "index.html": {
+      "legacySha256": "04a03d2bb7349fccff6f3b725688f600092f1f98030a869b0c3e5ab53d5dcb42",
+      "viteSha256": "04a03d2bb7349fccff6f3b725688f600092f1f98030a869b0c3e5ab53d5dcb42",
+      "identical": true
+    },
+    "manifest.webmanifest": {
+      "legacySha256": "9ddd48a474288a575398a6fbc860c75da2f338caffc07d908a127eb3a78a6095",
+      "viteSha256": "9ddd48a474288a575398a6fbc860c75da2f338caffc07d908a127eb3a78a6095",
+      "identical": true
+    },
+    "static/config/business-rules.json": {
+      "legacySha256": "2a3429e64c227b42d67f62c822520cbf9ea09fa4a74fa16c827b262dd9173be4",
+      "viteSha256": "2a3429e64c227b42d67f62c822520cbf9ea09fa4a74fa16c827b262dd9173be4",
+      "identical": true
+    },
+    "static/config/security-config.json": {
+      "legacySha256": "34e14047593f3f5a5f6ed0bf22fe43abc5a9be2d617964abeec602f40df79ad0",
+      "viteSha256": "34e14047593f3f5a5f6ed0bf22fe43abc5a9be2d617964abeec602f40df79ad0",
+      "identical": true
+    },
+    "static/data/executive-data.json": {
+      "legacySha256": "ac9e1b871e7224c7a7f998b958c61c17bb8c0e0cd57e6a12abf593ef01fc6cfd",
+      "viteSha256": "ac9e1b871e7224c7a7f998b958c61c17bb8c0e0cd57e6a12abf593ef01fc6cfd",
+      "identical": true
+    },
+    "static/data/operational-data.json": {
+      "legacySha256": "98f40827d597c99e39e88ee1084bd39f8080b39cc989516b83f200355efece8b",
+      "viteSha256": "98f40827d597c99e39e88ee1084bd39f8080b39cc989516b83f200355efece8b",
+      "identical": true
+    },
+    "static/data/publication-status.json": {
+      "legacySha256": "5290719fc4f8183e43f023f8b5dca0bb4a91dd2b5a3cd9e9f164656259603f12",
+      "viteSha256": "5290719fc4f8183e43f023f8b5dca0bb4a91dd2b5a3cd9e9f164656259603f12",
+      "identical": true
+    },
+    "static/data/version.json": {
+      "legacySha256": "aa75529a1f22cfaf887a0807b3a12059fa177ace630fe4adfb7d18a6442b6c9f",
+      "viteSha256": "aa75529a1f22cfaf887a0807b3a12059fa177ace630fe4adfb7d18a6442b6c9f",
+      "identical": true
+    },
+    "static/favicon.png": {
+      "legacySha256": "d8b8cf8c9b217fb904e2af6869d16e1f29c9852553f8281a079f682ed8d2e483",
+      "viteSha256": "d8b8cf8c9b217fb904e2af6869d16e1f29c9852553f8281a079f682ed8d2e483",
+      "identical": true
+    },
+    "static/js/api.js": {
+      "legacySha256": "16ab10982182a889b7e4fa75ee68bd78e9cfcf73c73215f78e42ac0d22bfe8d3",
+      "viteSha256": "16ab10982182a889b7e4fa75ee68bd78e9cfcf73c73215f78e42ac0d22bfe8d3",
+      "identical": true
+    },
+    "static/js/app-config.js": {
+      "legacySha256": "fd73f4520203a1bf7642a4a58df038460660cd221b475a1c98c6dbc036726fec",
+      "viteSha256": "fd73f4520203a1bf7642a4a58df038460660cd221b475a1c98c6dbc036726fec",
+      "identical": true
+    },
+    "static/js/core.js": {
+      "legacySha256": "d60b1e00ee88d7d2d18ea722957e8db414a84f35eab1fdfa8b46672ba169f284",
+      "viteSha256": "d60b1e00ee88d7d2d18ea722957e8db414a84f35eab1fdfa8b46672ba169f284",
+      "identical": true
+    },
+    "static/js/dashboard.js": {
+      "legacySha256": "b4c171230423e8b37ed212f4901a08bf8495f97e4659920bbcd07d6a0ddb6923",
+      "viteSha256": "b4c171230423e8b37ed212f4901a08bf8495f97e4659920bbcd07d6a0ddb6923",
+      "identical": true
+    },
+    "static/js/filters.js": {
+      "legacySha256": "70d3d2d041f225ac2eb4ab7a3ca5dbef81f434f4469ceba2280944020d04d483",
+      "viteSha256": "70d3d2d041f225ac2eb4ab7a3ca5dbef81f434f4469ceba2280944020d04d483",
+      "identical": true
+    },
+    "static/js/main.js": {
+      "legacySha256": "07cffb19ac1a952373a0781a51db931dcd1f7986a62e6cfd019b73bf2f22c63a",
+      "viteSha256": "07cffb19ac1a952373a0781a51db931dcd1f7986a62e6cfd019b73bf2f22c63a",
+      "identical": true
+    },
+    "static/js/productivity-v99.js": {
+      "legacySha256": "cdc492c9463a8dca2a21054c07ad9ede01f4dc267ba4f571e87cf0f14b43db7b",
+      "viteSha256": "cdc492c9463a8dca2a21054c07ad9ede01f4dc267ba4f571e87cf0f14b43db7b",
+      "identical": true
+    },
+    "static/js/pwa-v103.js": {
+      "legacySha256": "fc535a4a82cb6c18dbf2850ce50c7da0315f6505fb783dfd50cefddbd53832b4",
+      "viteSha256": "fc535a4a82cb6c18dbf2850ce50c7da0315f6505fb783dfd50cefddbd53832b4",
+      "identical": true
+    },
+    "static/js/security-v994a.js": {
+      "legacySha256": "91664eab272a389b6f8ed1aa79739fa19028eb3202c4664b26314236e444a235",
+      "viteSha256": "91664eab272a389b6f8ed1aa79739fa19028eb3202c4664b26314236e444a235",
+      "identical": true
+    },
+    "static/js/state.js": {
+      "legacySha256": "4bd2ac3d0c39b3a1fbbc914846746d3b9c20cb9742b3139bd2cd9c4f6b94ce4f",
+      "viteSha256": "4bd2ac3d0c39b3a1fbbc914846746d3b9c20cb9742b3139bd2cd9c4f6b94ce4f",
+      "identical": true
+    },
+    "static/js/table.js": {
+      "legacySha256": "9be29b1cc9c19239923840bd39ba3565c84e03393e31877fded4603ff9a717f0",
+      "viteSha256": "9be29b1cc9c19239923840bd39ba3565c84e03393e31877fded4603ff9a717f0",
+      "identical": true
+    },
+    "static/js/utils.js": {
+      "legacySha256": "cb638e5f98d7ef1b3b56559d0c8b061b12e3c65678b6e4131b0935aded66510a",
+      "viteSha256": "cb638e5f98d7ef1b3b56559d0c8b061b12e3c65678b6e4131b0935aded66510a",
+      "identical": true
+    },
+    "static/js/xlsx-v99.js": {
+      "legacySha256": "8895e5df0ae958272139958bf318826697e6919571521f89c7573758c8b2afe7",
+      "viteSha256": "8895e5df0ae958272139958bf318826697e6919571521f89c7573758c8b2afe7",
+      "identical": true
+    },
+    "static/logo_amaggi.png": {
+      "legacySha256": "87f9e67458e064136bee77fccfeb7abc5b1c4f04e9325576a4ca89182c06bf95",
+      "viteSha256": "87f9e67458e064136bee77fccfeb7abc5b1c4f04e9325576a4ca89182c06bf95",
+      "identical": true
+    },
+    "static/styles_404_v994a.css": {
+      "legacySha256": "66b31b5a81cf3eb922eda156aa4abc26785f9d55a4e552a4372b7fea5fd1a1b5",
+      "viteSha256": "66b31b5a81cf3eb922eda156aa4abc26785f9d55a4e552a4372b7fea5fd1a1b5",
+      "identical": true
+    },
+    "static/styles_v100_1_usability.css": {
+      "legacySha256": "205656d3070fed58fd5a669618d90194889245d9efad170976bf1df66b524e5c",
+      "viteSha256": "205656d3070fed58fd5a669618d90194889245d9efad170976bf1df66b524e5c",
+      "identical": true
+    },
+    "static/styles_v100_base_table.css": {
+      "legacySha256": "6d54ffafc134af747904dcdd030e8e7cfd17dccbad9354c75e851f54c28fb071",
+      "viteSha256": "6d54ffafc134af747904dcdd030e8e7cfd17dccbad9354c75e851f54c28fb071",
+      "identical": true
+    },
+    "static/styles_v100_empty_states.css": {
+      "legacySha256": "93e3742eaedba158f78a64141324890dce74cf7c4c353aba63238523e261eb17",
+      "viteSha256": "93e3742eaedba158f78a64141324890dce74cf7c4c353aba63238523e261eb17",
+      "identical": true
+    },
+    "static/styles_v100_executive_composed.css": {
+      "legacySha256": "78bb33df84657d541dd30ff54574ef1c1e53775f22c15e18c6ff8b8fae64a928",
+      "viteSha256": "78bb33df84657d541dd30ff54574ef1c1e53775f22c15e18c6ff8b8fae64a928",
+      "identical": true
+    },
+    "static/styles_v100_global_context.css": {
+      "legacySha256": "ac1d395d79869e8c9edf896a36dbe323ce800df548d4bd57f8c2d26f88b1c20b",
+      "viteSha256": "ac1d395d79869e8c9edf896a36dbe323ce800df548d4bd57f8c2d26f88b1c20b",
+      "identical": true
+    },
+    "static/styles_v100_quick_filters.css": {
+      "legacySha256": "6df5c8f0ebfdfa1491e282c812d68b67423d3ef726c2d7c216fcb2237e7144b3",
+      "viteSha256": "6df5c8f0ebfdfa1491e282c812d68b67423d3ef726c2d7c216fcb2237e7144b3",
+      "identical": true
+    },
+    "static/styles_v101_resilience.css": {
+      "legacySha256": "592e89baa2116e03bdb9e59872da813d0ab664c685489431dc2012d866a167ab",
+      "viteSha256": "592e89baa2116e03bdb9e59872da813d0ab664c685489431dc2012d866a167ab",
+      "identical": true
+    },
+    "static/styles_v102_delivery.css": {
+      "legacySha256": "f6b4c97755ad27e5ac5b7072b7f89e4b365e5fe7f91176fd027cb270f6301f66",
+      "viteSha256": "f6b4c97755ad27e5ac5b7072b7f89e4b365e5fe7f91176fd027cb270f6301f66",
+      "identical": true
+    },
+    "static/styles_v103_ops.css": {
+      "legacySha256": "c843e0deed09f99c53435f4f8b1dfe1775c53ebfeb445ff55fc99e8371999669",
+      "viteSha256": "c843e0deed09f99c53435f4f8b1dfe1775c53ebfeb445ff55fc99e8371999669",
+      "identical": true
+    },
+    "static/styles_v107_base_cleanup.css": {
+      "legacySha256": "7aceecfb88f2df9a0a35209da81aadb97ba41490eaec2866c90e28fef4caaaea",
+      "viteSha256": "7aceecfb88f2df9a0a35209da81aadb97ba41490eaec2866c90e28fef4caaaea",
+      "identical": true
+    },
+    "static/styles_v108_layout_flow.css": {
+      "legacySha256": "8c495fab719744862c0231970b808c2bc303cdb52e3b679213c5f77f67c4b145",
+      "viteSha256": "8c495fab719744862c0231970b808c2bc303cdb52e3b679213c5f77f67c4b145",
+      "identical": true
+    },
+    "static/styles_v109_professional_responsive.css": {
+      "legacySha256": "6ad48b651d1bfeddb741edd15f07b69d302a6873c1026d89ab662b6ff20ad018",
+      "viteSha256": "6ad48b651d1bfeddb741edd15f07b69d302a6873c1026d89ab662b6ff20ad018",
+      "identical": true
+    },
+    "static/styles_v110_header_kpi.css": {
+      "legacySha256": "c27a7f1aedb9321f55ebdb0c9a5917454168ba3d0654871cbdf57c656e6a8d6f",
+      "viteSha256": "c27a7f1aedb9321f55ebdb0c9a5917454168ba3d0654871cbdf57c656e6a8d6f",
+      "identical": true
+    },
+    "static/styles_v111_kpi_system.css": {
+      "legacySha256": "185b539eb0ac6f3969666d5e7e5676af925df1e08a887fd993ac9a5224fa4d84",
+      "viteSha256": "185b539eb0ac6f3969666d5e7e5676af925df1e08a887fd993ac9a5224fa4d84",
+      "identical": true
+    },
+    "static/styles_v112_kpi_refinement.css": {
+      "legacySha256": "b05f9e2944eda40b0bb789fa6c8b4fac1a1ea9bd81d23ea939398dcc35e697d2",
+      "viteSha256": "b05f9e2944eda40b0bb789fa6c8b4fac1a1ea9bd81d23ea939398dcc35e697d2",
+      "identical": true
+    },
+    "static/styles_v113_kpi_content_alignment.css": {
+      "legacySha256": "7e7da23ee28209d3b06bececa534a4a079c88001272daf346016996e470428b0",
+      "viteSha256": "7e7da23ee28209d3b06bececa534a4a079c88001272daf346016996e470428b0",
+      "identical": true
+    },
+    "static/styles_v115_context_base.css": {
+      "legacySha256": "67d2c10644322aed6cb7575c6ec1e1df351530ff9b658640116037d9fc68c677",
+      "viteSha256": "67d2c10644322aed6cb7575c6ec1e1df351530ff9b658640116037d9fc68c677",
+      "identical": true
+    },
+    "static/styles_v121_consolidated_preview.css": {
+      "legacySha256": "f5d252b8ced5f3440f36d3b58a879e697d1d9928d777ef4b9fda01583af2bd93",
+      "viteSha256": "f5d252b8ced5f3440f36d3b58a879e697d1d9928d777ef4b9fda01583af2bd93",
+      "identical": true
+    },
+    "static/styles_v50_corrigido.css": {
+      "legacySha256": "9f9b85bc4c2632286f37defdb134f27786ee63c25adbebef675f0eca8f7ea8ca",
+      "viteSha256": "9f9b85bc4c2632286f37defdb134f27786ee63c25adbebef675f0eca8f7ea8ca",
+      "identical": true
+    },
+    "static/styles_v991_faithful.css": {
+      "legacySha256": "b2cba0f857463219e720e07de831c84e11f2c80d697856d673b52d4f5758b7a9",
+      "viteSha256": "b2cba0f857463219e720e07de831c84e11f2c80d697856d673b52d4f5758b7a9",
+      "identical": true
+    },
+    "static/styles_v992_polished.css": {
+      "legacySha256": "7794f3c3660e5ac295bd450e33de1d0f08a64da913aff501a0af5087effcf461",
+      "viteSha256": "7794f3c3660e5ac295bd450e33de1d0f08a64da913aff501a0af5087effcf461",
+      "identical": true
+    },
+    "static/styles_v994a2_audit.css": {
+      "legacySha256": "e71c2d150c7243f0c12c99f0976013a04a5a99fd17a60569c9ec2f4cdab98c7c",
+      "viteSha256": "e71c2d150c7243f0c12c99f0976013a04a5a99fd17a60569c9ec2f4cdab98c7c",
+      "identical": true
+    },
+    "static/styles_v994a2_visual.css": {
+      "legacySha256": "286ecfe2b92676404f9afdde2bdde84f751f9a289b00ce685436c67ac2cfc10f",
+      "viteSha256": "286ecfe2b92676404f9afdde2bdde84f751f9a289b00ce685436c67ac2cfc10f",
+      "identical": true
+    },
+    "static/styles_v994a3_operational_fix.css": {
+      "legacySha256": "6888c7ef8787b4290ca6dde678784a5cd3785f7bd87afc952824e81a0c6bfb30",
+      "viteSha256": "6888c7ef8787b4290ca6dde678784a5cd3785f7bd87afc952824e81a0c6bfb30",
+      "identical": true
+    },
+    "static/styles_v994a4_top_base_flow.css": {
+      "legacySha256": "9f381f67df1c2406877fe2347f6be96cfe70c98aeba16a268d5ab408f7503196",
+      "viteSha256": "9f381f67df1c2406877fe2347f6be96cfe70c98aeba16a268d5ab408f7503196",
+      "identical": true
+    },
+    "static/styles_v994a5_lapidacao.css": {
+      "legacySha256": "1621c9fa88827e6bbf9a63be1f7039a47e2e80d7ed452c3206db7ccfbc62b347",
+      "viteSha256": "1621c9fa88827e6bbf9a63be1f7039a47e2e80d7ed452c3206db7ccfbc62b347",
+      "identical": true
+    },
+    "static/styles_v994a6_clean_rankings.css": {
+      "legacySha256": "38ab3fa2518b30d03ce38b8cd50ce9604d5219c862cfb0d4c1967288be38e531",
+      "viteSha256": "38ab3fa2518b30d03ce38b8cd50ce9604d5219c862cfb0d4c1967288be38e531",
+      "identical": true
+    },
+    "static/styles_v994a_hardening.css": {
+      "legacySha256": "2ee532dda64ced7cfd6c414c6856ac671909a26fcb82b4323864300f5bdda16f",
+      "viteSha256": "2ee532dda64ced7cfd6c414c6856ac671909a26fcb82b4323864300f5bdda16f",
+      "identical": true
+    },
+    "static/styles_v99_productivity.css": {
+      "legacySha256": "40026a00e75d3ddbdba2c4d10cd79af95765f877a853779ddfc72d4e70a20990",
+      "viteSha256": "40026a00e75d3ddbdba2c4d10cd79af95765f877a853779ddfc72d4e70a20990",
+      "identical": true
+    },
+    "sw.js": {
+      "legacySha256": "9c25dcafb3b2b404dc90f2094b88ab50b4ceb587915f9d6ff2cbdd945795cc38",
+      "viteSha256": "9c25dcafb3b2b404dc90f2094b88ab50b4ceb587915f9d6ff2cbdd945795cc38",
+      "identical": true
+    }
+  }
+}

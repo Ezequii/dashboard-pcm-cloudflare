@@ -20,3 +20,5 @@ venv/
 
 # Diretório publicável gerado por tools/build-dist.cjs
 /dist/
+.vite-public/
+dist-vite/

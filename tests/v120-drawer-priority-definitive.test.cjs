@@ -66,11 +66,10 @@ test("V120 preserva a estrutura original do drawer", () => {
   assert.match(INDEX, /id="btnCopyRowSummaryV99"/);
 });
 
-test("V120 sincroniza pacote, runtime e cache-busting dos arquivos alterados", () => {
-  assert.equal(PACKAGE.version, "120.0.0");
-  assert.match(INDEX, />V120<\/span>/);
-  assert.match(INDEX, /app-config\.js\?v=12000/);
-  assert.match(INDEX, /core\.js\?v=12000/);
-  assert.match(INDEX, /productivity-v99\.js\?v=12000/);
-  assert.match(INDEX, /styles_v994a2_visual\.css\?v=12000/);
+test("V120 permanece preservada como base funcional em versões posteriores", () => {
+  const major = Number(String(PACKAGE.version || "0").split(".")[0]);
+  assert.ok(major >= 120);
+  assert.match(INDEX, /id="detailsDrawerV99"/);
+  assert.match(PRODUCTIVITY, /data-detail-priority="true"/);
+  assert.match(VISUAL_CSS, /\.detail-field-v994a2\[data-detail-priority="true"\]/);
 });
