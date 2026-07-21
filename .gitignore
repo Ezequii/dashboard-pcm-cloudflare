@@ -1,0 +1,22 @@
+# Planilhas locais usadas apenas para gerar o JSON
+/data/*.xlsx
+/data/*.xlsm
+/data/*.xls
+!/data/.gitkeep
+
+# Arquivos temporários
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+
+# Estado local, backups e relatórios de publicação nunca devem ser enviados ao site
+/backups/
+/.publication-staging/
+/static/data/dashboard-data.json
+/reports/publication-report.json
+/reports/rollback-report.json
+
+# Diretório publicável gerado por tools/build-dist.cjs
+/dist/

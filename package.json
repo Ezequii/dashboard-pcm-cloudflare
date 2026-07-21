@@ -1,0 +1,19 @@
+{
+  "name": "dashboard-pcm-cloudflare",
+  "version": "120.0.0",
+  "private": true,
+  "scripts": {
+    "build": "node tools/build-dist.cjs",
+    "test": "node --test tests/*.test.cjs",
+    "test:python": "python -m pytest tools/tests -q",
+    "deploy": "npm run build && wrangler deploy",
+    "audit:project": "node tools/audit-project.cjs",
+    "verify": "npm run audit:project && npm test && npm run test:python && npm run build"
+  },
+  "devDependencies": {
+    "wrangler": "^4.0.0"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

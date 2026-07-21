@@ -1,0 +1,13 @@
+name = "dashboard-pcm-cloudflare"
+compatibility_date = "2026-07-07"
+
+[observability]
+enabled = true
+
+[assets]
+directory = "./dist"
+not_found_handling = "404-page"
+
+[build]
+command = "npm run build"
+watch_dir = ["index.html", "404.html", "_headers", "static"]

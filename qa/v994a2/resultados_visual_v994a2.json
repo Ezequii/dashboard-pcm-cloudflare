@@ -1,0 +1,72 @@
+[
+  {
+    "name": "bloco_fluxo_extraido",
+    "passed": true,
+    "detail": "encontrado"
+  },
+  {
+    "name": "sempre_quatro_etapas",
+    "passed": true,
+    "detail": "[\"SEM LANÇAMENTO\",\"SEM PEDIDO\",\"SEM NF\",\"CONCLUÍDO\"]"
+  },
+  {
+    "name": "ordem_oficial",
+    "passed": true,
+    "detail": "[\"SEM LANÇAMENTO\",\"SEM PEDIDO\",\"SEM NF\",\"CONCLUÍDO\"]"
+  },
+  {
+    "name": "etapa_existente_preservada",
+    "passed": true,
+    "detail": "{\"etapa\":\"SEM NF\",\"qtd\":92,\"valor\":806000,\"valor_formatado\":\"R$ 0\",\"percentual\":0,\"max_dias\":69,\"idade_media\":0,\"fora_sla\":17,\"criticas\":0,\"canonical_stage\":\"SEM NF\"}"
+  },
+  {
+    "name": "etapas_ausentes_viram_zero",
+    "passed": true,
+    "detail": "[0,0,92,0]"
+  },
+  {
+    "name": "bloco_gaveta_extraido",
+    "passed": true,
+    "detail": "encontrado"
+  },
+  {
+    "name": "moeda_formatada",
+    "passed": true,
+    "detail": "R$ 5.225,00"
+  },
+  {
+    "name": "documentos_separados",
+    "passed": true,
+    "detail": "41779605 · 41779606"
+  },
+  {
+    "name": "datas_separadas",
+    "passed": true,
+    "detail": "27/01/2026 · 02/03/2026"
+  },
+  {
+    "name": "grade_desktop_quatro_colunas",
+    "passed": true,
+    "detail": "seletor de alta especificidade"
+  },
+  {
+    "name": "quatro_colunas_fixadas_sem_sobrepor",
+    "passed": true,
+    "detail": "seleção + offsets das quatro primeiras colunas"
+  },
+  {
+    "name": "css_carregado_por_ultimo",
+    "passed": true,
+    "detail": "ordem dos estilos"
+  },
+  {
+    "name": "body_da_revisao_base",
+    "passed": true,
+    "detail": "classe v994a2-visual"
+  },
+  {
+    "name": "sem_cache_antigo",
+    "passed": true,
+    "detail": "somente 9942"
+  }
+]
