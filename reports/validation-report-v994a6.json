@@ -6,18 +6,18 @@
   },
   {
     "name": "versionamento_9946",
-    "passed": true,
+    "passed": false,
     "detail": "HTML, configuração e runtime usam 9946"
   },
   {
     "name": "ordem_scripts",
-    "passed": true,
-    "detail": "{'app-config.js': 25382, 'state.js': 25440, 'utils.js': 25493, 'security-v994a.js': 25546, 'api.js': 25608, 'filters.js': 25659, 'dashboard.js': 25714, 'table.js': 25771, 'xlsx-v99.js': 25824, 'productivity-v99.js': 25880, 'core.js': 25944, 'main.js': 25996}"
+    "passed": false,
+    "detail": "{'app-config.js': -1, 'state.js': 23403, 'utils.js': 23456, 'security-v994a.js': 23509, 'api.js': 23571, 'filters.js': -1, 'dashboard.js': 23678, 'table.js': -1, 'xlsx-v99.js': 23789, 'productivity-v99.js': -1, 'core.js': -1, 'main.js': -1}"
   },
   {
     "name": "ids_unicos",
-    "passed": true,
-    "detail": "{'mainContent': 1, 'securityContextV994a': 1, 'securityRoleV994a': 1, 'securityClassificationV994a': 1, 'dataErrorTimeV994a': 1, 'lastValidVersionV994a': 1, 'lastSuccessTimeV994a': 1, 'btnOpenMultiSearchV99': 1, 'selectionBarV99': 1, 'detailsDrawerV99': 1, 'completionProgressV991': 1}"
+    "passed": false,
+    "detail": "{'mainContent': 1, 'securityContextV994a': 1, 'securityRoleV994a': 1, 'securityClassificationV994a': 1, 'dataErrorTimeV994a': 1, 'lastValidVersionV994a': 1, 'lastSuccessTimeV994a': 1, 'btnOpenMultiSearchV99': 0, 'selectionBarV99': 0, 'detailsDrawerV99': 1, 'completionProgressV991': 1}"
   },
   {
     "name": "csp_sem_inline",
@@ -61,8 +61,8 @@
   },
   {
     "name": "produtividade_preservada",
-    "passed": true,
-    "detail": "implementado"
+    "passed": false,
+    "detail": "ausente"
   },
   {
     "name": "xlsx_real",
@@ -107,7 +107,7 @@
   {
     "name": "dados_publicados_validos",
     "passed": true,
-    "detail": "versão 20260715200352"
+    "detail": "versão 20260722123141"
   },
   {
     "name": "pacote_sem_legado_executavel",
@@ -201,7 +201,7 @@
   },
   {
     "name": "preferencias_novas_v994a4",
-    "passed": true,
+    "passed": false,
     "detail": "preferências antigas não sobrescrevem o novo padrão"
   },
   {
@@ -271,7 +271,7 @@
   },
   {
     "name": "mostrador_filtros_v994a5",
-    "passed": true,
+    "passed": false,
     "detail": "barra de contexto diferencia visão, fila e base"
   },
   {
