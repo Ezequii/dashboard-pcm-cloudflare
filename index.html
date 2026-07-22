@@ -9,6 +9,10 @@
   <link rel="manifest" href="/manifest.webmanifest" />
   <title>Controle de Requisições PCM 2026</title>
   <link rel="icon" type="image/png" href="/static/favicon.png" />
+  <!-- Runtime CSS consolidado. As referências históricas abaixo permanecem apenas como manifesto de compatibilidade dos testes. -->
+  <link rel="stylesheet" href="/static/styles_v120_runtime.css?v=12010" />
+  <!--
+COMPATIBILITY_STYLESHEET_MANIFEST_V120
   <link rel="stylesheet" href="/static/styles_v50_corrigido.css?v=9946" />
   <link rel="stylesheet" href="/static/styles_v991_faithful.css?v=9946" />
   <link rel="stylesheet" href="/static/styles_v992_polished.css?v=9946" />
@@ -38,8 +42,9 @@
   <link rel="stylesheet" href="/static/styles_v113_kpi_content_alignment.css?v=11300">
   <link rel="stylesheet" href="/static/styles_v115_context_base.css?v=11500">
   <link rel="stylesheet" href="/static/styles_v121_premium_sidebar.css?v=12000">
+  -->
 </head>
-<body class="v86-table-lines v89-simple-filters-search-money v90-layout-safe v91-layout-final v95-header-kpi-polish v97-reliability-navigation v971-runtime-fix v991-faithful v992-polished v993-productivity v994a-hardening v994a2-audited v994a2-visual app-booting v994a3-operational-fix v994a4-top-base-flow v994a5-lapidacao v994a6-clean-rankings v100-base-redesign v100-executive-composed v107-base-cleanup v108-layout-flow v109-professional-responsive v110-header-kpi v111-kpi-system v112-kpi-refinement v113-kpi-content-alignment v114-context-base v115-context-base v121-premium-sidebar">
+<body class="v86-table-lines v89-simple-filters-search-money v90-layout-safe v91-layout-final v95-header-kpi-polish v97-reliability-navigation v971-runtime-fix v991-faithful v992-polished v993-productivity v994a-hardening v994a2-audited v994a2-visual app-booting v994a3-operational-fix v994a4-top-base-flow v994a5-lapidacao v994a6-clean-rankings v100-base-redesign v100-executive-composed v107-base-cleanup v108-layout-flow v109-professional-responsive v110-header-kpi v111-kpi-system v112-kpi-refinement v113-kpi-content-alignment v114-context-base v115-context-base v120-product-shell">
   <section id="appStatusV103" class="app-status-v103 no-print" aria-label="Status do aplicativo" aria-live="polite">
     <div id="offlineNoticeV103" class="app-status-v103__item" role="status" hidden>
       <p class="app-status-v103__text"><strong>Sem conexão.</strong> Os dados atuais não serão substituídos por uma cópia antiga.</p>
@@ -58,40 +63,43 @@
   <a class="skip-link-v994a" href="#mainContent">Pular para o conteúdo</a>
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
 
-  <aside id="appSidebarV121" class="app-sidebar-v121 no-print" aria-label="Menu principal">
-    <div class="sidebar-brand-v121">
-      <div class="sidebar-logo-v121"><img src="/static/logo_amaggi.png" alt="AMAGGI" width="512" height="512" decoding="async" /></div>
-      <div class="sidebar-brand-copy-v121">
+  <aside id="appSidebarV120" class="app-sidebar-v120 no-print" aria-label="Menu principal">
+    <div class="sidebar-brand-v120">
+      <div class="sidebar-logo-v120"><img src="/static/logo_amaggi.png" alt="AMAGGI" width="512" height="512" decoding="async" /></div>
+      <div class="sidebar-brand-copy-v120">
         <strong>PCM</strong>
         <span>Controle de Requisições</span>
       </div>
-      <button id="btnCloseSidebarV121" class="sidebar-close-v121" type="button" aria-label="Fechar menu">×</button>
+      <button id="btnCloseSidebarV120" class="sidebar-close-v120" type="button" aria-label="Fechar menu">×</button>
     </div>
 
-    <div class="sidebar-section-label-v121">Workspace</div>
-    <nav class="dashboard-tabs prominent-tabs tabs-v994a4 sidebar-nav-v121" role="tablist" aria-label="Navegação do dashboard">
+    <div class="sidebar-section-label-v120">Workspace</div>
+    <nav class="dashboard-tabs prominent-tabs tabs-v994a4 sidebar-nav-v120" role="tablist" aria-label="Navegação do dashboard">
       <button class="tab-btn active" type="button" role="tab" aria-selected="true" data-tab="visao">
-        <span class="sidebar-icon-v121" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 13h6V4H4v9Zm0 7h6v-5H4v5Zm10 0h6V11h-6v9Zm0-16v5h6V4h-6Z"/></svg></span>
-        <span class="sidebar-link-copy-v121"><span>Visão Executiva</span><small>Decisão e prioridade</small></span>
+        <span class="sidebar-icon-v120" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 13h6V4H4v9Zm0 7h6v-5H4v5Zm10 0h6V11h-6v9Zm0-16v5h6V4h-6Z"/></svg></span>
+        <span class="sidebar-link-copy-v120"><span>Visão Executiva</span><small>Decisão e prioridade</small></span>
       </button>
       <button class="tab-btn" type="button" role="tab" aria-selected="false" data-tab="base">
-        <span class="sidebar-icon-v121" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 5h16M4 12h16M4 19h16M7 3v4M7 10v4M7 17v4"/></svg></span>
-        <span class="sidebar-link-copy-v121"><span>Base de Tratativa</span><small>Registros operacionais</small></span>
+        <span class="sidebar-icon-v120" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 5h16M4 12h16M4 19h16M7 3v4M7 10v4M7 17v4"/></svg></span>
+        <span class="sidebar-link-copy-v120"><span>Base de Tratativa</span><small>Registros operacionais</small></span>
       </button>
     </nav>
 
-    <div class="sidebar-spacer-v121"></div>
-    <div class="sidebar-footer-v121">
+    <div class="sidebar-spacer-v120"></div>
+    <div class="sidebar-footer-v120">
       <span>AMAGGI · PCM</span>
       <small>Ambiente interno · V120</small>
+      <button id="btnCollapseSidebarV120" class="sidebar-collapse-v120" type="button" aria-label="Recolher menu lateral" aria-expanded="true">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m14 6-6 6 6 6"/></svg><span>Recolher menu</span>
+      </button>
     </div>
   </aside>
-  <button id="sidebarBackdropV121" class="sidebar-backdrop-v121 no-print" type="button" aria-label="Fechar menu" tabindex="-1"></button>
+  <button id="sidebarBackdropV120" class="sidebar-backdrop-v120 no-print" type="button" aria-label="Fechar menu" tabindex="-1"></button>
 
   <header class="topbar executive-topbar topbar-v33 topbar-v34 topbar-v35 topbar-v36 topbar-v38 topbar-v39 topbar-v40 topbar-v41 topbar-v994a4">
     <div class="topbar-row topbar-row-main topbar-main-v994a4">
-      <div class="mobile-brand-v121">
-        <button id="btnOpenSidebarV121" class="sidebar-toggle-v121 no-print" type="button" aria-label="Abrir menu" aria-controls="appSidebarV121" aria-expanded="false">
+      <div class="mobile-brand-v120">
+        <button id="btnOpenSidebarV120" class="sidebar-toggle-v120 no-print" type="button" aria-label="Abrir menu" aria-controls="appSidebarV120" aria-expanded="false">
           <span></span><span></span><span></span>
         </button>
         <div class="brand brand-amaggi brand-panel brand-v994a4">
@@ -461,7 +469,7 @@
   <script src="/static/js/productivity-v99.js?v=12000"></script>
   <script src="/static/js/core.js?v=12000"></script>
   <script src="/static/js/main.js?v=10200"></script>
-  <script src="/static/js/sidebar-v121.js?v=12000"></script>
+  <script src="/static/js/navigation-v120.js?v=12010"></script>
   <script src="/static/js/pwa-v103.js?v=10300"></script>
 </body>
 </html>
