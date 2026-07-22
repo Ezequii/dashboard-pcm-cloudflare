@@ -7,3 +7,10 @@ dist/
 # A planilha operacional é local e não deve ser enviada ao repositório.
 data-local/*.xlsx
 !data-local/.gitkeep
+
+# wrangler files
+.wrangler
+.dev.vars*
+!.dev.vars.example
+.env*
+!.env.example
