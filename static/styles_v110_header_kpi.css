@@ -1,0 +1,516 @@
+/* ==========================================================================
+   V110 — topo executivo e KPI de pendência
+   Cabeçalho consolidado na V118 após validação da camada experimental V117.
+   Refinamento visual sem alterar regras de negócio.
+   ========================================================================== */
+
+body.v110-header-kpi {
+  --v110-header-line: #dbe4ec;
+  --v110-header-shadow: 0 3px 14px rgba(20, 42, 68, .045);
+  --v110-control-height: 38px;
+}
+
+/* --------------------------------------------------------------------------
+   Cabeçalho: sem faixa decorativa, com hierarquia estável.
+   -------------------------------------------------------------------------- */
+body.v110-header-kpi .topbar,
+body.v110-header-kpi .topbar-v994a4 {
+  border-top: 0 !important;
+  border-image: none !important;
+  border-bottom: 1px solid var(--v110-header-line) !important;
+  background: rgba(255, 255, 255, .98) !important;
+  box-shadow: var(--v110-header-shadow) !important;
+  backdrop-filter: blur(10px) saturate(115%) !important;
+  -webkit-backdrop-filter: blur(10px) saturate(115%) !important;
+}
+
+body.v110-header-kpi .topbar-main-v994a4 {
+  display: grid !important;
+  grid-template-columns:
+    minmax(360px, 1fr)
+    minmax(280px, 300px)
+    minmax(400px, 1fr) !important;
+  align-items: center !important;
+  gap: clamp(14px, 1.1vw, 20px) !important;
+  min-height: 68px !important;
+  padding: 8px 0 !important;
+}
+
+body.v110-header-kpi .brand-v994a4 {
+  min-width: 0 !important;
+}
+
+body.v110-header-kpi .brand-v994a4 .brand-logo-box,
+body.v110-header-kpi .brand-v994a4 .brand-logo-box img {
+  width: 108px !important;
+  min-width: 108px !important;
+}
+
+body.v110-header-kpi .brand-copy-v994a4 {
+  min-width: 0 !important;
+}
+
+body.v110-header-kpi .brand-title-line h1 {
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+}
+
+body.v110-header-kpi .tabs-v994a4 {
+  width: 100% !important;
+  min-width: 0 !important;
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  max-width: 300px !important;
+  justify-self: center !important;
+  gap: 3px !important;
+  padding: 3px !important;
+  border: 1px solid #d7e1e9 !important;
+  border-radius: 10px !important;
+  background: #f3f6f8 !important;
+  box-shadow: none !important;
+}
+
+body.v110-header-kpi .tabs-v994a4 .tab-btn {
+  width: 100% !important;
+  min-width: 0 !important;
+  min-height: 42px !important;
+  padding: 5px 10px !important;
+  border-radius: 7px !important;
+}
+
+body.v110-header-kpi .tabs-v994a4 .tab-btn > span {
+  font-size: 12px !important;
+  line-height: 1.15 !important;
+}
+
+body.v110-header-kpi .tabs-v994a4 .tab-btn > small {
+  margin-top: 1px !important;
+  font-size: 9.75px !important;
+  line-height: 1.1 !important;
+}
+
+body.v110-header-kpi .top-actions-v994a4 {
+  width: min(100%, 500px) !important;
+  min-width: 0 !important;
+  justify-self: end !important;
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) auto !important;
+  align-items: center !important;
+  gap: 7px !important;
+}
+
+body.v110-header-kpi .status-cluster-v994a4 {
+  min-width: 0 !important;
+  display: block !important;
+}
+
+body.v110-header-kpi .data-status-group-v994a4 {
+  min-width: 0 !important;
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) auto !important;
+  align-items: stretch !important;
+  gap: 5px !important;
+}
+
+body.v110-header-kpi .meta-inline-v95,
+body.v110-header-kpi .data-freshness-v97 {
+  height: var(--v110-control-height) !important;
+  min-height: var(--v110-control-height) !important;
+  box-sizing: border-box !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  padding: 0 9px !important;
+  border: 1px solid #dce5ec !important;
+  border-radius: 8px !important;
+  background: #f8fafb !important;
+  box-shadow: none !important;
+  font-size: 10px !important;
+  line-height: 1.15 !important;
+}
+
+body.v110-header-kpi .meta-inline-v95 {
+  min-width: 0 !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+}
+
+body.v110-header-kpi .data-freshness-v97 {
+  flex: 0 0 auto !important;
+  white-space: nowrap !important;
+}
+
+body.v110-header-kpi .action-cluster-v994a4 {
+  display: flex !important;
+  align-items: center !important;
+  gap: 0 !important;
+}
+
+body.v110-header-kpi .action-cluster-v994a4 .btn {
+  height: var(--v110-control-height) !important;
+  min-height: var(--v110-control-height) !important;
+  min-width: 88px !important;
+  padding: 0 13px !important;
+  border-radius: 8px !important;
+  font-size: 10.5px !important;
+  line-height: 1 !important;
+}
+
+/* --------------------------------------------------------------------------
+   KPIs: proporção mais equilibrada e pendência integrada à mesma linguagem.
+   -------------------------------------------------------------------------- */
+body.v110-header-kpi .executive-primary-v991 {
+  grid-template-columns:
+    minmax(0, 1fr)
+    minmax(0, 1fr)
+    minmax(0, 1fr)
+    minmax(0, 1.16fr)
+    minmax(0, 1.06fr) !important;
+}
+
+body.v110-header-kpi .hero-metric-v991,
+body.v110-header-kpi .hero-focus-v991,
+body.v110-header-kpi #kpiMaisParadoCard {
+  min-height: 128px !important;
+}
+
+body.v110-header-kpi #kpiMaisParadoCard.oldest-kpi-v110 {
+  display: grid !important;
+  grid-template-columns: 38px minmax(0, 1fr) !important;
+  grid-template-areas: none !important;
+  align-items: center !important;
+  align-content: center !important;
+  gap: 12px !important;
+  padding: 15px !important;
+  text-align: left !important;
+}
+
+body.v110-header-kpi #kpiMaisParadoCard.oldest-kpi-v110 > .alert-icon-v991 {
+  grid-area: auto !important;
+  align-self: center !important;
+}
+
+body.v110-header-kpi #kpiMaisParadoCard.oldest-kpi-v110 > .oldest-copy-v110 {
+  min-width: 0 !important;
+  min-height: 0 !important;
+  display: grid !important;
+  align-content: center !important;
+  gap: 0 !important;
+  color: inherit !important;
+  font-size: inherit !important;
+  font-weight: inherit !important;
+  line-height: normal !important;
+  letter-spacing: normal !important;
+  text-transform: none !important;
+  white-space: normal !important;
+}
+
+body.v110-header-kpi .oldest-label-v110 {
+  display: block !important;
+  min-height: 2.25em !important;
+  color: #596b82 !important;
+  font-size: .62rem !important;
+  font-weight: 850 !important;
+  line-height: 1.18 !important;
+  letter-spacing: .025em !important;
+  text-transform: uppercase !important;
+}
+
+body.v110-header-kpi #kpiMaisParadoCard .oldest-value-v96 {
+  margin-top: 3px !important;
+  display: inline-flex !important;
+  align-items: baseline !important;
+  gap: 3px !important;
+  color: #d82424 !important;
+  line-height: 1 !important;
+}
+
+body.v110-header-kpi #kpiMaisParadoCard .oldest-days-number-v96 {
+  font-size: clamp(1.35rem, 1.7vw, 1.72rem) !important;
+  font-weight: 900 !important;
+  letter-spacing: -.025em !important;
+}
+
+body.v110-header-kpi #kpiMaisParadoCard .oldest-days-unit-v96 {
+  font-size: .66rem !important;
+  font-weight: 850 !important;
+}
+
+body.v110-header-kpi #kpiMaisParadoCard .oldest-context-v96 {
+  min-width: 0 !important;
+  width: 100% !important;
+  margin-top: 6px !important;
+  display: grid !important;
+  justify-items: start !important;
+  align-items: start !important;
+  gap: 4px !important;
+  overflow: visible !important;
+  color: #65758a !important;
+  font-size: .66rem !important;
+  line-height: 1.2 !important;
+  white-space: normal !important;
+}
+
+body.v110-header-kpi #kpiMaisParadoCard .oldest-stage-v96,
+body.v110-header-kpi #kpiMaisParadoCard .oldest-reference-list-v994a5,
+body.v110-header-kpi #kpiMaisParadoCard .oldest-open-v994a5 {
+  min-width: 0 !important;
+  max-width: 100% !important;
+}
+
+body.v110-header-kpi #kpiMaisParadoCard .oldest-stage-v96 {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 4px !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+}
+
+body.v110-header-kpi #kpiMaisParadoCard .oldest-reference-list-v994a5 {
+  display: flex !important;
+  align-items: center !important;
+  gap: 4px !important;
+  overflow: hidden !important;
+}
+
+body.v110-header-kpi #kpiMaisParadoCard .oldest-reference-chip-v994a5 {
+  max-width: 100% !important;
+  min-height: 20px !important;
+  padding: 2px 7px !important;
+  font-size: 9.5px !important;
+}
+
+body.v110-header-kpi #kpiMaisParadoCard .oldest-open-v994a5 {
+  margin: 1px 0 0 !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 4px !important;
+  color: #0067c5 !important;
+  font-size: 10px !important;
+  font-weight: 900 !important;
+  white-space: nowrap !important;
+}
+
+body.v110-header-kpi #kpiMaisParadoCard.oldest-gray-v93 .oldest-value-v96 {
+  color: #6b7787 !important;
+}
+
+
+/* A camada V110 redefine a proporção no desktop, mas preserva as composições
+   responsivas da V109 para evitar compressão dos cartões em larguras menores. */
+@media (min-width: 1100px) and (max-width: 1279px) {
+  body.v110-header-kpi .executive-primary-v991 {
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  }
+
+  body.v110-header-kpi #kpiMaisParadoCard {
+    order: 4;
+  }
+
+  body.v110-header-kpi .hero-focus-v991 {
+    order: 5;
+    grid-column: span 2 !important;
+  }
+}
+
+@media (min-width: 561px) and (max-width: 1099px) {
+  body.v110-header-kpi .executive-primary-v991 {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+
+  body.v110-header-kpi #kpiMaisParadoCard {
+    order: 4;
+  }
+
+  body.v110-header-kpi .hero-focus-v991 {
+    order: 5;
+    grid-column: 1 / -1 !important;
+  }
+}
+
+@media (max-width: 560px) {
+  body.v110-header-kpi .executive-primary-v991 {
+    grid-template-columns: 1fr !important;
+  }
+
+  body.v110-header-kpi .hero-focus-v991 {
+    grid-column: auto !important;
+  }
+
+  body.v110-header-kpi .hero-metric-v991,
+  body.v110-header-kpi .hero-focus-v991,
+  body.v110-header-kpi #kpiMaisParadoCard {
+    min-height: 108px !important;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   Quebras responsivas próprias do cabeçalho.
+   -------------------------------------------------------------------------- */
+@media (max-width: 1179px) {
+  body.v110-header-kpi .topbar-main-v994a4 {
+    grid-template-columns: minmax(0, 1fr) minmax(300px, 380px) !important;
+    grid-template-areas:
+      "brand tabs"
+      "actions actions" !important;
+    gap: 8px 14px !important;
+    padding: 8px 0 9px !important;
+  }
+
+  body.v110-header-kpi .brand-v994a4 {
+    grid-area: brand !important;
+  }
+
+  body.v110-header-kpi .tabs-v994a4 {
+    grid-area: tabs !important;
+    max-width: 300px !important;
+    justify-self: end !important;
+  }
+
+  body.v110-header-kpi .tabs-v994a4 .tab-btn {
+    min-height: 42px !important;
+    padding: 5px 9px !important;
+  }
+
+  body.v110-header-kpi .top-actions-v994a4 {
+    grid-area: actions !important;
+    width: min(100%, 590px) !important;
+    justify-self: end !important;
+    gap: 7px !important;
+  }
+}
+
+@media (max-width: 800px) {
+  body.v110-header-kpi {
+    --v110-control-height: 40px;
+  }
+
+  body.v110-header-kpi .topbar-main-v994a4 {
+    grid-template-columns: 1fr !important;
+    grid-template-areas:
+      "brand"
+      "tabs"
+      "actions" !important;
+    gap: 8px !important;
+    padding: 8px 0 !important;
+  }
+
+  body.v110-header-kpi .tabs-v994a4,
+  body.v110-header-kpi .top-actions-v994a4 {
+    width: 100% !important;
+    max-width: none !important;
+    justify-self: stretch !important;
+  }
+
+  body.v110-header-kpi .tabs-v994a4 .tab-btn {
+    min-height: 44px !important;
+    padding: 6px 9px !important;
+  }
+
+  body.v110-header-kpi .meta-inline-v95,
+  body.v110-header-kpi .data-freshness-v97 {
+    height: 40px !important;
+    min-height: 40px !important;
+    padding-inline: 9px !important;
+  }
+
+  body.v110-header-kpi .action-cluster-v994a4 .btn {
+    height: 44px !important;
+    min-height: 44px !important;
+  }
+
+  body.v110-header-kpi .brand-title-line h1 {
+    white-space: normal !important;
+  }
+}
+
+@media (max-width: 560px) {
+  body.v110-header-kpi {
+    --v110-control-height: 40px;
+  }
+
+  body.v110-header-kpi .brand-v994a4 {
+    gap: 9px !important;
+  }
+
+  body.v110-header-kpi .brand-v994a4 .brand-logo-box,
+  body.v110-header-kpi .brand-v994a4 .brand-logo-box img {
+    width: 86px !important;
+    min-width: 86px !important;
+  }
+
+  body.v110-header-kpi .brand-title-line h1 {
+    font-size: 15px !important;
+  }
+
+  body.v110-header-kpi .subtitle-top {
+    font-size: 10px !important;
+  }
+
+  body.v110-header-kpi .tabs-v994a4 .tab-btn {
+    min-height: 44px !important;
+    padding: 6px 8px !important;
+  }
+
+  body.v110-header-kpi .tabs-v994a4 .tab-btn > span {
+    font-size: 11.5px !important;
+  }
+
+  body.v110-header-kpi .tabs-v994a4 .tab-btn > small {
+    font-size: 9.25px !important;
+  }
+
+  body.v110-header-kpi .meta-inline-v95,
+  body.v110-header-kpi .data-freshness-v97 {
+    height: 40px !important;
+    min-height: 40px !important;
+    padding-inline: 8px !important;
+  }
+
+  body.v110-header-kpi .action-cluster-v994a4 .btn {
+    height: 44px !important;
+    min-height: 44px !important;
+  }
+
+  body.v110-header-kpi .top-actions-v994a4 {
+    grid-template-columns: 1fr !important;
+  }
+
+  body.v110-header-kpi .data-status-group-v994a4 {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) !important;
+  }
+
+  body.v110-header-kpi .data-freshness-v97 {
+    min-width: 0 !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+  }
+
+  body.v110-header-kpi .action-cluster-v994a4,
+  body.v110-header-kpi .action-cluster-v994a4 .btn {
+    width: 100% !important;
+  }
+
+  body.v110-header-kpi #kpiMaisParadoCard.oldest-kpi-v110 {
+    grid-template-columns: 36px minmax(0, 1fr) !important;
+  }
+}
+
+@media print {
+  body.v110-header-kpi .topbar,
+  body.v110-header-kpi .topbar-v994a4 {
+    box-shadow: none !important;
+    backdrop-filter: none !important;
+  }
+}
+
+
+/* Dispositivos de toque com tela larga preservam área mínima confortável. */
+@media (pointer: coarse) {
+  body.v110-header-kpi .tabs-v994a4 .tab-btn,
+  body.v110-header-kpi .action-cluster-v994a4 .btn {
+    min-height: 44px !important;
+  }
+}

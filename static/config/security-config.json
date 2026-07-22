@@ -1,0 +1,33 @@
+{
+  "environment": "production",
+  "accessRequired": true,
+  "anonymousAccessAllowed": false,
+  "failClosed": true,
+  "dataClassification": "interno",
+  "allowedRoles": [
+    "viewer",
+    "leadership",
+    "admin"
+  ],
+  "defaultRole": "viewer",
+  "identityEndpoint": "/cdn-cgi/access/get-identity",
+  "localDevelopmentAllowed": false,
+  "restrictedFields": [
+    "OBS ADICIONAIS",
+    "_SEARCH"
+  ],
+  "roleMappings": {
+    "adminGroups": [
+      "pcm-admin"
+    ],
+    "leadershipGroups": [
+      "pcm-leadership"
+    ],
+    "adminEmails": [],
+    "leadershipEmails": []
+  },
+  "exportRoles": [
+    "leadership",
+    "admin"
+  ]
+}
