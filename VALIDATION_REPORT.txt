@@ -1,0 +1,24 @@
+DASHBOARD PCM CLOUDFLARE V1 — RELEASE CANDIDATE
+Data: 22/07/2026
+
+VALIDADO
+- 22 arquivos TypeScript/TSX verificados por transpile sintático: 0 erros.
+- Migrações SQL aplicadas com sucesso em SQLite de validação.
+- Seed demonstrativo: 3 usuários, 6 ORCs e 4 eventos base.
+- Fluxo principal: Sem lançamento / Sem pedido / Sem NF / Concluído.
+- TV inclui ranking de solicitantes.
+- Usuário exibido na interface agora vem da API autenticada.
+- Gestão de usuários utiliza dados reais do D1, sem lista fictícia fixa.
+- Importação não atribui automaticamente o uploader como responsável do ORC.
+- Importação gera auditoria por ORC e por lote.
+- Chunk de importação configurado em 12 linhas para compatibilidade conservadora com Workers/D1 Free.
+- Filtro de período da Visão Geral conectado ao backend.
+- ZIP não inclui node_modules, segredos, tokens ou a planilha corporativa real.
+
+PENDÊNCIA EXTERNA AO CÓDIGO
+O ambiente de geração não consegue acessar o registry npm. Execute no computador ou CI:
+
+  npm install
+  npm run verify
+
+Somente após esse build completo faça o merge da release para main.

@@ -1,0 +1,6 @@
+# Worker local development
+APP_ENV=development
+WEB_ORIGIN=http://localhost:5173
+ACCESS_TEAM_DOMAIN=
+ACCESS_AUD=
+ADMIN_EMAILS=seu.email@empresa.com

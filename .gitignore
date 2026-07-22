@@ -1,9 +1,13 @@
 node_modules/
 dist/
-.vite/
-.DS_Store
+.wrangler/
+.dev.vars
+.env
+.env.local
 *.log
-
-# A planilha operacional é local e não deve ser enviada ao repositório.
-data-local/*.xlsx
-!data-local/.gitkeep
+.DS_Store
+coverage/
+.vscode/
+.idea/
+*.sqlite
+*.sqlite3
