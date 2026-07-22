@@ -10,11 +10,12 @@
   "scripts": {
     "dev": "vite",
     "build": "npm run typecheck && vite build",
-    "preview": "vite preview",
+    "preview": "npm run build && wrangler dev",
     "typecheck": "tsc --noEmit",
     "test": "node --test tests/*.test.mjs",
     "verify": "npm run test && npm run typecheck && vite build",
-    "data:update": "python tools/update_data.py data-local/CONTROLE_DE_REQUISICOES_2026.xlsx"
+    "data:update": "python tools/update_data.py data-local/CONTROLE_DE_REQUISICOES_2026.xlsx",
+    "deploy": "npm run build && wrangler deploy"
   },
   "dependencies": {
     "lucide-react": "0.468.0",
@@ -23,10 +24,12 @@
     "recharts": "2.15.4"
   },
   "devDependencies": {
+    "@cloudflare/vite-plugin": "^1.46.0",
     "@types/react": "18.3.31",
     "@types/react-dom": "18.3.7",
     "@vitejs/plugin-react": "4.7.0",
     "typescript": "5.9.3",
-    "vite": "6.4.3"
+    "vite": "6.4.3",
+    "wrangler": "^4.113.0"
   }
 }
