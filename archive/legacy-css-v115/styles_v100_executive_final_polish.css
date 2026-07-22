@@ -1,0 +1,357 @@
+/* ==========================================================================
+   V100 — Visão Executiva: acabamento final
+   Escopo estritamente visual. Preserva IDs, eventos, dados e navegação.
+   ========================================================================== */
+
+body.v100-executive-final-polish {
+  --v100-final-ink: #10233f;
+  --v100-final-muted: #64748b;
+  --v100-final-line: #dbe5ef;
+  --v100-final-blue: #0667d8;
+  --v100-final-green: #07966f;
+  --v100-final-soft: #f8fbfe;
+}
+
+/* Contexto mais compacto, sem perder filtros nem a ação de limpeza. */
+body.v100-executive-final-polish .global-context-v100 {
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  grid-template-areas:
+    "title summary clear"
+    "filters filters filters";
+  align-items: center;
+  gap: 8px 14px;
+  padding: 11px 14px 12px;
+  margin-bottom: 12px;
+}
+
+body.v100-executive-final-polish .global-context-title-v100 {
+  white-space: nowrap;
+}
+
+body.v100-executive-final-polish .global-context-list-v100 {
+  display: flex;
+  align-items: center;
+  min-height: 20px;
+}
+
+body.v100-executive-final-polish .global-context-clear-v100 {
+  min-height: 36px;
+  padding: 7px 12px;
+}
+
+body.v100-executive-final-polish
+  .global-context-v100 .filters-row-v994a4 {
+  gap: 10px;
+}
+
+body.v100-executive-final-polish
+  .global-context-v100 .filters-summary-button-v97 {
+  min-height: 38px;
+}
+
+/* KPIs com mesma altura, ritmo e alinhamento. */
+body.v100-executive-final-polish .executive-primary-v991 {
+  grid-template-columns:
+    minmax(175px, 1fr)
+    minmax(175px, 1fr)
+    minmax(175px, 1fr)
+    minmax(225px, 1.18fr)
+    minmax(175px, .92fr) !important;
+  gap: 10px !important;
+  min-height: 138px !important;
+  margin-bottom: 12px !important;
+}
+
+body.v100-executive-final-polish .hero-metric-v991,
+body.v100-executive-final-polish .hero-focus-v991,
+body.v100-executive-final-polish #kpiMaisParadoCard {
+  min-height: 138px !important;
+  height: 138px;
+  padding: 15px 15px !important;
+  align-content: center;
+}
+
+body.v100-executive-final-polish .hero-copy-v991 {
+  min-width: 0;
+}
+
+body.v100-executive-final-polish .hero-copy-v991 small,
+body.v100-executive-final-polish #kpiMaisParadoCard > span:not(.alert-icon-v991) {
+  letter-spacing: .025em;
+}
+
+body.v100-executive-final-polish .hero-copy-v991 strong,
+body.v100-executive-final-polish #kpiMaisParadoCard > strong {
+  line-height: 1.05;
+}
+
+body.v100-executive-final-polish .hero-copy-v991 em,
+body.v100-executive-final-polish #kpiMaisParadoCard > small {
+  line-height: 1.35;
+}
+
+body.v100-executive-final-polish .hero-focus-v991 {
+  grid-template-columns: 44px minmax(0, 1fr) auto !important;
+  gap: 10px 12px !important;
+}
+
+body.v100-executive-final-polish .hero-focus-v991 .hero-focus-copy-v991 {
+  min-width: 0;
+}
+
+body.v100-executive-final-polish .hero-focus-v991 .hero-focus-copy-v991 strong {
+  font-size: clamp(1.22rem, 1.45vw, 1.55rem);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+body.v100-executive-final-polish .hero-focus-v991 .hero-focus-action-v991 {
+  align-self: center;
+}
+
+/* Fluxo e fila formam o núcleo de decisão da tela. */
+body.v100-executive-final-polish .operations-grid-v991 {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1.55fr) minmax(300px, .85fr);
+  gap: 12px;
+  align-items: stretch;
+  margin-bottom: 12px !important;
+}
+
+body.v100-executive-final-polish .flow-panel-v991,
+body.v100-executive-final-polish .queue-panel-v991 {
+  min-width: 0;
+  height: 100%;
+}
+
+body.v100-executive-final-polish .flow-panel-v991 .panel-title-v991,
+body.v100-executive-final-polish .queue-panel-v991 .panel-title-v991 {
+  min-height: 56px;
+  padding: 13px 14px 10px;
+}
+
+body.v100-executive-final-polish .flow-panel-v991 .panel-title-v991 p {
+  margin-top: 2px;
+}
+
+body.v100-executive-final-polish .process-flow-v991 {
+  min-height: 0;
+}
+
+body.v100-executive-final-polish .flow-step-v994a2 {
+  min-height: 126px !important;
+  padding: 12px 17px 11px !important;
+  display: grid !important;
+  grid-template-columns: 38px minmax(0, 1fr);
+  grid-template-areas:
+    "icon label"
+    "icon metrics"
+    "context context"
+    "status status";
+  align-content: center;
+  gap: 3px 10px;
+}
+
+body.v100-executive-final-polish .flow-sequence-v994a2 {
+  top: 10px;
+  right: 10px;
+}
+
+body.v100-executive-final-polish .flow-icon-v991 {
+  grid-area: icon;
+  align-self: start;
+  width: 36px;
+  height: 36px;
+}
+
+body.v100-executive-final-polish .flow-step-v994a2 > small {
+  grid-area: label;
+  align-self: end;
+  margin: 0;
+}
+
+body.v100-executive-final-polish .flow-main-metrics-v994a2 {
+  grid-area: metrics;
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+body.v100-executive-final-polish .flow-main-metrics-v994a2 strong {
+  font-size: 1.42rem;
+}
+
+body.v100-executive-final-polish .flow-context-v994a2 {
+  grid-area: context;
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: 3px;
+}
+
+body.v100-executive-final-polish .flow-average-v994a2 {
+  display: none !important;
+}
+
+body.v100-executive-final-polish .flow-step-v994a2 mark {
+  grid-area: status;
+  justify-self: start;
+  margin-top: 3px;
+  padding: 3px 7px;
+}
+
+/* Fila prioritária ganha protagonismo sem alterar conteúdo ou cliques. */
+body.v100-executive-final-polish .queue-panel-v991 {
+  border-color: #cddbeb;
+  box-shadow: 0 8px 24px rgba(15, 35, 63, .07);
+}
+
+body.v100-executive-final-polish .queue-panel-v991 .panel-title-v991 h2 {
+  color: var(--v100-final-blue);
+  font-size: 1.08rem;
+}
+
+body.v100-executive-final-polish .priority-list-v991 {
+  padding: 0 14px;
+}
+
+body.v100-executive-final-polish .priority-row-v991 {
+  min-height: 62px;
+  padding: 10px 2px;
+}
+
+body.v100-executive-final-polish .priority-main-v991 strong {
+  font-size: .88rem;
+}
+
+body.v100-executive-final-polish .priority-main-v991 small {
+  font-weight: 750;
+}
+
+body.v100-executive-final-polish .panel-footer-link-v991 {
+  min-height: 40px;
+}
+
+/* Rankings em duas colunas, com leitura visual e menos aparência de tabela. */
+body.v100-executive-final-polish .executive-lower-v100 {
+  display: block !important;
+  margin-bottom: 14px;
+}
+
+body.v100-executive-final-polish .executive-lower-v100 > .ranking-grid-v991 {
+  display: grid !important;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+body.v100-executive-final-polish .ranking-scopebar-v994a6 {
+  grid-column: 1 / -1;
+  min-height: 38px;
+  margin: 0 !important;
+}
+
+body.v100-executive-final-polish .ranking-panel-v994a6 {
+  border-color: var(--v100-final-line);
+  box-shadow: 0 5px 18px rgba(15, 35, 63, .045);
+}
+
+body.v100-executive-final-polish .ranking-columns-v991 {
+  opacity: .72;
+}
+
+body.v100-executive-final-polish .ranking-row-v994a5 {
+  min-height: 66px;
+  padding-top: 9px;
+  padding-bottom: 9px;
+}
+
+body.v100-executive-final-polish .ranking-name-v994a5 strong {
+  font-size: .86rem;
+}
+
+body.v100-executive-final-polish .ranking-progress-v991 {
+  height: 4px;
+}
+
+body.v100-executive-final-polish .ranking-footer-v991 {
+  min-height: 40px;
+}
+
+/* Foco consistente e movimento respeitoso. */
+body.v100-executive-final-polish .hero-metric-v991:focus-visible,
+body.v100-executive-final-polish .hero-focus-v991:focus-visible,
+body.v100-executive-final-polish #kpiMaisParadoCard:focus-visible,
+body.v100-executive-final-polish .flow-step-v994a2:focus-visible,
+body.v100-executive-final-polish .priority-row-v991:focus-visible,
+body.v100-executive-final-polish .ranking-row-v994a5:focus-visible {
+  outline: 3px solid #1d4ed8 !important;
+  outline-offset: 3px !important;
+}
+
+@media (max-width: 1280px) {
+  body.v100-executive-final-polish .operations-grid-v991 {
+    grid-template-columns: 1fr;
+  }
+
+  body.v100-executive-final-polish .queue-panel-v991 {
+    min-height: auto;
+  }
+}
+
+@media (max-width: 900px) {
+  body.v100-executive-final-polish .global-context-v100 {
+    grid-template-columns: 1fr auto;
+    grid-template-areas:
+      "title clear"
+      "summary summary"
+      "filters filters";
+  }
+
+  body.v100-executive-final-polish .executive-lower-v100 > .ranking-grid-v991 {
+    grid-template-columns: 1fr;
+  }
+
+  body.v100-executive-final-polish .ranking-scopebar-v994a6 {
+    grid-column: 1;
+  }
+}
+
+@media (max-width: 720px) {
+  body.v100-executive-final-polish .global-context-v100 {
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      "title"
+      "summary"
+      "filters"
+      "clear";
+  }
+
+  body.v100-executive-final-polish .global-context-clear-v100 {
+    justify-self: end;
+  }
+
+  body.v100-executive-final-polish .hero-metric-v991,
+  body.v100-executive-final-polish .hero-focus-v991,
+  body.v100-executive-final-polish #kpiMaisParadoCard {
+    height: auto;
+    min-height: 124px !important;
+  }
+
+  body.v100-executive-final-polish .flow-step-v994a2 {
+    min-height: 116px !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body.v100-executive-final-polish .hero-metric-v991,
+  body.v100-executive-final-polish .hero-focus-v991,
+  body.v100-executive-final-polish #kpiMaisParadoCard,
+  body.v100-executive-final-polish .flow-step-v994a2,
+  body.v100-executive-final-polish .priority-row-v991,
+  body.v100-executive-final-polish .ranking-row-v994a5 {
+    transition: none !important;
+    transform: none !important;
+  }
+}

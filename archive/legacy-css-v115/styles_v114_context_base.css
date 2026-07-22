@@ -1,0 +1,114 @@
+/* ==========================================================================
+   V114 — contexto fiel e Base de Tratativa orientada à busca
+   ========================================================================== */
+
+body.v114-context-base {
+  --v114-search-border: #9dbbd5;
+  --v114-search-ring: rgba(0, 98, 158, 0.14);
+  --v114-muted: #64748b;
+}
+
+/* Os atalhos pertencem à Visão Executiva. As regras antigas os ocultavam
+   nessa aba e os exibiam na Base; esta camada inverte isso de forma explícita. */
+body.v114-context-base.active-tab-visao
+  #quickChips[data-panel="visao"]:not([hidden]) {
+  display: grid !important;
+}
+
+body.v114-context-base.active-tab-base #quickChips {
+  display: none !important;
+}
+
+/* A Base começa diretamente pela área de localização dos registros. */
+body.v114-context-base.active-tab-base #baseTableRegion {
+  margin-top: 0 !important;
+}
+
+body.v114-context-base.active-tab-base .base-title-summary-v114 {
+  min-width: 0;
+}
+
+body.v114-context-base.active-tab-base .base-title-summary-v114 h3 {
+  scroll-margin-top: 96px;
+}
+
+body.v114-context-base.active-tab-base .base-operational-summary-v114 {
+  display: block;
+  max-width: 260px;
+  margin-top: 5px;
+  color: var(--v114-muted);
+  font-size: 0.72rem;
+  font-weight: 650;
+  line-height: 1.35;
+}
+
+body.v114-context-base.active-tab-base
+  .smart-search-v89
+  .table-search > span {
+  color: #16324a;
+  font-weight: 800;
+}
+
+body.v114-context-base.active-tab-base .table-search input {
+  border-color: var(--v114-search-border) !important;
+  background: #fff !important;
+  box-shadow: 0 0 0 1px rgba(0, 98, 158, 0.03);
+}
+
+body.v114-context-base.active-tab-base .table-search input:hover {
+  border-color: #6e9fc7 !important;
+}
+
+body.v114-context-base.active-tab-base .table-search input:focus {
+  border-color: #00629e !important;
+  box-shadow: 0 0 0 4px var(--v114-search-ring) !important;
+  outline: none !important;
+}
+
+body.v114-context-base.active-tab-base .table-search input::placeholder {
+  color: #8090a2;
+}
+
+/* Monitor e desktop: título compacto à esquerda e busca como área dominante. */
+@media (min-width: 1281px) {
+  body.v114-context-base.active-tab-base .table-head {
+    grid-template-columns: minmax(170px, 210px) minmax(0, 1fr) !important;
+    align-items: end !important;
+  }
+
+  body.v114-context-base.active-tab-base .smart-search-v89 {
+    grid-template-columns:
+      minmax(175px, 195px)
+      minmax(380px, 1fr)
+      max-content
+      max-content !important;
+  }
+}
+
+/* Notebook: o campo principal continua ocupando a maior faixa disponível. */
+@media (min-width: 761px) and (max-width: 1280px) {
+  body.v114-context-base.active-tab-base .base-operational-summary-v114 {
+    max-width: none;
+  }
+
+  body.v114-context-base.active-tab-base .table-head {
+    gap: 12px !important;
+  }
+}
+
+/* Tablet e celular: atalhos da Visão continuam navegáveis e a busca recebe
+   uma linha clara, sem apertar paginação ou filtros avançados. */
+@media (max-width: 760px) {
+  body.v114-context-base.active-tab-visao
+    #quickChips[data-panel="visao"]:not([hidden]) {
+    display: block !important;
+  }
+
+  body.v114-context-base.active-tab-base .base-operational-summary-v114 {
+    max-width: none;
+  }
+
+  body.v114-context-base.active-tab-base .table-search input {
+    min-height: 48px !important;
+  }
+}

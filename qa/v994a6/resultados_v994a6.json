@@ -1,0 +1,77 @@
+[
+  {
+    "name": "versionamento_9946",
+    "passed": true,
+    "detail": "configuração, runtime e HTML"
+  },
+  {
+    "name": "camada_css_final",
+    "passed": true,
+    "detail": "CSS V99.4A.6 carregado por último"
+  },
+  {
+    "name": "classe_body_v994a6",
+    "passed": true,
+    "detail": "classe de escopo presente"
+  },
+  {
+    "name": "acesso_visual_oculto",
+    "passed": true,
+    "detail": "segurança permanece no runtime, sem cartão visual"
+  },
+  {
+    "name": "status_compacto_transparente",
+    "passed": true,
+    "detail": "topo e atualização compactos"
+  },
+  {
+    "name": "seletor_ranking_acessivel",
+    "passed": true,
+    "detail": "Geral e Em andamento"
+  },
+  {
+    "name": "ranking_geral_padrao",
+    "passed": true,
+    "detail": "geral usa todos os registros"
+  },
+  {
+    "name": "ranking_pendente_selecionavel",
+    "passed": true,
+    "detail": "em andamento usa somente pendentes"
+  },
+  {
+    "name": "ranking_reage_a_selecao",
+    "passed": true,
+    "detail": "troca sem recarregar a página"
+  },
+  {
+    "name": "clique_respeita_contexto",
+    "passed": true,
+    "detail": "linha e rodapé aplicam o contexto selecionado"
+  },
+  {
+    "name": "titulos_gerais_padrao",
+    "passed": true,
+    "detail": "sem pendente no estado padrão"
+  },
+  {
+    "name": "top_tres",
+    "passed": true,
+    "detail": "três linhas completas"
+  },
+  {
+    "name": "painel_sem_corte",
+    "passed": true,
+    "detail": "terceira linha e rodapé visíveis"
+  },
+  {
+    "name": "dados_gerais_disponiveis",
+    "passed": true,
+    "detail": "payload contém geral e em andamento"
+  },
+  {
+    "name": "responsividade_rankings",
+    "passed": true,
+    "detail": "rankings empilham em telas menores"
+  }
+]

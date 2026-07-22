@@ -1,0 +1,193 @@
+/* ==========================================================================
+   V99.4A.3 — correções operacionais e de legibilidade
+   ========================================================================== */
+
+/* Respeita o atributo hidden mesmo contra camadas legadas com !important. */
+body.v994a3-operational-fix [hidden],
+body.v994a3-operational-fix [data-panel][hidden],
+body.v994a3-operational-fix #processCardsBase[hidden]{
+  display:none!important;
+  visibility:hidden!important;
+}
+
+/* O resumo por etapas pertence somente à Base de Tratativa. */
+body.v994a3-operational-fix [data-tab-panel="visao"] #processCardsBase,
+body.v994a3-operational-fix .executive-page #processCardsBase{
+  display:none!important;
+}
+
+/* Modal de colunas: o dialog e o formulário passam a usar a mesma largura. */
+body.v994a3-operational-fix #columnsDialogV99.modal-v99{
+  width:min(780px,calc(100vw - 32px))!important;
+  max-width:780px!important;
+  max-height:min(780px,calc(100vh - 28px))!important;
+  overflow:hidden!important;
+  box-sizing:border-box!important;
+}
+
+body.v994a3-operational-fix #columnsDialogV99 .modal-card-v99.is-wide{
+  width:100%!important;
+  max-width:none!important;
+  min-width:0!important;
+  max-height:min(780px,calc(100vh - 28px))!important;
+  box-sizing:border-box!important;
+}
+
+body.v994a3-operational-fix #columnsDialogV99 .modal-body-v99{
+  width:100%!important;
+  min-width:0!important;
+  padding:16px 18px!important;
+  overflow-x:hidden!important;
+  overflow-y:auto!important;
+  box-sizing:border-box!important;
+  scrollbar-gutter:stable;
+}
+
+body.v994a3-operational-fix #columnsDialogV99 .columns-list-v99{
+  width:100%!important;
+  min-width:0!important;
+}
+
+body.v994a3-operational-fix #columnsDialogV99 .column-option-v99{
+  width:100%!important;
+  min-width:0!important;
+  min-height:48px!important;
+  padding:8px 10px!important;
+  box-sizing:border-box!important;
+}
+
+body.v994a3-operational-fix #columnsDialogV99 .column-option-v99 label{
+  min-width:0!important;
+  flex:1 1 auto!important;
+  overflow:hidden!important;
+  font-size:12px!important;
+  line-height:1.35!important;
+}
+
+body.v994a3-operational-fix #columnsDialogV99 .column-option-v99 label span{
+  min-width:0!important;
+  overflow:hidden!important;
+  text-overflow:ellipsis!important;
+  white-space:nowrap!important;
+}
+
+body.v994a3-operational-fix #columnsDialogV99 .column-option-v99>div{
+  flex:0 0 auto!important;
+}
+
+body.v994a3-operational-fix #columnsDialogV99 .column-option-v99 button{
+  width:32px!important;
+  height:32px!important;
+  font-size:14px!important;
+}
+
+body.v994a3-operational-fix #columnsDialogV99 .modal-card-v99>header{
+  padding:18px 20px 15px!important;
+}
+
+body.v994a3-operational-fix #columnsDialogV99 .modal-card-v99>header small{
+  font-size:11px!important;
+}
+
+body.v994a3-operational-fix #columnsDialogV99 .modal-card-v99>header h2{
+  font-size:20px!important;
+}
+
+body.v994a3-operational-fix #columnsDialogV99 .modal-card-v99>header p{
+  font-size:12px!important;
+  line-height:1.45!important;
+}
+
+body.v994a3-operational-fix #columnsDialogV99 .modal-card-v99>footer{
+  padding:12px 18px!important;
+}
+
+/* Legibilidade geral: nenhum texto operacional essencial abaixo de 11 px. */
+body.v994a3-operational-fix .header-subtitle,
+body.v994a3-operational-fix .toolbar-meta,
+body.v994a3-operational-fix .filter-label,
+body.v994a3-operational-fix .filter-value,
+body.v994a3-operational-fix .smart-search-v89 label>span,
+body.v994a3-operational-fix .smart-search-v89 small,
+body.v994a3-operational-fix .table-head small,
+body.v994a3-operational-fix .table-head p,
+body.v994a3-operational-fix .table-footer-note,
+body.v994a3-operational-fix .active-filters-v97,
+body.v994a3-operational-fix .base-overview-v991 small,
+body.v994a3-operational-fix .base-overview-legend-v991,
+body.v994a3-operational-fix .base-stage-strip-v991 small,
+body.v994a3-operational-fix .productivity-state-v99,
+body.v994a3-operational-fix .productivity-button-v99,
+body.v994a3-operational-fix .field-v99>span,
+body.v994a3-operational-fix .modal-note-v99,
+body.v994a3-operational-fix .saved-view-v99 span{
+  font-size:11px!important;
+  line-height:1.35!important;
+}
+
+body.v994a3-operational-fix .top-filters label>span,
+body.v994a3-operational-fix .top-filters small,
+body.v994a3-operational-fix .security-context-v994a small{
+  font-size:11px!important;
+}
+
+body.v994a3-operational-fix .top-filters select,
+body.v994a3-operational-fix .top-filters button,
+body.v994a3-operational-fix .smart-search-v89 select,
+body.v994a3-operational-fix .smart-search-v89 input,
+body.v994a3-operational-fix .btn,
+body.v994a3-operational-fix button{
+  font-size:12px;
+}
+
+/* Tabela vazia e erros ficam claros em vez de parecer falha silenciosa. */
+body.v994a3-operational-fix .table-empty-row-v97 td,
+body.v994a3-operational-fix .table-error-row-v97 td{
+  height:220px!important;
+  padding:28px!important;
+  text-align:center!important;
+}
+
+body.v994a3-operational-fix .table-empty-row-v97 strong,
+body.v994a3-operational-fix .table-error-row-v97 strong{
+  display:block!important;
+  margin-bottom:8px!important;
+  color:#17283D!important;
+  font-size:15px!important;
+}
+
+body.v994a3-operational-fix .table-empty-row-v97 span,
+body.v994a3-operational-fix .table-error-row-v97 span{
+  display:block!important;
+  color:#627386!important;
+  font-size:12px!important;
+}
+
+/* Fluxo principal já substitui o resumo redundante na Visão Executiva. */
+body.v994a3-operational-fix .operations-grid-v991{
+  margin-bottom:12px!important;
+}
+
+/* Em telas menores o modal nunca ultrapassa a janela. */
+@media (max-width:820px){
+  body.v994a3-operational-fix #columnsDialogV99.modal-v99{
+    width:calc(100vw - 20px)!important;
+    max-height:calc(100vh - 20px)!important;
+  }
+
+  body.v994a3-operational-fix #columnsDialogV99 .modal-card-v99.is-wide{
+    max-height:calc(100vh - 20px)!important;
+  }
+}
+
+@media (max-width:560px){
+  body.v994a3-operational-fix #columnsDialogV99 .modal-card-v99>footer{
+    display:grid!important;
+    grid-template-columns:1fr 1fr!important;
+  }
+
+  body.v994a3-operational-fix #columnsDialogV99 #btnResetColumnsV99{
+    grid-column:1 / -1!important;
+    margin-right:0!important;
+  }
+}
