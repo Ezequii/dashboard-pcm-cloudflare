@@ -1,82 +1,123 @@
-# Portal PCM — AMAGGI
+# PCM | Gestão de OS e Orçamentos — V4
 
-Aplicação SaaS para acompanhamento de solicitações e ORCs do PCM, criada com a direção validada para a V1:
+Projeto reconstruído do zero para acompanhamento dos OS/ORCs recebidos pelo PCM.
 
-- **Visão Geral** única e adaptada às permissões;
-- **Acompanhamento** como centro da operação;
-- Drawer lateral para leitura e atualização do ORC;
-- Análises gerenciais sem excesso de gráficos;
-- importação da planilha real `CONTROLE DE REQUISIÇÕES 2026`;
-- dados compartilhados no Cloudflare D1;
-- arquivos originais e documentos privados no Cloudflare R2;
-- autenticação com Cloudflare Access;
-- Light Mode, Dark Mode, mobile, tablet, desktop, ultrawide e TV.
+## Escopo da V1
 
-## Stack
+- Visão Geral executiva.
+- Consulta operacional.
+- Busca por OS, ORC, requisição, pedido, fornecedor, prefixo, equipamento e solicitante.
+- Filtros por status, fornecedor e solicitante.
+- Tabela responsiva.
+- Drawer com todos os campos do registro.
+- Exportação CSV da consulta filtrada.
+- Identidade AMAGGI.
+- Favicon e manifesto da aplicação.
+- Cloudflare Pages como hospedagem.
+- Cloudflare Access como autenticação externa.
 
-- React + TypeScript + Vite
-- Tailwind CSS + componentes no padrão Shadcn/UI
-- TanStack Query
-- Recharts
-- Cloudflare Pages
-- Cloudflare Workers + Hono
-- Cloudflare D1
-- Cloudflare R2
-- Cloudflare Access
+## Entidade principal
 
-## Estrutura
+Cada linha da planilha representa um registro operacional de OS/ORC.
 
-```text
-apps/
-  web/    Interface React publicada no Cloudflare Pages
-  api/    API publicada no Cloudflare Workers
-    migrations/  Estrutura do banco D1
+`Nº REQUISIÇÃO`, `Nº PEDIDO DE COMPRA` e `Nº NFS/DANFE` são etapas/informações posteriores do processo e não o identificador principal do dashboard.
 
-docs/    Instalação, atualização dos dados, arquitetura e segurança
-```
+## Dados atuais
 
-## Desenvolvimento local
+A primeira carga foi gerada a partir da planilha fornecida em 21/07/2026:
 
-Requisitos: Node.js 20+ e npm 10+.
+- 2.269 registros.
+- 241 pendentes.
+- 2.028 concluídos.
+- 57 em Falta lançamento.
+- 90 em Falta pedido.
+- 94 em Falta NF.
 
-```bash
-npm install
-npm run db:migrate:local
-npm run seed:local
-```
+## Atualizar a base
 
-Abra dois terminais:
+A planilha operacional não é versionada por segurança.
+
+1. Copie a planilha para:
+
+`data-local/CONTROLE_DE_REQUISICOES_2026.xlsx`
+
+2. Execute:
 
 ```bash
-npm run dev:api
+npm run data:update
 ```
 
-```bash
-VITE_DEMO_MODE=false npm run dev:web
-```
-
-Acesse `http://localhost:5173`.
-
-Para visualizar a interface sem API, crie `apps/web/.env.local`:
-
-```env
-VITE_DEMO_MODE=true
-```
-
-## Verificação antes do envio ao GitHub
+3. Confirme:
 
 ```bash
 npm run verify
 ```
 
-## Status da V1
+4. Faça commit somente do JSON atualizado em `public/data/os-orc.json`.
 
-Leia [docs/STATUS_V1.md](docs/STATUS_V1.md).
+O importador usa apenas a biblioteca padrão do Python. Não instala bibliotecas de Excel.
 
-## Implantação
+## Desenvolvimento
 
-Leia [docs/DEPLOY_PASSO_A_PASSO.md](docs/DEPLOY_PASSO_A_PASSO.md) e, para detalhes, [docs/INSTALACAO_CLOUDFLARE.md](docs/INSTALACAO_CLOUDFLARE.md).
+Requisitos:
 
-## Atualização da base
+- Node.js 22.12 ou superior.
+- npm.
+- Python 3 para atualização da base.
 
-Leia [docs/ATUALIZACAO_DOS_DADOS.md](docs/ATUALIZACAO_DOS_DADOS.md).
+```bash
+npm ci
+npm run dev
+```
+
+## Build
+
+```bash
+npm run build
+```
+
+Saída:
+
+`dist/`
+
+## Cloudflare Pages
+
+- Build command: `npm run build`
+- Build output directory: `dist`
+- Root directory: `/`
+
+Não configure `npx wrangler deploy` como Deploy command para este projeto Pages.
+
+## Segurança
+
+Configure uma aplicação **Cloudflare Access** cobrindo todo o hostname/path do dashboard (`/*`).
+
+A política de entrada deve ser criada no Zero Trust conforme a regra corporativa definida pela AMAGGI.
+
+A V1 não possui banco de usuários nem senha própria.
+
+Também é recomendado manter o repositório Git como **privado**, porque o JSON de dados faz parte do código-fonte da implantação.
+
+## Branding
+
+- `public/branding/amaggi-logo.png`
+- `public/branding/app-icon.png`
+
+## Scripts
+
+- `npm run dev`
+- `npm run build`
+- `npm run typecheck`
+- `npm run test`
+- `npm run verify`
+- `npm run data:update`
+
+
+## Regra importante: OS e ORC
+
+Na planilha, os campos são distintos:
+
+- `Nº ORDEM SERVIÇO` = OS
+- `Nº ORÇ. FINAL` = ORC / orçamento final
+
+Mesmo quando o ORC é chamado informalmente de OS no dia a dia, o dashboard preserva os dois campos separadamente na Consulta, no detalhe e na busca.
