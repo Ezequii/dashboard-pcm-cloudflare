@@ -131,7 +131,7 @@ export function DetailDrawer({
         <header className="detail-drawer__header">
           <div>
             <span className="eyebrow">Detalhe do registro</span>
-            <span className="detail-drawer__eyebrow">Detalhe do orçamento</span>
+            <span className="detail-drawer__eyebrow">Orçamento</span>
             <h2 id="detail-drawer-title" className="detail-drawer__orc">
               ORC {record.numeroOrcamento || "—"}
             </h2>
@@ -158,12 +158,12 @@ export function DetailDrawer({
         </header>
 
         <div className="detail-drawer__body">
-          <section className="detail-section">
+          <section className="detail-section detail-section--flat">
             <div className="detail-section__title">
               <ClipboardCheck size={18} />
               <h3>Identificação</h3>
             </div>
-            <div className="detail-grid">
+            <div className="detail-grid detail-grid--premium">
               <Field
                 label="Data de recebimento"
                 value={formatDate(record.dataRecebimento)}
@@ -186,12 +186,12 @@ export function DetailDrawer({
             </div>
           </section>
 
-          <section className="detail-section">
+          <section className="detail-section detail-section--flat">
             <div className="detail-section__title">
               <CircleDollarSign size={18} />
               <h3>Valores</h3>
             </div>
-            <div className="detail-grid detail-grid--three">
+            <div className="detail-grid detail-grid--three detail-grid--premium">
               <Field
                 label="Serviço"
                 value={formatCurrency(record.valorServico)}
@@ -204,12 +204,12 @@ export function DetailDrawer({
             </div>
           </section>
 
-          <section className="detail-section">
+          <section className="detail-section detail-section--flat">
             <div className="detail-section__title">
               <PackageCheck size={18} />
               <h3>Andamento do processo</h3>
             </div>
-            <div className="detail-grid">
+            <div className="detail-grid detail-grid--premium">
               <Field
                 label="Data lançamento"
                 value={formatDate(record.dataLancamento)}
@@ -233,7 +233,7 @@ export function DetailDrawer({
             </div>
           </section>
 
-          <section className="detail-section">
+          <section className="detail-section detail-section--flat">
             <div className="detail-section__title">
               <FileText size={18} />
               <h3>Observações adicionais</h3>

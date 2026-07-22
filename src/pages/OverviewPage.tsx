@@ -71,9 +71,9 @@ export function OverviewPage({
 
   return (
     <div className="page-stack">
-      <header className="page-header">
+      <header className="page-header page-header--overview">
         <div>
-          <span className="eyebrow">PCM · OS &amp; Orçamentos</span>
+          <span className="eyebrow">PCM · Gestão de Orçamentos</span>
           <h1>Visão Geral</h1>
           <p>
             Acompanhamento executivo dos orçamentos recebidos e do avanço até
@@ -202,7 +202,7 @@ export function OverviewPage({
         <div className="section-heading">
           <div>
             <span className="eyebrow">Prioridade</span>
-            <h2>Pendências mais antigas</h2>
+            <h2>Orçamentos pendentes há mais tempo</h2>
           </div>
           <FileClock size={20} />
         </div>

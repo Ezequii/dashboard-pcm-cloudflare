@@ -48,7 +48,7 @@ export function AppShell({
     <div className={`app-shell ${collapsed ? "app-shell--collapsed" : ""}`}>
       <aside className={`sidebar ${collapsed ? "sidebar--collapsed" : ""} ${mobileMenuOpen ? "sidebar--open" : ""}`}>
         <div className="sidebar__brand">
-          <div className="sidebar__brand-plate">
+          <div className="sidebar__brand-mark">
             <img
               src={collapsed ? "/branding/app-icon.png" : "/branding/amaggi-logo.png"}
               alt="AMAGGI"
@@ -57,7 +57,7 @@ export function AppShell({
           </div>
           <div className="sidebar__product">
             <span>PCM</span>
-            <strong>Gestão de OS &amp; ORC</strong>
+            <strong>Gestão de Orçamentos</strong>
           </div>
         </div>
 
@@ -97,7 +97,7 @@ export function AppShell({
             </div>
           </div>
           <div className="sidebar__dataset">
-            <span>Base processada</span>
+            <span>Base atualizada</span>
             <strong>{formatDateTime(metadata.generatedAt)}</strong>
           </div>
         </div>

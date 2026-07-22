@@ -225,16 +225,15 @@ export function ConsultaPage({
     <div className="page-stack">
       <header className="page-header">
         <div>
-          <span className="eyebrow">Base operacional</span>
-          <h1>Consulta de OS &amp; Orçamentos</h1>
+          <span className="eyebrow">Consulta operacional</span>
+          <h1>Consulta de Orçamentos</h1>
           <p>
-            Pesquise qualquer ponto do processo: OS, ORC, requisição, pedido,
-            fornecedor, prefixo ou solicitante.
+            Pesquise orçamento, OS, requisição, pedido, fornecedor, prefixo ou solicitante.
           </p>
         </div>
         <button type="button" className="primary-button" onClick={exportCsv}>
           <Download size={18} />
-          Exportar CSV
+          Exportar
         </button>
       </header>
 
@@ -257,7 +256,7 @@ export function ConsultaPage({
             type="search"
             value={search}
             onChange={(event) => setSearch(event.target.value)}
-            placeholder="Pesquisar OS, ORC, requisição, pedido, fornecedor, prefixo..."
+            placeholder="Buscar ORC, OS, requisição, pedido, fornecedor, prefixo..."
             aria-label="Pesquisar registros"
           />
         </div>
@@ -266,7 +265,7 @@ export function ConsultaPage({
           <label>
             <span>Status</span>
             <select value={status} onChange={(event) => setStatus(event.target.value)}>
-              <option value="TODOS">Todos os status</option>
+              <option value="TODOS">Todos</option>
               <option value="FALTA LANÇAMENTO">Falta lançamento</option>
               <option value="FALTA O PEDIDO">Falta pedido</option>
               <option value="FALTA NF">Falta NF</option>
@@ -280,7 +279,7 @@ export function ConsultaPage({
               value={supplier}
               onChange={(event) => setSupplier(event.target.value)}
             >
-              <option value="TODOS">Todos os fornecedores</option>
+              <option value="TODOS">Todos</option>
               {suppliers.map((item) => (
                 <option value={item} key={item}>
                   {item}
@@ -295,7 +294,7 @@ export function ConsultaPage({
               value={requester}
               onChange={(event) => setRequester(event.target.value)}
             >
-              <option value="TODOS">Todos os solicitantes</option>
+              <option value="TODOS">Todos</option>
               {requesters.map((item) => (
                 <option value={item} key={item}>
                   {item}
@@ -311,7 +310,7 @@ export function ConsultaPage({
         </div>
       </section>
 
-      <section className="section-card table-card">
+      <section className="section-card table-card table-card--premium">
         <div className="table-card__header">
           <div>
             <span className="eyebrow">Resultado</span>
