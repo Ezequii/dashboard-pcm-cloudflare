@@ -1,13 +1,6 @@
-name = "dashboard-pcm-cloudflare"
-compatibility_date = "2026-07-07"
-
-[observability]
-enabled = true
+name = "dashboard-orc-lancamentos"
+compatibility_date = "2026-07-22"
 
 [assets]
 directory = "./dist"
-not_found_handling = "404-page"
-
-[build]
-command = "npm run build"
-watch_dir = ["index.html", "404.html", "_headers", "static"]
+not_found_handling = "single-page-application"

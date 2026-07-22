@@ -1,447 +1,162 @@
 <!doctype html>
-<html lang="pt-BR">
+<html lang="pt-BR" class="dark">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <meta name="description" content="Painel executivo e operacional para controle de requisições PCM em 2026." />
-  <meta name="theme-color" content="#123c2f" />
-  <meta name="color-scheme" content="light" />
-  <link rel="manifest" href="/manifest.webmanifest" />
-  <title>AMAGGI PCM Workspace — V201</title>
-  <link rel="icon" type="image/png" href="/static/favicon.png" />
-  <link rel="stylesheet" href="/static/styles_v50_corrigido.css?v=9946" />
-  <link rel="stylesheet" href="/static/styles_v991_faithful.css?v=9946" />
-  <link rel="stylesheet" href="/static/styles_v992_polished.css?v=9946" />
-  <link rel="stylesheet" href="/static/styles_v99_productivity.css?v=9946" />
-  <link rel="stylesheet" href="/static/styles_v994a_hardening.css?v=9946" />
-  <link rel="stylesheet" href="/static/styles_v994a2_audit.css?v=9946" />
-  <link rel="stylesheet" href="/static/styles_v994a2_visual.css?v=12000" />
-  <link rel="stylesheet" href="/static/styles_v994a3_operational_fix.css?v=9946" />
-  <link rel="stylesheet" href="/static/styles_v994a4_top_base_flow.css?v=9946" />
-  <link rel="stylesheet" href="/static/styles_v994a5_lapidacao.css?v=9946" />
-  <link rel="stylesheet" href="/static/styles_v994a6_clean_rankings.css?v=9946" />
-  <link rel="stylesheet" href="/static/styles_v100_quick_filters.css?v=10002" />
-  <link rel="stylesheet" href="/static/styles_v100_empty_states.css?v=10020" />
-  <link rel="stylesheet" href="/static/styles_v100_global_context.css?v=10040" />
-  <link rel="stylesheet" href="/static/styles_v100_base_table.css?v=10050" />
-  <link rel="stylesheet" href="/static/styles_v100_executive_composed.css?v=10100" />
-  <link rel="stylesheet" href="/static/styles_v100_1_usability.css?v=10010" />
-  <link rel="stylesheet" href="/static/styles_v101_resilience.css?v=10100" />
-  <link rel="stylesheet" href="/static/styles_v102_delivery.css?v=10200" />
-  <link rel="stylesheet" href="/static/styles_v103_ops.css?v=10300">
-  <link rel="stylesheet" href="/static/styles_v107_base_cleanup.css?v=10700">
-  <link rel="stylesheet" href="/static/styles_v108_layout_flow.css?v=10800">
-  <link rel="stylesheet" href="/static/styles_v109_professional_responsive.css?v=10900">
-  <link rel="stylesheet" href="/static/styles_v110_header_kpi.css?v=12000">
-  <link rel="stylesheet" href="/static/styles_v111_kpi_system.css?v=11100">
-  <link rel="stylesheet" href="/static/styles_v112_kpi_refinement.css?v=11200">
-  <link rel="stylesheet" href="/static/styles_v113_kpi_content_alignment.css?v=11300">
-  <link rel="stylesheet" href="/static/styles_v115_context_base.css?v=11500">
-  <link rel="stylesheet" href="/static/styles_v200_workspace.css?v=20000" />
-  <link rel="stylesheet" href="/static/styles_v201_tracking.css?v=20100" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#0b1120">
+  <meta name="description" content="Dashboard PCM para acompanhamento do lançamento de ORCs.">
+  <title>PCM · Lançamento de ORC</title>
+  <link rel="stylesheet" href="/static/css/app.css?v=100">
 </head>
-<body class="v86-table-lines v89-simple-filters-search-money v90-layout-safe v91-layout-final v95-header-kpi-polish v97-reliability-navigation v971-runtime-fix v991-faithful v992-polished v993-productivity v994a-hardening v994a2-audited v994a2-visual app-booting v994a3-operational-fix v994a4-top-base-flow v994a5-lapidacao v994a6-clean-rankings v100-base-redesign v100-executive-composed v107-base-cleanup v108-layout-flow v109-professional-responsive v110-header-kpi v111-kpi-system v112-kpi-refinement v113-kpi-content-alignment v114-context-base v115-context-base">
-  <section id="appStatusV103" class="app-status-v103 no-print" aria-label="Status do aplicativo" aria-live="polite">
-    <div id="offlineNoticeV103" class="app-status-v103__item" role="status" hidden>
-      <p class="app-status-v103__text"><strong>Sem conexão.</strong> Os dados atuais não serão substituídos por uma cópia antiga.</p>
-    </div>
-    <div id="updateNoticeV103" class="app-status-v103__item" role="status" hidden>
-      <p class="app-status-v103__text"><strong>Nova versão disponível.</strong> Atualize para receber as correções mais recentes.</p>
-      <button id="applyUpdateV103" class="app-status-v103__action" type="button">Atualizar</button>
-    </div>
-  </section>
-
-  <noscript>
-    <div class="noscript-banner-v102" role="alert">
-      Este dashboard precisa de JavaScript habilitado para carregar e filtrar os dados.
-    </div>
-  </noscript>
-  <a class="skip-link-v994a" href="#mainContent">Pular para o conteúdo</a>
-  <div id="toast" class="toast" role="status" aria-live="polite"></div>
-  <header class="topbar executive-topbar topbar-v33 topbar-v34 topbar-v35 topbar-v36 topbar-v38 topbar-v39 topbar-v40 topbar-v41 topbar-v994a4">
-    <div class="topbar-row topbar-row-main topbar-main-v994a4">
-      <div class="brand brand-amaggi brand-panel brand-v994a4">
-        <div class="brand-logo-box">
-          <img src="/static/logo_amaggi.png" alt="AMAGGI" width="512" height="512" decoding="async" />
-        </div>
-        <div class="brand-copy-v994a4">
-          <div class="brand-title-line">
-            <h1>Controle de Requisições PCM</h1>
-            <span class="version-pill-v34" aria-label="Versão atual">V120</span>
-          </div>
-          <p class="subtitle-top">Controle de lançamento e acompanhamento — 2026</p>
-        </div>
+<body>
+  <main id="uploadScreen" class="upload-shell">
+    <div class="upload-glow glow-a"></div><div class="upload-glow glow-b"></div>
+    <section class="upload-panel" aria-labelledby="uploadTitle">
+      <div class="upload-brand">
+        <span class="brand-mark" aria-hidden="true">PCM</span>
+        <div><strong>PCM</strong><span>ORC Control Center</span></div>
       </div>
-
-      <nav class="dashboard-tabs no-print prominent-tabs inline-tabs tabs-v994a4" role="tablist" aria-label="Navegação do dashboard">
-        <button class="tab-btn active" type="button" role="tab" aria-selected="true" data-tab="visao">
-          <span>Visão Executiva</span>
-          <small>decisão e prioridade</small>
-        </button>
-        <button class="tab-btn" type="button" role="tab" aria-selected="false" data-tab="base">
-          <span>Base de Tratativa</span>
-          <small>registros operacionais</small>
-        </button>
-      </nav>
-
-      <div class="top-actions no-print top-actions-v994a4">
-        <div class="status-cluster-v994a4">
-          <div id="securityContextV994a" class="security-context-v994a security-runtime-only-v994a6" aria-live="polite">
-            <span id="securityRoleV994a">Acesso: verificando</span>
-            <small id="securityClassificationV994a">Dados internos</small>
-          </div>
-          <div class="data-status-group-v994a4">
-            <span id="meta" class="meta-inline-v95" aria-label="Última atualização da base">Carregando...</span>
-            <span id="dataFreshness" class="data-freshness-v97 is-loading" aria-live="polite" title="Situação da atualização da base">
-              <i aria-hidden="true"></i><span>Verificando base...</span>
-            </span>
-          </div>
-          <span id="clock" class="clock clock-v994a4" aria-label="Relógio do sistema"></span>
-        </div>
-
-        <div class="action-cluster-v994a4">
-          <button id="btnRefresh" type="button" class="btn btn-primary" aria-label="Recarregar dados da planilha">Recarregar</button>
-        </div>
+      <div class="upload-heading">
+        <span class="eyebrow">LANÇAMENTO DE ORC</span>
+        <h1 id="uploadTitle">Visão gerencial do fluxo de orçamentos.</h1>
+        <p>Carregue o <strong>Controle de Requisições 2026</strong>. A leitura usa a aba <b>Acompanhamento RC 2026</b> e acontece somente no navegador.</p>
       </div>
-    </div>
-
-  </header>
-
-  <main id="mainContent" tabindex="-1" class="page executive-page page-v33 page-v34 page-v35 page-v38 page-v39 page-v40 page-v41">
-
-    <section id="dataStatusBanner" class="data-status-banner-v97 no-print" role="alert" aria-live="assertive" hidden>
-      <span class="data-status-icon-v97" aria-hidden="true">!</span>
-      <div class="data-status-copy-v994a">
-        <strong id="dataStatusTitle">Não foi possível atualizar os dados</strong>
-        <small id="dataStatusMessage">Tente novamente.</small>
-        <span class="data-error-metadata-v994a">
-          <time id="dataErrorTimeV994a"></time>
-          <span id="lastValidVersionV994a"></span>
-          <span id="lastSuccessTimeV994a"></span>
-        </span>
+      <label id="fileDrop" class="file-drop">
+        <input id="fileInput" type="file" accept=".xlsx">
+        <span class="file-icon" aria-hidden="true">▦</span>
+        <strong id="fileTitle">Selecionar planilha .xlsx</strong>
+        <span id="fileName">CONTROLE_DE_REQUISICOES_2026.xlsx</span>
+        <small>Limite: 30 MB</small>
+      </label>
+      <div class="privacy-note"><span aria-hidden="true">✓</span> Os dados permanecem no dispositivo; o dashboard não exige backend.</div>
+      <div id="uploadError" class="error-banner" role="alert" hidden></div>
+      <div class="upload-actions">
+        <button id="demoBtn" class="secondary-button" type="button">Ver demonstração</button>
+        <button id="openBtn" class="primary-button" type="button" disabled>Abrir dashboard</button>
       </div>
-      <button id="btnRetryData" class="btn btn-small btn-soft" type="button">Tentar novamente</button>
     </section>
-
-    <section
-      id="globalContextBar"
-      class="global-context-v100 no-print"
-      aria-label="Contexto global aplicado"
-    >
-      <strong class="global-context-title-v100">Contexto atual</strong>
-      <dl id="globalContextList" class="global-context-list-v100"></dl>
-
-      <div class="topbar-row topbar-row-filters-v40 no-print filters-row-v994a4">
-        <div class="smart-filter-row executive-filter-row top-inline-filters top-filters-v40" id="mainFilters" aria-label="Filtros principais"></div>
-      </div>
-      <button
-        id="globalContextClearAll"
-        class="global-context-clear-v100"
-        type="button"
-        aria-label="Limpar todo o contexto aplicado"
-      >
-        Limpar tudo
-      </button>
-    </section>
-        <section class="executive-primary-v991" data-panel="visao" aria-label="Indicadores executivos">
-      <button id="kpiValorAndamentoCard" type="button" class="hero-metric-v991 is-value kpi-card-v111" aria-label="Abrir valor em andamento na Base de Tratativa">
-        <span class="hero-icon-v991" aria-hidden="true">
-          <svg viewBox="0 0 24 24"><path d="M12 2v20M17 6.5c0-1.9-1.8-3.2-5-3.2S7 4.6 7 6.5s1.8 3 5 3 5 1.2 5 3.2-1.8 3.5-5 3.5-5-1.4-5-3.5"/></svg>
-        </span>
-        <span class="hero-copy-v991 kpi-copy-v111">
-          <small>Valor em andamento</small>
-          <strong id="kValorPendente">R$ —</strong>
-          <em id="kValorPendenteSub">Carregando dados…</em>
-        </span>
-      </button>
-
-      <button id="kpiPendenciasCard" type="button" class="hero-metric-v991 is-pending kpi-card-v111" aria-label="Abrir ORCs e OSs em andamento na Base de Tratativa">
-        <span class="hero-icon-v991" aria-hidden="true">
-          <svg viewBox="0 0 24 24"><path d="M7 3h8l4 4v14H7zM15 3v5h5M10 12h6M10 16h6"/></svg>
-        </span>
-        <span class="hero-copy-v991 kpi-copy-v111">
-          <small>ORCs/OSs em andamento</small>
-          <strong id="kPendencias">—</strong>
-          <em id="kPendenciasSub">Carregando composição…</em>
-        </span>
-      </button>
-
-      <button id="kpiConcluidoCard" type="button" class="hero-metric-v991 is-complete kpi-card-v111" aria-label="Abrir registros concluídos">
-        <span class="hero-icon-v991" aria-hidden="true">
-          <svg viewBox="0 0 24 24"><path d="M4 20V10M10 20V5M16 20v-8M3 6l6-3 5 4 7-5M18 2h3v3"/></svg>
-        </span>
-        <span class="hero-copy-v991 kpi-copy-v111">
-          <small>Processo concluído</small>
-          <strong id="kPctConcluido">—%</strong>
-          <em id="kConcluidoSub">Carregando dados…</em>
-          <span class="hero-progress-v991" aria-hidden="true"><progress id="completionProgressV991" max="100" value="0"></progress></span>
-        </span>
-      </button>
-
-      <button id="firstFocusV991" type="button" class="hero-focus-v991 kpi-card-v111 kpi-focus-v111" disabled>
-        <span class="hero-icon-v991 focus" aria-hidden="true">
-          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M1 12h4M19 12h4"/></svg>
-        </span>
-        <span class="hero-copy-v991 focus-copy kpi-copy-v111">
-          <small>Primeiro foco recomendado</small>
-          <strong id="focusSupplierV991">Carregando prioridade…</strong>
-          <em id="focusActionV991">Aguardando dados</em>
-          <span id="focusMetaV991">—</span>
-        </span>
-        <span class="hero-open-v991">Abrir na base <b aria-hidden="true">→</b></span>
-      </button>
-
-      <button id="kpiMaisParadoCard" type="button" class="hero-metric-v991 is-oldest oldest-kpi-v110 kpi-card-v111 kpi-oldest-v111">
-        <span class="hero-icon-v991 alert-icon-v991 oldest-icon-v111" aria-hidden="true">
-          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v6l4 2"/></svg>
-        </span>
-        <span class="hero-copy-v991 oldest-copy-v110 kpi-copy-v111 oldest-copy-v111">
-          <small class="oldest-label-v110 kpi-label-v111">Pendência mais antiga</small>
-          <strong id="kMaiorAtraso" class="oldest-value-v96">
-            <span class="oldest-days-number-v96">—</span>
-            <span class="oldest-days-unit-v96">dias</span>
-          </strong>
-          <span id="kMaiorAtrasoSub" class="oldest-context-v96">
-            <span class="oldest-empty-v96">Carregando dados…</span>
-          </span>
-        </span>
-      </button>
-    </section>
-
-    <section class="executive-alerts-v991" data-panel="visao" aria-label="Alertas operacionais">
-      <button id="kpiFocoPcmCard" type="button" class="alert-item-v991 is-pcm">
-        <span class="alert-icon-v991" aria-hidden="true">
-          <svg viewBox="0 0 24 24"><path d="M4 12h16M7 8l-3 4 3 4M17 8l3 4-3 4"/></svg>
-        </span>
-        <span>Fila direta do PCM</span>
-        <strong id="kValorForaSla">R$ —</strong>
-        <small id="kValorForaSlaSub">Carregando dados…</small>
-      </button>
-
-      <button id="farolRegional" type="button" class="alert-item-v991 is-critical">
-        <span class="alert-icon-v991" aria-hidden="true">
-          <svg viewBox="0 0 24 24"><path d="M12 3 2.5 20h19zM12 8v5M12 17h.01"/></svg>
-        </span>
-        <span>Críticas acima de 30 dias</span>
-        <strong id="kFarolStatus">—</strong>
-        <small id="kFarolSub">Carregando dados…</small>
-      </button>
-
-    </section>
-
-    <section class="operations-grid-v991" data-panel="visao" aria-label="Indicadores operacionais">
-      <article class="operations-panel-v991 flow-panel-v991">
-        <header class="panel-title-v991">
-          <div>
-            <h2>Fluxo do processo</h2>
-            <p>Quantidade, valor e tempo de cada etapa</p>
-          </div>
-          <small>Clique em uma etapa para abrir os registros</small>
-        </header>
-        <div id="processCards" class="process-flow-v991" aria-live="polite">
-          <div class="panel-loading-v971" role="status">Carregando etapas…</div>
-        </div>
-      </article>
-
-      <article class="operations-panel-v991 queue-panel-v991">
-        <header class="panel-title-v991">
-          <div>
-            <h2>Fila prioritária do PCM</h2>
-          </div>
-          <small>Ordenada por etapa, idade e valor</small>
-        </header>
-        <div id="topPrioridades" class="priority-list-v991" aria-live="polite">
-          <div class="panel-loading-v971" role="status">Carregando fila…</div>
-        </div>
-        <button id="openAllPrioritiesV991" type="button" class="panel-footer-link-v991">
-          Ver todas as pendências na base <span aria-hidden="true">→</span>
-        </button>
-      </article>
-
-    </section>
-    <section class="executive-lower-v100" data-panel="visao" aria-label="Análises executivas complementares">
-    <section class="ranking-grid-v991 ranking-grid-v994a6">
-      <div class="ranking-scopebar-v994a6">
-        <div class="ranking-scope-copy-v994a6">
-          <strong>Top 3 do contexto</strong>
-          <small id="rankingScopeDescriptionV994a6">Visão geral de todos os registros.</small>
-        </div>
-        <div class="ranking-scope-toggle-v994a6" role="group" aria-label="Contexto dos rankings">
-          <button type="button" class="is-active" data-ranking-scope="all" aria-pressed="true">Geral</button>
-          <button type="button" data-ranking-scope="pending" aria-pressed="false">Em andamento</button>
-        </div>
-      </div>
-
-      <article class="ranking-panel-v991 ranking-panel-v994a6">
-        <header class="ranking-head-v991">
-          <div>
-            <small>Concentração financeira</small>
-            <h2 id="supplierRankingTitleV994a6">Fornecedores com maior valor geral</h2>
-          </div>
-          <span>Clique para abrir a base filtrada</span>
-        </header>
-        <div class="ranking-columns-v991" aria-hidden="true">
-          <span>#</span><span>Fornecedor</span><span>Registros</span><span>Valor</span>
-        </div>
-        <div id="actionNowList" class="ranking-list-v991" aria-live="polite">
-          <div class="panel-loading-v971" role="status">Carregando fornecedores…</div>
-        </div>
-        <button id="openAllSuppliersV991" type="button" class="ranking-footer-v991">
-          Ver todos os fornecedores <span aria-hidden="true">→</span>
-        </button>
-      </article>
-
-      <article class="ranking-panel-v991 ranking-panel-v994a6">
-        <header class="ranking-head-v991">
-          <div>
-            <small>Origem da demanda</small>
-            <h2 id="requesterRankingTitleV994a6">Solicitantes com maior valor geral</h2>
-          </div>
-          <span>Clique para abrir a base filtrada</span>
-        </header>
-        <div class="ranking-columns-v991" aria-hidden="true">
-          <span>#</span><span>Solicitante</span><span>Registros</span><span>Valor</span>
-        </div>
-        <div id="ownersCriticos" class="ranking-list-v991" aria-live="polite">
-          <div class="panel-loading-v971" role="status">Carregando solicitantes…</div>
-        </div>
-        <button id="openAllRequestersV991" type="button" class="ranking-footer-v991">
-          Ver todos os solicitantes <span aria-hidden="true">→</span>
-        </button>
-      </article>
-    </section>
-    </section>
-
-<section id="baseTableRegion" class="table-card table-card-compact" data-panel="base" aria-labelledby="basePanelTitle" aria-busy="false" hidden>
-      <div class="table-head">
-        <div class="base-title-summary-v114">
-          <h3 id="basePanelTitle" tabindex="-1">Registros</h3>
-          <p id="tableCounter">0 registros</p>
-          <p id="baseTableStatusLive" class="sr-only-v100" aria-live="polite" aria-atomic="true"></p>
-          <small id="baseOverviewHintV991" class="base-operational-summary-v114">Carregando resumo operacional…</small>
-          <small class="leader-table-note">Use busca e filtros para localizar a tratativa necessária.</small>
-        </div>
-        <div class="table-tools no-print">
-          <div class="smart-search-v89" role="search" aria-label="Pesquisa da base">
-            <label class="search-scope-v89">
-              <span>Buscar por</span>
-              <select id="searchScope" aria-label="Escolher onde pesquisar">
-                <option value="ALL">Geral — nomes e números</option>
-                <option value="DOCUMENTO">ORC / OS / NF</option>
-                <option value="PEDIDO">Pedido</option>
-                <option value="FORNECEDOR">Fornecedor</option>
-                <option value="SOLICITANTE">Solicitante</option>
-                <option value="EQUIPAMENTO">Equipamento / Prefixo</option>
-              </select>
-            </label>
-            <label class="table-search">
-              <span>O que você quer encontrar?</span>
-              <input id="globalSearch" type="search" autocomplete="off" placeholder="Digite um número, nome ou equipamento..." />
-            </label>
-            <div class="search-actions-v107">
-              <button id="btnToggleAdvancedSearch" class="btn btn-small btn-soft advanced-toggle" type="button" aria-expanded="false">Filtros avançados</button>
-              <button id="btnClearSearch" class="btn btn-small btn-soft search-clear-v89" type="button" hidden>Limpar</button>
-            </div>
-            <div class="pager pager-v108" role="group" aria-label="Paginação da base">
-              <label for="pageSize">Exibir</label>
-              <select id="pageSize" aria-label="Quantidade de registros por página"><option>50</option><option>100</option><option selected>200</option><option>300</option></select>
-              <button id="prevPage" type="button" class="btn btn-small" aria-label="Ir para a página anterior">Anterior</button>
-              <span id="pageInfo" aria-live="polite">1/1</span>
-              <button id="nextPage" type="button" class="btn btn-small" aria-label="Ir para a próxima página">Próxima</button>
-            </div>
-            <small id="searchHelp" class="search-help-v89">Escolha o tipo e digite o dado. Para ORC, OS, pedido ou NF, prefira o número completo.</small>
-          </div>
-          <div id="advancedSearchPanel" class="advanced-search no-print" aria-label="Busca avançada" hidden>
-            <label><span>Recebido de</span><input id="advDateFrom" type="date" /></label>
-            <label><span>Até</span><input id="advDateTo" type="date" /></label>
-            <label><span>Valor mín.</span><input id="advValueMin" type="number" min="0" step="0.01" placeholder="R$" /></label>
-            <label><span>Valor máx.</span><input id="advValueMax" type="number" min="0" step="0.01" placeholder="R$" /></label>
-            <button id="btnClearAdvanced" class="btn btn-small btn-soft" type="button">Limpar busca avançada</button>
-          </div>
-        </div>
-      </div>
-
-      <section class="productivity-toolbar-v99 no-print" aria-label="Ferramentas de produtividade">
-        <div class="productivity-actions-v99">
-          <button id="btnColumnsV99" class="productivity-button-v99" type="button">
-            <span aria-hidden="true">▥</span>
-            Colunas
-          </button>
-          <button id="btnExportExcelTableV99" class="productivity-button-v99 is-primary" type="button">
-            <span aria-hidden="true">X</span>
-            Exportar Excel
-          </button>
-        </div>
-        <div id="productivityStateV99" class="productivity-state-v99" aria-live="polite">
-          Colunas padrão visíveis
-        </div>
-      </section>
-
-      <div class="table-wrap table-wrap-compact">
-        <table id="dataTable"><thead></thead><tbody></tbody></table>
-      </div>
-      <p class="table-hint no-print">Ordem padrão: sem lançamento → sem pedido → sem NF → concluído. Prioridade, tempo e identificação aparecem primeiro; clique em uma linha para abrir os detalhes completos.</p>
-    </section>
-
-    <footer class="footer-credit">
-      Desenvolvido por <strong>Ezequiel Caetano</strong>
-    </footer>
   </main>
 
-  <dialog id="columnsDialogV99" class="modal-v99 no-print">
-    <form method="dialog" class="modal-card-v99 is-wide">
-      <header>
-        <div>
-          <small>Produtividade operacional</small>
-          <h2>Colunas configuráveis</h2>
-          <p>Mostre, oculte e reorganize as colunas da Base de Tratativa.</p>
+  <div id="appShell" class="app-shell" hidden>
+    <aside class="sidebar">
+      <div class="sidebar-brand">
+        <span class="brand-mark small" aria-hidden="true">PCM</span>
+        <div><strong>PCM</strong><span>ORC Control Center</span></div>
+      </div>
+      <nav aria-label="Navegação principal">
+        <button class="nav-item is-active" data-view="overview" type="button"><span aria-hidden="true">◫</span><strong>Visão Geral</strong></button>
+        <button class="nav-item" data-view="consulta" type="button"><span aria-hidden="true">▤</span><strong>Consulta</strong></button>
+      </nav>
+      <div class="sidebar-footer">V1 · ORC</div>
+    </aside>
+
+    <div class="app-main">
+      <header class="topbar">
+        <div class="topbar-title"><span>PAINEL PCM</span><strong>Lançamento de ORC</strong></div>
+        <div class="topbar-actions">
+          <div id="datasetBadge" class="dataset-badge">— registros</div>
+          <button id="themeBtn" class="icon-button" type="button" aria-label="Alternar tema">☀</button>
+          <button id="changeBaseBtn" class="secondary-button compact" type="button">Trocar base</button>
         </div>
-        <button class="modal-close-v99" value="cancel" aria-label="Fechar">×</button>
       </header>
-      <div class="modal-body-v99">
-        <div id="columnsListV99" class="columns-list-v99"></div>
-      </div>
-      <footer>
-        <button id="btnResetColumnsV99" type="button" class="btn btn-soft">Restaurar padrão</button>
-        <button value="cancel" class="btn btn-soft">Cancelar</button>
-        <button id="btnApplyColumnsV99" type="button" class="btn btn-primary">Aplicar colunas</button>
-      </footer>
-    </form>
-  </dialog>
 
-  <div id="detailsBackdropV99" class="details-backdrop-v99 no-print" hidden></div>
-  <aside id="detailsDrawerV99" class="details-drawer-v99 no-print" aria-hidden="true" aria-label="Detalhes da ORC ou ordem de serviço">
-    <header>
-      <div>
-        <small>Detalhes da ORC / OS</small>
-        <h2 id="detailsTitleV99">Registro</h2>
-        <p id="detailsSubtitleV99">Dados completos da linha selecionada</p>
-      </div>
-      <button id="btnCloseDetailsV99" type="button" aria-label="Fechar gaveta">×</button>
-    </header>
-    <div class="details-actions-v99">
-      <button id="btnPreviousDetailV99" type="button">← Anterior</button>
-      <button id="btnNextDetailV99" type="button">Próxima →</button>
-      <button id="btnCopyRowV99" type="button">Copiar ORC/OS</button>
-      <button id="btnCopyRowSummaryV99" type="button">Copiar resumo</button>
+      <section class="filters-bar" aria-label="Filtros globais">
+        <label class="search-field"><span aria-hidden="true">⌕</span><input id="globalSearch" type="search" aria-label="Busca geral" placeholder="Buscar ORC, RC, pedido, fornecedor, prefixo..."></label>
+        <div class="filter-grid">
+          <label class="filter-field"><span>Status</span><select id="filterStatus"><option value="">Todos</option></select></label>
+          <label class="filter-field"><span>Fornecedor</span><select id="filterFornecedor"><option value="">Todos</option></select></label>
+          <label class="filter-field"><span>Solicitante</span><select id="filterSolicitante"><option value="">Todos</option></select></label>
+          <label class="filter-field"><span>Mês recebimento</span><select id="filterMes"><option value="">Todos</option></select></label>
+        </div>
+        <button id="resetFilters" class="icon-button reset-button" type="button" aria-label="Limpar filtros" title="Limpar filtros">↻</button>
+        <div id="activeFilters" class="active-filters" hidden></div>
+      </section>
+
+      <main class="page-content">
+        <section id="overviewView" class="page-stack">
+          <div class="page-heading"><div><span class="eyebrow">VISÃO GERAL</span><h1>Lançamento de ORC</h1><p>Recebimentos, pendências e avanço do processo em uma única leitura.</p></div></div>
+
+          <section class="kpi-grid four" aria-label="Indicadores principais">
+            <article class="kpi-card"><span class="kpi-icon blue">▦</span><span><small>Registros no contexto</small><strong id="kpiTotal">—</strong><em>Controle filtrado</em></span></article>
+            <button id="kpiPendingBtn" type="button" class="kpi-card clickable tone-red"><span class="kpi-icon">!</span><span><small>Falta lançamento</small><strong id="kpiPending">—</strong><em id="kpiPendingSub">—</em></span></button>
+            <article class="kpi-card tone-amber"><span class="kpi-icon">R$</span><span><small>Valor a lançar</small><strong id="kpiPendingValue">—</strong><em>Somatório das ORCs pendentes</em></span></article>
+            <article class="kpi-card tone-green"><span class="kpi-icon">◷</span><span><small>Tempo médio de lançamento</small><strong id="kpiLeadTime">—</strong><em>Recebimento → lançamento</em></span></article>
+          </section>
+
+          <section class="stage-panel">
+            <header><div><span class="eyebrow">FLUXO OPERACIONAL</span><h2>Onde estão as ORCs agora</h2></div><small>Clique em uma etapa para filtrar</small></header>
+            <div id="stageGrid" class="stage-grid"></div>
+          </section>
+
+          <section class="charts-grid two">
+            <article class="chart-card"><header><h3>Pendentes por solicitante</h3><p>Somente ORCs aguardando lançamento</p></header><div id="requesterChart" class="bar-chart"></div></article>
+            <article class="chart-card"><header><h3>Pendentes por fornecedor</h3><p>Concentração das ORCs que ainda não foram lançadas</p></header><div id="supplierChart" class="bar-chart"></div></article>
+            <article class="chart-card"><header><h3>Idade das pendências</h3><p>Dias desde o recebimento</p></header><div id="ageChart" class="column-chart"></div></article>
+            <article class="chart-card"><header><h3>Recebimentos × lançamentos</h3><p>Evolução mensal do volume</p></header><div id="timelineChart" class="timeline-chart"></div></article>
+          </section>
+
+          <section class="action-card">
+            <header><div><span class="eyebrow">FILA DE AÇÃO</span><h2>ORCs mais antigas sem lançamento</h2><p>Prioridade operacional pela idade da pendência.</p></div><span class="action-alert" aria-hidden="true">!</span></header>
+            <div id="actionList" class="action-list"></div>
+          </section>
+        </section>
+
+        <section id="consultaView" class="page-stack" hidden>
+          <div class="page-heading consultation-heading">
+            <div><span class="eyebrow">CONSULTA</span><h1>Base de ORCs</h1><p>Pesquisa, ordenação, exportação e detalhes completos do processo.</p></div>
+            <div class="export-actions">
+              <button id="exportCsvBtn" class="secondary-button compact" type="button">CSV</button>
+              <button id="exportExcelBtn" class="primary-button compact" type="button">Excel</button>
+            </div>
+          </div>
+          <section class="table-card">
+            <div class="table-toolbar">
+              <label class="search-field table-search"><span aria-hidden="true">⌕</span><input id="tableSearch" type="search" aria-label="Pesquisar na consulta" placeholder="Buscar na tabela..."></label>
+              <span id="tableCount">— registros</span>
+            </div>
+            <div class="table-scroll">
+              <table>
+                <thead><tr>
+                  <th><button data-sort="dataRecebimento">Recebimento</button></th>
+                  <th><button data-sort="dataLancamento">Lançamento</button></th>
+                  <th><button data-sort="numeroOrc">ORC</button></th>
+                  <th><button data-sort="fornecedor">Fornecedor</button></th>
+                  <th><button data-sort="solicitante">Solicitante</button></th>
+                  <th><button data-sort="prefixo">Prefixo</button></th>
+                  <th><button data-sort="equipamento">Equipamento</button></th>
+                  <th><button data-sort="numeroRequisicao">Requisição</button></th>
+                  <th><button data-sort="numeroPedido">Pedido</button></th>
+                  <th><button data-sort="valorTotal">Valor total</button></th>
+                  <th><button data-sort="status">Status</button></th>
+                  <th><button data-sort="diasAguardando">Dias ORC</button></th>
+                  <th><span class="table-action-heading">Detalhes</span></th>
+                </tr></thead>
+                <tbody id="tableBody"></tbody>
+              </table>
+            </div>
+            <div class="pagination">
+              <button id="prevPage" type="button">Anterior</button><span id="pageInfo">Página 1 de 1</span><button id="nextPage" type="button">Próxima</button>
+            </div>
+          </section>
+        </section>
+      </main>
     </div>
-    <div id="detailsContentV99" class="details-content-v99"></div>
-  </aside>
+  </div>
 
-  <script src="/static/js/app-config.js?v=12000"></script>
-  <script src="/static/js/state.js?v=9946"></script>
-  <script src="/static/js/utils.js?v=9946"></script>
-  <script src="/static/js/security-v994a.js?v=9946"></script>
-  <script src="/static/js/api.js?v=9946"></script>
-  <script src="/static/js/filters.js?v=10040"></script>
-  <script src="/static/js/dashboard.js?v=9946"></script>
-  <script src="/static/js/table.js?v=10050"></script>
-  <script src="/static/js/xlsx-v99.js?v=9946"></script>
-  <script src="/static/js/productivity-v99.js?v=12000"></script>
-  <script src="/static/js/core.js?v=12000"></script>
-  <script src="/static/js/main.js?v=10200"></script>
-  <script src="/static/js/pwa-v103.js?v=10300"></script>
-  <script src="/static/js/workspace-v200.js?v=20001"></script>
-  <script src="/static/js/workspace-v201.js?v=20100"></script>
+  <div id="drawerOverlay" class="drawer-overlay" hidden>
+    <aside id="detailDrawer" class="detail-drawer" role="dialog" aria-modal="true" aria-labelledby="drawerTitle">
+      <header class="drawer-header">
+        <div><span class="eyebrow">DETALHES DA ORC</span><h2 id="drawerTitle">ORC —</h2><p id="drawerSubtitle">—</p></div>
+        <button id="closeDrawer" class="icon-button" type="button" aria-label="Fechar detalhes">×</button>
+      </header>
+      <div id="drawerSummary" class="drawer-summary"></div>
+      <div class="drawer-nav"><button id="drawerPrev" type="button">← Anterior</button><button id="drawerNext" type="button">Próxima →</button></div>
+      <div id="detailGrid" class="detail-grid"></div>
+    </aside>
+  </div>
+
+  <script src="/static/js/xlsx-reader.js?v=100"></script>
+  <script src="/static/js/xlsx-exporter.js?v=100"></script>
+  <script src="/static/js/app.js?v=100"></script>
 </body>
 </html>
