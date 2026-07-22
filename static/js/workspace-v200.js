@@ -43,7 +43,16 @@
   main.append(overview,tracking,analytics,imports,settings);
   const modal=document.createElement('div'); modal.className='ws-modal'; modal.id='wsModal'; modal.innerHTML=`<div class="ws-palette"><input id="wsPaletteInput" placeholder="Pesquisar requisição, ORC, pedido, fornecedor..."><p>Digite para pesquisar. A busca usa a base operacional já existente.</p></div>`; document.body.append(modal);
   const names={overview:'Visão Geral',tracking:'Acompanhamento',analytics:'Análises',imports:'Importações',settings:'Configurações'};
-  function show(v){qa('.ws-view').forEach(x=>x.classList.toggle('is-active',x.dataset.wsPanel===v));qa('.ws-nav button').forEach(x=>x.classList.toggle('is-active',x.dataset.wsView===v));q('#wsCrumb').textContent=names[v]; if(v==='tracking') setTimeout(()=>q('#wsTrackSearch')?.focus(),50)}
+  function show(v){
+    qa('.ws-view').forEach(x=>x.classList.toggle('is-active',x.dataset.wsPanel===v));
+    qa('.ws-nav button').forEach(x=>x.classList.toggle('is-active',x.dataset.wsView===v));
+    q('#wsCrumb').textContent=names[v];
+    if(typeof window.switchTab==='function'){
+      if(v==='tracking') window.switchTab('base');
+      else if(v==='overview') window.switchTab('visao',{loadRowsNow:false});
+    }
+    if(v==='tracking') setTimeout(()=>q('#wsTrackSearch')?.focus(),50);
+  }
   qa('[data-ws-view]').forEach(b=>b.onclick=()=>show(b.dataset.wsView)); qa('[data-jump]').forEach(b=>b.onclick=()=>show(b.dataset.jump));
   q('#wsTheme').onclick=()=>{const d=document.documentElement; const dark=d.dataset.wsTheme==='dark'; d.dataset.wsTheme=dark?'light':'dark'; localStorage.setItem('pcm-ws-theme',d.dataset.wsTheme)};
   document.documentElement.dataset.wsTheme=localStorage.getItem('pcm-ws-theme')||'light';
