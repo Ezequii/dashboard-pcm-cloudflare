@@ -13,6 +13,8 @@ const STATIC_RULES = [
   { directory: "static", extension: ".css" },
   { directory: "static", extension: ".png" },
   { directory: "static/js", extension: ".js" },
+  { directory: "static/pcm-app", extension: ".css" },
+  { directory: "static/pcm-app", extension: ".js" },
   { directory: "static/config", extension: ".json" },
 ];
 const DATA_FILES = [
